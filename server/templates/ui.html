@@ -505,14 +505,22 @@
         .replaceAll("'", "&#39;");
     }
 
+    function tokenizeForDiff(text) {
+      return (text || "").match(/[A-Za-z0-9_]+|[^\sA-Za-z0-9_]+/g) || [];
+    }
+
+    function normalizeDiffToken(token) {
+      return String(token || "").toLowerCase();
+    }
+
     function diffWords(original, optimized) {
-      const a = (original || "").trim() ? (original || "").trim().split(/\s+/) : [];
-      const b = (optimized || "").trim() ? (optimized || "").trim().split(/\s+/) : [];
+      const a = tokenizeForDiff(original);
+      const b = tokenizeForDiff(optimized);
       const dp = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
 
       for (let i = a.length - 1; i >= 0; i--) {
         for (let j = b.length - 1; j >= 0; j--) {
-          if (a[i] === b[j]) {
+          if (normalizeDiffToken(a[i]) === normalizeDiffToken(b[j])) {
             dp[i][j] = dp[i + 1][j + 1] + 1;
           } else {
             dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
@@ -525,7 +533,7 @@
       let i = 0;
       let j = 0;
       while (i < a.length && j < b.length) {
-        if (a[i] === b[j]) {
+        if (normalizeDiffToken(a[i]) === normalizeDiffToken(b[j])) {
           const safe = escapeHtml(a[i]);
           left.push(safe);
           right.push(safe);
@@ -550,8 +558,8 @@
       }
 
       return {
-        originalHtml: left.join(" "),
-        optimizedHtml: right.join(" "),
+        originalHtml: left.join(" ").replace(/\s+([,.;:!?])/g, "$1"),
+        optimizedHtml: right.join(" ").replace(/\s+([,.;:!?])/g, "$1"),
       };
     }
 
