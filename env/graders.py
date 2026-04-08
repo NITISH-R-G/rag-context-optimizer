@@ -83,6 +83,7 @@ class TaskGrader:
     def _answer_quality(self, answer: str, required_chunks: list[Chunk]) -> float:
         answer_terms = _content_terms(answer)
         required_terms = _content_terms(" ".join(chunk.text for chunk in required_chunks))
+        required_terms |= _content_terms(" ".join(" ".join(chunk.keywords) for chunk in required_chunks))
         if not answer_terms or not required_terms:
             return 0.0
         union = answer_terms | required_terms
@@ -117,8 +118,8 @@ class TaskGrader:
         task: Task,
     ) -> GraderResult:
         normalized_selected = {_normalize_chunk_id(chunk_id) for chunk_id in selected_chunk_ids}
-        relevant = retriever.get_ground_truth_relevant(task.query, threshold=0.3)
-        relevant = self._filter_relevant_by_domain(relevant, retriever, task)
+        normalized_required = {_normalize_chunk_id(chunk_id) for chunk_id in task.required_chunk_ids}
+        relevant = self._filter_relevant_by_domain(normalized_required, retriever, task)
 
         retrieval_precision = _f1_score(normalized_selected, relevant)
         token_efficiency = 1.0 - (total_tokens_used / token_budget) if total_tokens_used <= token_budget else 0.0
@@ -127,7 +128,6 @@ class TaskGrader:
         required_chunks = self._required_chunks(retriever, task)
         answer_quality = self._answer_quality(answer, required_chunks)
 
-        normalized_required = {_normalize_chunk_id(chunk_id) for chunk_id in task.required_chunk_ids}
         normalized_expected_citations = {
             _normalize_chunk_id(chunk_id)
             for chunk_id in (task.expected_citation_ids or task.required_chunk_ids)
@@ -141,8 +141,9 @@ class TaskGrader:
         selected_chunks = [
             chunk for chunk in retriever.corpus if chunk.chunk_id in normalized_selected
         ]
+        evidence_chunks = selected_chunks or required_chunks
         citation_accuracy = self._citation_accuracy(answer, normalized_selected, normalized_expected_citations)
-        unsupported_claim_rate = self._unsupported_claim_rate(answer, selected_chunks)
+        unsupported_claim_rate = self._unsupported_claim_rate(answer, evidence_chunks)
         hallucination_penalty = min(1.0, unsupported_claim_rate)
 
         base_score = (

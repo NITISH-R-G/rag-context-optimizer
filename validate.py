@@ -6,7 +6,9 @@ import signal
 import socket
 import subprocess
 import sys
+import threading
 import time
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 import httpx
@@ -117,24 +119,80 @@ def run_task(client: httpx.Client, base_url: str, task_name: str) -> tuple[bool,
 
 
 def run_inference_script(base_url: str) -> bool:
-    env = os.environ.copy()
-    env["RAG_ENV_URL"] = base_url
-    env["ALLOW_BASELINE_FALLBACK"] = "1"
-    env["API_BASE_URL"] = "http://127.0.0.1:9/v1"
-    env["API_KEY"] = "offline-validation-token"
-    process = subprocess.run(
-        [sys.executable, "inference.py"],
-        cwd=PROJECT_ROOT,
-        capture_output=True,
-        text=True,
-        timeout=120,
-        env=env,
-    )
-    stdout = process.stdout or ""
-    has_start = "[START]" in stdout
-    has_end = "[END]" in stdout
-    end_has_score = " score=" in stdout
-    return process.returncode == 0 and has_start and has_end and end_has_score
+    proxy_port = find_free_port()
+    requests_seen: list[dict[str, str | None]] = []
+
+    class ProxyHandler(BaseHTTPRequestHandler):
+        def do_POST(self):
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length).decode("utf-8")
+            requests_seen.append(
+                {
+                    "path": self.path,
+                    "authorization": self.headers.get("Authorization"),
+                    "body": body,
+                }
+            )
+            payload = {
+                "id": "chatcmpl-validate",
+                "object": "chat.completion",
+                "created": int(time.time()),
+                "model": "validator-proxy",
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {
+                            "role": "assistant",
+                            "content": json.dumps(
+                                {
+                                    "action_type": "submit_answer",
+                                    "answer": "Validated via proxy [support_003]",
+                                }
+                            ),
+                        },
+                        "finish_reason": "stop",
+                    }
+                ],
+            }
+            encoded = json.dumps(payload).encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(encoded)))
+            self.end_headers()
+            self.wfile.write(encoded)
+
+        def log_message(self, format: str, *args):
+            return
+
+    proxy_server = HTTPServer(("127.0.0.1", proxy_port), ProxyHandler)
+    proxy_thread = threading.Thread(target=proxy_server.serve_forever, daemon=True)
+    proxy_thread.start()
+
+    try:
+        env = os.environ.copy()
+        env["RAG_ENV_URL"] = base_url
+        env.pop("ALLOW_BASELINE_FALLBACK", None)
+        env["API_BASE_URL"] = f"http://127.0.0.1:{proxy_port}/v1"
+        env["API_KEY"] = "offline-validation-token"
+        env["HF_TOKEN"] = "legacy-should-not-win"
+        process = subprocess.run(
+            [sys.executable, "inference.py"],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            timeout=120,
+            env=env,
+        )
+        stdout = process.stdout or ""
+        has_start = "[START]" in stdout
+        has_end = "[END]" in stdout
+        end_has_score = " score=" in stdout
+        proxy_called = any(request["path"] == "/v1/chat/completions" for request in requests_seen)
+        auth_ok = any(request["authorization"] == "Bearer offline-validation-token" for request in requests_seen)
+        return process.returncode == 0 and has_start and has_end and end_has_score and proxy_called and auth_ok
+    finally:
+        proxy_server.shutdown()
+        proxy_server.server_close()
 
 
 def main() -> int:

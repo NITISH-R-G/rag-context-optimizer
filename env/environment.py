@@ -58,7 +58,8 @@ class RagContextOptimizerEnv:
         self._corpus_path = resolve_corpus_path(explicit_path, family=None if explicit_path else self._corpus_family)
         self._all_chunks = load_corpus(self._corpus_path)
         self._query_overridden = bool(query_override and query_override.strip())
-        self._project_chunks = self._load_project_chunks()
+        self._include_project_chunks = os.getenv("ENABLE_PROJECT_CORPUS", "").strip().lower() in {"1", "true", "yes"}
+        self._project_chunks = self._load_project_chunks() if self._include_project_chunks else []
         self.retriever = HybridRetriever(self._all_chunks + self._project_chunks)
         self.context_tuner = ContextTunedPlanner(
             self.retriever,
@@ -217,7 +218,7 @@ class RagContextOptimizerEnv:
             "platform_reliability_release_engineering": "Platform Reliability & Release Engineering",
         }
         if self._query_overridden:
-            if self._is_project_query(task.query):
+            if self._include_project_chunks and self._is_project_query(task.query):
                 return list(self._all_chunks) + list(self._project_chunks)
             return list(self._all_chunks)
         if task.domain_filter is None:
@@ -236,7 +237,7 @@ class RagContextOptimizerEnv:
         for chunk in chunks:
             tuned = tuning.tuned_scores.get(chunk.chunk_id)
             score = tuned.final_score if tuned is not None else self.retriever.hybrid_score(query, chunk)
-            if self._query_overridden and chunk.domain.startswith("Project"):
+            if self._include_project_chunks and self._query_overridden and chunk.domain.startswith("Project"):
                 score = min(1.0, score + 0.08)
             scored.append((chunk, score))
         scored.sort(key=lambda item: (-item[1], item[0].tokens, item[0].chunk_id))
@@ -248,7 +249,7 @@ class RagContextOptimizerEnv:
         floor = max(0.12, best_score * 0.38)
         filtered_pairs = [(chunk, score) for chunk, score in capped if score >= floor]
 
-        if self._query_overridden:
+        if self._include_project_chunks and self._query_overridden:
             project_pairs = [(chunk, score) for chunk, score in filtered_pairs if chunk.domain.startswith("Project")]
             if len(project_pairs) >= 4:
                 filtered_pairs = project_pairs + [

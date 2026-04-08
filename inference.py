@@ -222,7 +222,7 @@ async def _post_json(http_client: httpx.AsyncClient, path: str, payload: dict[st
     return response.json()
 
 
-async def _run_task_http(task_name: str) -> tuple[float, list[float], int]:
+async def _run_task_http(task_name: str) -> tuple[float, list[float], int, bool]:
     rewards: list[float] = []
     steps = 0
     success = False
@@ -253,7 +253,7 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int]:
             flush=True,
         )
         print("[END] success=false steps=0 score=0.000 rewards=")
-        return 0.0, [], 0
+        return 0.0, [], 0, False
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as http_client:
@@ -276,7 +276,7 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int]:
                         print(
                             f"[END] success=false steps={steps} score={_clamp_score(score):.3f} rewards={_format_rewards(rewards)}",
                         )
-                        return score, rewards, steps
+                        return score, rewards, steps, False
                     print(
                         f"[warn] Falling back to deterministic policy for {task_name}: {fallback_reason}",
                         file=sys.stderr,
@@ -317,27 +317,30 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int]:
             print(
                 f"[END] success={_format_bool(success)} steps={steps} score={score:.3f} rewards={_format_rewards(rewards)}"
             )
-            return score, rewards, steps
+            return score, rewards, steps, success
     except Exception:
         score = _clamp_score(score)
         print(
             f"[END] success=false steps={steps} score={score:.3f} rewards={_format_rewards(rewards)}"
         )
-        return score, rewards, steps
+        return score, rewards, steps, False
 
 
-def run_task(task_name: str) -> tuple[float, list[float], int]:
+def run_task(task_name: str) -> tuple[float, list[float], int, bool]:
     return asyncio.run(_run_task_http(task_name))
 
 
-def main() -> None:
+def main() -> int:
     if RAG_ENV_TASK in TASK_SEQUENCE:
         tasks = [RAG_ENV_TASK] + [task for task in TASK_SEQUENCE if task != RAG_ENV_TASK]
     else:
         tasks = list(TASK_SEQUENCE)
+    all_success = True
     for task_name in tasks:
-        run_task(task_name)
+        _score, _rewards, _steps, success = run_task(task_name)
+        all_success &= success
+    return 0 if all_success else 1
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
