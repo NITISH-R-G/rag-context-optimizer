@@ -6,19 +6,19 @@
   <title>Enterprise Context Optimizer</title>
     <style>
       :root {
-        --bg: #f5f5f7;
-        --panel: rgba(255, 255, 255, 0.78);
-        --panel-strong: rgba(255, 255, 255, 0.92);
-        --ink: #1d1d1f;
-        --muted: #6e6e73;
-        --line: rgba(29, 29, 31, 0.08);
-        --line-strong: rgba(29, 29, 31, 0.12);
-        --accent: #0071e3;
-        --accent-deep: #0058b9;
-        --good: #177245;
-        --warn: #9a6700;
-        --error: #b42318;
-        --shadow: 0 18px 48px rgba(0, 0, 0, 0.08);
+        --bg: #050505;
+        --panel: #0d0d0d;
+        --panel-strong: #111111;
+        --ink: #f5f5f5;
+        --muted: #9a9a9a;
+        --line: #222222;
+        --line-strong: #303030;
+        --accent: #ffffff;
+        --accent-deep: #d9d9d9;
+        --good: #8cf0b0;
+        --warn: #f2d27a;
+        --error: #ff8e8e;
+        --shadow: none;
       }
       * { box-sizing: border-box; }
       html, body {
@@ -26,68 +26,55 @@
       }
       body {
         margin: 0;
-        font-family: "SF Pro Display", "SF Pro Text", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         color: var(--ink);
-        background:
-          radial-gradient(circle at top, rgba(255, 255, 255, 0.95), rgba(245, 245, 247, 0) 38%),
-          linear-gradient(180deg, #fbfbfd 0%, var(--bg) 100%);
+        background: var(--bg);
         letter-spacing: -0.01em;
       }
       .shell {
-        max-width: 1440px;
+        max-width: 1600px;
         margin: 0 auto;
-        padding: 20px 20px 24px;
+        padding: 20px;
         min-height: 100vh;
         display: grid;
-        grid-template-rows: auto auto minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
         gap: 16px;
       }
       .card {
         background: var(--panel);
         border: 1px solid var(--line);
-        border-radius: 28px;
+        border-radius: 18px;
         box-shadow: var(--shadow);
-        padding: 24px;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        padding: 20px;
       }
       h1, h2, h3, p { margin-top: 0; }
       h1 {
-        font-size: clamp(2.2rem, 5vw, 3.6rem);
-        line-height: 1.02;
+        font-size: clamp(1.8rem, 4vw, 2.6rem);
+        line-height: 1.05;
         font-weight: 700;
-        letter-spacing: -0.04em;
-        margin-bottom: 14px;
+        letter-spacing: -0.03em;
+        margin-bottom: 8px;
       }
       h3 {
         font-size: 1.1rem;
         letter-spacing: -0.02em;
       }
-      .hero {
-        display: grid;
-        grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
-        gap: 16px;
-      }
-      .hero p {
-        max-width: 58ch;
-      }
       .muted {
         color: var(--muted);
-        line-height: 1.65;
-        font-size: 1rem;
+        line-height: 1.6;
+        font-size: 0.96rem;
       }
       .stats {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 12px;
-        margin-top: 18px;
+        margin-top: 14px;
       }
       .stat {
-        border: 1px solid rgba(255, 255, 255, 0.7);
-        border-radius: 22px;
-        padding: 16px;
-        background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.56));
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 14px;
+        background: var(--panel-strong);
       }
       .stat-label {
         font-size: 0.78rem;
@@ -107,7 +94,7 @@
       }
       select {
         font: inherit;
-        border-radius: 16px;
+        border-radius: 12px;
         border: 1px solid var(--line);
         padding: 10px 14px;
         background: var(--panel-strong);
@@ -122,56 +109,48 @@
         background: var(--panel-strong);
         color: var(--ink);
         line-height: 1.6;
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.85);
-        transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+        transition: border-color .18s ease, box-shadow .18s ease;
       }
       textarea:focus {
         outline: none;
-        border-color: rgba(0, 113, 227, 0.36);
-        box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.12);
+        border-color: #666666;
+        box-shadow: 0 0 0 1px #666666;
       }
       button {
         cursor: pointer;
         border: 1px solid transparent;
-        padding: 12px 18px;
+        padding: 11px 16px;
         font-weight: 600;
         letter-spacing: -0.01em;
-        transition: transform .16s ease, box-shadow .18s ease, background .18s ease, opacity .18s ease;
-      }
-      button:hover:not(:disabled) {
-        transform: translateY(-1px);
+        transition: background .18s ease, border-color .18s ease, opacity .18s ease, color .18s ease;
       }
       .primary {
-        color: white;
-        background: linear-gradient(180deg, #1a88ff 0%, var(--accent) 100%);
-        box-shadow: 0 10px 24px rgba(0, 113, 227, 0.24);
-      }
-      .primary:hover:not(:disabled) {
-        background: linear-gradient(180deg, #3394ff 0%, var(--accent-deep) 100%);
+        color: #050505;
+        background: var(--accent);
+        border-color: var(--accent);
       }
       button:disabled {
         opacity: 0.6;
         cursor: wait;
-        transform: none;
       }
       .status {
-        margin-top: 16px;
-        min-height: 50px;
-        border-radius: 18px;
+        margin-top: 14px;
+        min-height: 46px;
+        border-radius: 14px;
         padding: 14px 16px;
-        border: 1px solid rgba(154, 103, 0, 0.14);
-        background: rgba(255, 244, 214, 0.78);
+        border: 1px solid #4a4124;
+        background: #15120a;
         color: var(--warn);
         font-weight: 600;
       }
       .status.good {
-        border-color: rgba(23, 114, 69, 0.14);
-        background: rgba(232, 248, 238, 0.88);
+        border-color: #1f5131;
+        background: #0d1510;
         color: var(--good);
       }
       .status.error {
-        border-color: rgba(180, 35, 24, 0.14);
-        background: rgba(254, 242, 242, 0.92);
+        border-color: #5a2020;
+        background: #180d0d;
         color: var(--error);
       }
       .panel-grid {
@@ -184,8 +163,8 @@
         margin: 0;
         white-space: pre-wrap;
         word-break: break-word;
-        border-radius: 22px;
-        background: #ffffff;
+        border-radius: 14px;
+        background: var(--panel-strong);
         color: var(--ink);
         padding: 20px;
         min-height: 100%;
@@ -193,7 +172,6 @@
         line-height: 1.72;
         font-size: 0.98rem;
         border: 1px solid var(--line);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
       }
       .toolbar {
         display: flex;
@@ -220,48 +198,30 @@
       }
       .grounding-item {
         padding: 12px 14px;
-        border-radius: 16px;
-        background: rgba(0, 113, 227, 0.05);
-        border: 1px solid rgba(0, 113, 227, 0.08);
+        border-radius: 12px;
+        background: var(--panel-strong);
+        border: 1px solid var(--line);
       }
       .grounding-title {
         font-size: 0.82rem;
         font-weight: 700;
-        color: var(--accent);
+        color: var(--ink);
         margin-bottom: 4px;
       }
       .chip {
         padding: 7px 12px;
         border-radius: 999px;
-        background: rgba(0, 113, 227, 0.08);
-        color: var(--accent);
+        background: #121212;
+        color: var(--ink);
         font-size: 0.8rem;
         font-weight: 600;
-        border: 1px solid rgba(0, 113, 227, 0.08);
-      }
-      .eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 7px 12px;
-        border-radius: 999px;
-        background: rgba(255,255,255,0.72);
-        border: 1px solid rgba(255,255,255,0.78);
-        color: var(--muted);
-        font-size: 0.78rem;
-        font-weight: 600;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
-        margin-bottom: 14px;
+        border: 1px solid var(--line);
       }
       .summary-grid {
         display: grid;
         grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
         gap: 16px;
         align-items: start;
-      }
-      .summary-copy {
-        background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.58));
       }
       .workspace {
         display: grid;
@@ -288,12 +248,8 @@
       }
       .secondary {
         color: var(--ink);
-        background: rgba(255,255,255,0.82);
+        background: var(--panel-strong);
         border: 1px solid var(--line);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.75);
-      }
-      .secondary:hover:not(:disabled) {
-        background: rgba(255,255,255,0.95);
       }
       .pane-subtitle {
         margin: 4px 0 0;
@@ -304,9 +260,9 @@
       .diff-panel {
         margin-top: 14px;
         border: 1px solid var(--line);
-        border-radius: 18px;
+        border-radius: 14px;
         padding: 14px 16px;
-        background: rgba(255,255,255,0.86);
+        background: var(--panel-strong);
         min-height: 96px;
         line-height: 1.7;
         color: var(--ink);
@@ -321,49 +277,34 @@
         letter-spacing: 0.05em;
       }
       .diff-added {
-        background: rgba(22, 163, 74, 0.14);
-        color: #137333;
-        border-radius: 8px;
+        background: #102015;
+        color: #8cf0b0;
+        border-radius: 6px;
         padding: 2px 4px;
       }
       .diff-removed {
-        background: rgba(220, 38, 38, 0.12);
-        color: #b42318;
-        border-radius: 8px;
+        background: #221111;
+        color: #ff8e8e;
+        border-radius: 6px;
         padding: 2px 4px;
       }
       @media (max-width: 900px) {
-        .hero, .stats, .summary-grid, .workspace {
+        .stats, .summary-grid, .workspace {
           grid-template-columns: 1fr;
         }
         .shell {
-          padding: 20px 14px 32px;
+          padding: 14px;
         }
       }
     </style>
 </head>
 <body>
   <div class="shell">
-      <section class="hero">
-        <div class="card">
-          <div class="eyebrow">Enterprise Knowledge Ops | Build 2026-04-08b</div>
-          <h1>Enterprise Context Optimizer</h1>
-          <p class="muted">
-            Paste any raw analyst, support, policy, or engineering prompt below and the backend will retrieve, rank, compress, and rewrite supporting context automatically. The output is designed to be clean, copy-paste-ready, and free of chunk metadata clutter.
-          </p>
-          <p class="mini" id="buildStamp">Build: v5</p>
-        </div>
-        <div class="card summary-copy">
-          <h3>What You Get</h3>
-          <p class="muted">One click runs the full optimization pipeline. Retrieval, chunk compression, and prompt tightening stay in the backend. The interface stays focused on one clean input and one copy-ready output for enterprise knowledge workflows.</p>
-        </div>
-      </section>
-
       <section class="card">
         <div class="toolbar" style="justify-content:space-between; margin-top:0;">
           <div>
-            <h3 style="margin-bottom:6px;">Optimization Summary</h3>
-            <p class="mini" id="summaryNote">`Current Input` tracks the text in the prompt box. `Context Tokens` tracks backend support material, not your typed prompt.</p>
+            <h1 style="margin:0 0 6px;">Enterprise Context Optimizer</h1>
+            <p class="mini" id="summaryNote">Minimal dark mode. Paste a prompt, optimize it, compare the diff, and copy the result.</p>
           </div>
           <div class="toolbar" style="margin-top:0;">
             <label class="mini" for="corpusFamilySelect">Corpus Pack</label>
