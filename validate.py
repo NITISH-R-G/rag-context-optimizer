@@ -134,7 +134,7 @@ def run_inference_script(base_url: str) -> bool:
     has_start = "[START]" in stdout
     has_end = "[END]" in stdout
     end_has_score = " score=" in stdout
-    return process.returncode == 0 and has_start and has_end and not end_has_score
+    return process.returncode == 0 and has_start and has_end and end_has_score
 
 
 def main() -> int:

@@ -48,18 +48,14 @@ def _model_name() -> str:
 
 
 def _resolve_llm_credentials() -> tuple[str | None, str | None, str | None]:
-    api_base_url = os.getenv("API_BASE_URL")
+    api_base_url = os.getenv("API_BASE_URL", DEFAULT_LEGACY_BASE_URL)
     api_key = os.getenv("API_KEY")
     legacy_token = os.getenv("HF_TOKEN")
 
-    if api_base_url and api_key:
+    if api_key:
         return api_base_url, api_key, "proxy"
-    if api_base_url and not api_key:
-        raise ValueError("API_KEY is required when API_BASE_URL is set")
-    if api_key and not api_base_url:
-        raise ValueError("API_BASE_URL is required when API_KEY is set")
     if legacy_token:
-        return DEFAULT_LEGACY_BASE_URL, legacy_token, "legacy"
+        return api_base_url, legacy_token, "legacy"
     return None, None, None
 
 
@@ -256,7 +252,7 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int]:
             file=sys.stderr,
             flush=True,
         )
-        print("[END] success=false steps=0 rewards=")
+        print("[END] success=false steps=0 score=0.000 rewards=")
         return 0.0, [], 0
 
     try:
@@ -278,7 +274,7 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int]:
                     if llm_required or not ALLOW_BASELINE_FALLBACK:
                         terminal_error = f"model_unavailable:{fallback_reason}"
                         print(
-                            f"[END] success=false steps={steps} rewards={_format_rewards(rewards)}",
+                            f"[END] success=false steps={steps} score={_clamp_score(score):.3f} rewards={_format_rewards(rewards)}",
                         )
                         return score, rewards, steps
                     print(
@@ -319,13 +315,13 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int]:
 
             score = _clamp_score(score)
             print(
-                f"[END] success={_format_bool(success)} steps={steps} rewards={_format_rewards(rewards)}"
+                f"[END] success={_format_bool(success)} steps={steps} score={score:.3f} rewards={_format_rewards(rewards)}"
             )
             return score, rewards, steps
     except Exception:
         score = _clamp_score(score)
         print(
-            f"[END] success=false steps={steps} rewards={_format_rewards(rewards)}"
+            f"[END] success=false steps={steps} score={score:.3f} rewards={_format_rewards(rewards)}"
         )
         return score, rewards, steps
 

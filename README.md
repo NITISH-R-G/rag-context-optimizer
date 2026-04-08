@@ -222,9 +222,10 @@ Submission-critical requirements:
 - located at the project root
 - uses the OpenAI client
 - reads:
-  - `API_BASE_URL`
+  - `API_BASE_URL` with a default
   - `MODEL_NAME` with a default
-  - `API_KEY`
+  - `HF_TOKEN` with no default
+  - `API_KEY` when the validator injects a LiteLLM proxy
 - emits strict stdout lines only in this format:
 
 ```text
@@ -234,8 +235,8 @@ Submission-critical requirements:
 ```
 
 Important runtime behavior:
-- `API_BASE_URL` and `API_KEY` are required for submission runs
-- `HF_TOKEN` is supported only as a legacy local credential for manual smoke tests
+- `HF_TOKEN` is the required published credential path
+- `API_KEY` is also supported and takes priority when the validator injects a LiteLLM proxy
 - `ALLOW_BASELINE_FALLBACK=1` enables deterministic offline fallback for local validation only
 - offline fallback is intended for smoke testing, not benchmark claims
 
@@ -243,10 +244,10 @@ Important runtime behavior:
 
 | Variable | Required | Default | Purpose |
 | --- | --- | --- | --- |
-| `API_BASE_URL` | yes for submission | none | LiteLLM / OpenAI-compatible endpoint for model calls |
+| `API_BASE_URL` | no | `https://router.huggingface.co/v1` | OpenAI-compatible endpoint for model calls |
 | `MODEL_NAME` | no | `Qwen/Qwen2.5-72B-Instruct` | Model used for baseline inference |
-| `API_KEY` | yes for submission | none | API key for the injected LiteLLM proxy |
-| `HF_TOKEN` | no | none | Optional legacy local token for manual smoke tests |
+| `HF_TOKEN` | yes | none | Primary Hugging Face / API credential for baseline inference |
+| `API_KEY` | no | none | Validator-injected LiteLLM proxy key; overrides `HF_TOKEN` when present |
 | `RAG_ENV_URL` | no | `http://localhost:7860` | Environment base URL |
 | `RAG_ENV_TASK` | no | `single_domain_qa` | Preferred starting task order |
 | `ALLOW_BASELINE_FALLBACK` | no | unset | Optional offline smoke-test mode |
