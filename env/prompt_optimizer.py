@@ -69,6 +69,25 @@ def _approx_tokens(text: str) -> int:
     return max(1, len(text.strip()) // 4) if text.strip() else 0
 
 
+def _truncate_to_word_boundary(text: str, max_chars: int, add_ellipsis: bool = True) -> str:
+    raw = text.strip()
+    if not raw or len(raw) <= max_chars:
+        return raw
+
+    candidate = raw[:max_chars].rstrip(" ,;:\n\t")
+    if max_chars < len(raw) and max_chars > 0 and not raw[max_chars - 1].isspace():
+        last_space = candidate.rfind(" ")
+        if last_space >= max(4, max_chars // 3):
+            candidate = candidate[:last_space].rstrip(" ,;:\n\t")
+
+    if not candidate:
+        candidate = raw[:max_chars].rstrip(" ,;:\n\t")
+
+    if add_ellipsis and candidate and not candidate.endswith("..."):
+        candidate = candidate + " ..."
+    return candidate
+
+
 def _trim_sentence(sentence: str, max_terms: int) -> str:
     words = re.findall(r"[A-Za-z0-9][A-Za-z0-9\-_\/]*|[,:;()]", sentence)
     if not words:
@@ -301,21 +320,23 @@ async def optimize_prompt(
     input_tokens = _approx_tokens(clean_prompt)
     target_tokens = max(12, int(input_tokens * _target_ratio(input_tokens, mode)))
     target_tokens = min(target_tokens, 120 if mode == "grounded" else 80)
+    preserve_short_prompt = mode != "aggressive" and input_tokens <= 12 and len(clean_prompt.split()) <= 8
 
     rewritten = _rewrite_prompt_text(clean_prompt, target_tokens=target_tokens)
 
     distilled_points: list[tuple[str, str]] = []
-    for chunk_id in env._selected_chunks:
-        chunk = env._chunk_map().get(chunk_id)
-        if chunk is None:
-            continue
-        best = _summarize_chunk_for_output(chunk, env._effective_chunk_text(chunk_id))
-        if best and all(existing != best for _cid, existing in distilled_points):
-            distilled_points.append((chunk_id, best))
-        if len(distilled_points) >= (3 if mode == "grounded" else (2 if input_tokens < 80 else 3)):
-            break
+    if not preserve_short_prompt:
+        for chunk_id in env._selected_chunks:
+            chunk = env._chunk_map().get(chunk_id)
+            if chunk is None:
+                continue
+            best = _summarize_chunk_for_output(chunk, env._effective_chunk_text(chunk_id))
+            if best and all(existing != best for _cid, existing in distilled_points):
+                distilled_points.append((chunk_id, best))
+            if len(distilled_points) >= (3 if mode == "grounded" else (2 if input_tokens < 80 else 3)):
+                break
 
-    lines: list[str] = [rewritten if rewritten else clean_prompt]
+    lines: list[str] = [clean_prompt if preserve_short_prompt else (rewritten if rewritten else clean_prompt)]
     if distilled_points and (mode == "grounded" or input_tokens >= 80):
         lines.append("")
         lines.append("Context:")
@@ -323,17 +344,18 @@ async def optimize_prompt(
 
     optimized_prompt = "\n".join(lines).strip()
 
-    if mode != "grounded" and input_tokens > 0 and _approx_tokens(optimized_prompt) >= input_tokens:
+    # Very short prompts are often already compact; avoid degrading them at all.
+    if preserve_short_prompt and not distilled_points:
+        optimized_prompt = clean_prompt
+    elif mode != "grounded" and input_tokens > 0 and _approx_tokens(optimized_prompt) >= input_tokens:
         max_chars = max(12, (input_tokens - 1) * 4)
-        optimized_prompt = optimized_prompt[:max_chars].rstrip(" ,;:\n\t")
-        if optimized_prompt and not optimized_prompt.endswith("..."):
-            optimized_prompt = optimized_prompt + " ..."
+        optimized_prompt = _truncate_to_word_boundary(optimized_prompt, max_chars)
         while input_tokens > 1 and _approx_tokens(optimized_prompt) >= input_tokens and len(optimized_prompt) > 12:
-            optimized_prompt = optimized_prompt[:-6].rstrip(" ,;:\n\t") + " ..."
+            optimized_prompt = _truncate_to_word_boundary(optimized_prompt, max(8, len(optimized_prompt) - 6))
         if input_tokens > 1 and _approx_tokens(optimized_prompt) >= input_tokens:
             optimized_prompt = _rewrite_prompt_text(clean_prompt, target_tokens=max(5, input_tokens - 1))
             if optimized_prompt and not optimized_prompt.endswith("...") and _approx_tokens(optimized_prompt) >= input_tokens:
-                optimized_prompt = optimized_prompt[: max(8, (input_tokens - 1) * 4)].strip() + " ..."
+                optimized_prompt = _truncate_to_word_boundary(optimized_prompt, max(8, (input_tokens - 1) * 4))
 
     optimized_prompt, citation_ready, citation_guidance = _fit_citations_into_prompt(
         optimized_prompt,
