@@ -18,6 +18,8 @@ from pydantic import BaseModel
 
 from env.corpus import list_corpus_families
 from env.environment import RagContextOptimizerEnv
+from env.llm_runtime import llm_configured
+from env.llm_services import suggest_action as suggest_action_with_llm
 from env.models import RagAction
 from env.prompt_optimizer import CompressionMode, optimize_prompt
 from env.tasks import ALL_TASKS, TASKS_BY_NAME
@@ -185,7 +187,7 @@ async def _optimize_prompt_backend(
     }
 
 
-def _suggest_action(env: RagContextOptimizerEnv) -> dict[str, Any]:
+def _suggest_action_fallback(env: RagContextOptimizerEnv) -> dict[str, Any]:
     observation = env._build_observation()
     selected = set(observation.selected_chunks)
     remaining_budget = observation.token_budget - observation.total_tokens_used
@@ -256,6 +258,23 @@ def _suggest_action(env: RagContextOptimizerEnv) -> dict[str, Any]:
     return {"action_type": "submit_answer", "answer": "No usable evidence was available."}
 
 
+async def _suggest_action(env: RagContextOptimizerEnv) -> dict[str, Any]:
+    if llm_configured():
+        try:
+            observation = env._build_observation()
+            state = await env.state()
+            tuning = env._last_tuning or env.context_tuner.tune(env.task.query, env._available_chunks)
+            return await suggest_action_with_llm(
+                observation,
+                selected_chunk_details=state.get("selected_chunk_details", []),
+                suggested_citations=tuning.suggested_citations,
+                top_demo_cases=tuning.top_demo_cases,
+            )
+        except Exception:
+            pass
+    return _suggest_action_fallback(env)
+
+
 @app.post("/reset")
 async def reset_endpoint(payload: ResetRequest | None = Body(default=None)):
     payload = payload or ResetRequest()
@@ -320,7 +339,7 @@ async def corpus_families_endpoint():
 @app.post("/optimize-step")
 async def optimize_step_endpoint(episode_id: str | None = None):
     _resolved_episode_id, env = _resolve_env(episode_id)
-    return _suggest_action(env)
+    return await _suggest_action(env)
 
 
 @app.post("/optimize-prompt")

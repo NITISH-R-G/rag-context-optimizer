@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 from env.environment import RagContextOptimizerEnv
+from env.llm_runtime import estimate_tokens, llm_configured
+from env.llm_services import rewrite_prompt as rewrite_prompt_with_llm
 
 
 CompressionMode = Literal["balanced", "aggressive", "grounded"]
@@ -335,12 +337,10 @@ async def optimize_prompt(
             ratio = max(ratio, 0.6)
         env._compression_ratios[chunk_id] = ratio
 
-    input_tokens = _approx_tokens(clean_prompt)
+    input_tokens = await estimate_tokens(clean_prompt)
     target_tokens = max(12, int(input_tokens * _target_ratio(input_tokens, mode)))
     target_tokens = min(target_tokens, 120 if mode == "grounded" else 80)
     preserve_short_prompt = mode != "aggressive" and input_tokens <= 12 and len(clean_prompt.split()) <= 8
-
-    rewritten = _rewrite_prompt_text(clean_prompt, target_tokens=target_tokens)
 
     distilled_points: list[tuple[str, str]] = []
     if not preserve_short_prompt:
@@ -354,43 +354,60 @@ async def optimize_prompt(
             if len(distilled_points) >= (3 if mode == "grounded" else (2 if input_tokens < 80 else 3)):
                 break
 
-    short_prompt_rewrite = _lightweight_short_prompt_rewrite(clean_prompt) if preserve_short_prompt else ""
-    lines: list[str] = [
-        short_prompt_rewrite if preserve_short_prompt and short_prompt_rewrite else (
-            clean_prompt if preserve_short_prompt else (rewritten if rewritten else clean_prompt)
+    citation_ids = tuning.suggested_citations or list(env._selected_chunks)
+    if llm_configured():
+        llm_result = await rewrite_prompt_with_llm(
+            prompt=clean_prompt,
+            mode=mode,
+            target_tokens=target_tokens,
+            evidence_notes=[
+                {"chunk_id": chunk_id, "note": note}
+                for chunk_id, note in distilled_points
+            ],
+            citation_ids=citation_ids,
         )
-    ]
-    if distilled_points and (mode == "grounded" or input_tokens >= 80):
-        lines.append("")
-        lines.append("Context:")
-        lines.extend([f"- [{chunk_id}] {point}" for chunk_id, point in distilled_points])
+        optimized_prompt = llm_result["optimized_prompt"] or clean_prompt
+        citation_ready = llm_result["citation_ready"]
+        citation_guidance = llm_result["citation_guidance"]
+        optimized_prompt_tokens = llm_result["estimated_tokens"]
+    else:
+        rewritten = _rewrite_prompt_text(clean_prompt, target_tokens=target_tokens)
+        short_prompt_rewrite = _lightweight_short_prompt_rewrite(clean_prompt) if preserve_short_prompt else ""
+        lines: list[str] = [
+            short_prompt_rewrite if preserve_short_prompt and short_prompt_rewrite else (
+                clean_prompt if preserve_short_prompt else (rewritten if rewritten else clean_prompt)
+            )
+        ]
+        if distilled_points and (mode == "grounded" or input_tokens >= 80):
+            lines.append("")
+            lines.append("Context:")
+            lines.extend([f"- [{chunk_id}] {point}" for chunk_id, point in distilled_points])
 
-    optimized_prompt = "\n".join(lines).strip()
+        optimized_prompt = "\n".join(lines).strip()
 
-    # Very short prompts are often already compact; avoid degrading them at all.
-    if preserve_short_prompt and not distilled_points:
-        optimized_prompt = short_prompt_rewrite if short_prompt_rewrite and short_prompt_rewrite != clean_prompt else clean_prompt
-    elif mode != "grounded" and input_tokens > 0 and _approx_tokens(optimized_prompt) >= input_tokens:
-        max_chars = max(12, (input_tokens - 1) * 4)
-        optimized_prompt = _truncate_to_word_boundary(optimized_prompt, max_chars)
-        while input_tokens > 1 and _approx_tokens(optimized_prompt) >= input_tokens and len(optimized_prompt) > 12:
-            optimized_prompt = _truncate_to_word_boundary(optimized_prompt, max(8, len(optimized_prompt) - 6))
-        if input_tokens > 1 and _approx_tokens(optimized_prompt) >= input_tokens:
-            optimized_prompt = _rewrite_prompt_text(clean_prompt, target_tokens=max(5, input_tokens - 1))
-            if optimized_prompt and not optimized_prompt.endswith("...") and _approx_tokens(optimized_prompt) >= input_tokens:
-                optimized_prompt = _truncate_to_word_boundary(optimized_prompt, max(8, (input_tokens - 1) * 4))
+        if preserve_short_prompt and not distilled_points:
+            optimized_prompt = short_prompt_rewrite if short_prompt_rewrite and short_prompt_rewrite != clean_prompt else clean_prompt
+        elif mode != "grounded" and input_tokens > 0 and _approx_tokens(optimized_prompt) >= input_tokens:
+            max_chars = max(12, (input_tokens - 1) * 4)
+            optimized_prompt = _truncate_to_word_boundary(optimized_prompt, max_chars)
+            while input_tokens > 1 and _approx_tokens(optimized_prompt) >= input_tokens and len(optimized_prompt) > 12:
+                optimized_prompt = _truncate_to_word_boundary(optimized_prompt, max(8, len(optimized_prompt) - 6))
+            if input_tokens > 1 and _approx_tokens(optimized_prompt) >= input_tokens:
+                optimized_prompt = _rewrite_prompt_text(clean_prompt, target_tokens=max(5, input_tokens - 1))
+                if optimized_prompt and not optimized_prompt.endswith("...") and _approx_tokens(optimized_prompt) >= input_tokens:
+                    optimized_prompt = _truncate_to_word_boundary(optimized_prompt, max(8, (input_tokens - 1) * 4))
 
-    optimized_prompt, citation_ready, citation_guidance = _fit_citations_into_prompt(
-        optimized_prompt,
-        tuning.suggested_citations or list(env._selected_chunks),
-        input_tokens,
-        target_tokens,
-        clean_prompt,
-        mode,
-    )
+        optimized_prompt, citation_ready, citation_guidance = _fit_citations_into_prompt(
+            optimized_prompt,
+            citation_ids,
+            input_tokens,
+            target_tokens,
+            clean_prompt,
+            mode,
+        )
+        optimized_prompt_tokens = await estimate_tokens(optimized_prompt)
 
     original_prompt_tokens = input_tokens
-    optimized_prompt_tokens = _approx_tokens(optimized_prompt)
     source_tokens = sum(env._chunk_map()[chunk_id].tokens for chunk_id in env._selected_chunks if chunk_id in env._chunk_map())
     compressed_tokens = sum(env._effective_chunk_tokens(chunk_id) for chunk_id in env._selected_chunks)
     evidence_terms = _content_terms(" ".join(env._effective_chunk_text(chunk_id) for chunk_id in env._selected_chunks))

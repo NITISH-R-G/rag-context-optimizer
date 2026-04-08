@@ -8,6 +8,8 @@ import re
 from dataclasses import dataclass
 
 from env.corpus import Chunk
+from env.llm_runtime import llm_configured
+from env.llm_services import judge_answer
 from env.retriever import HybridRetriever
 from env.tasks import Task
 
@@ -108,7 +110,7 @@ class TaskGrader:
         unsupported = answer_terms - evidence_terms
         return len(unsupported) / len(answer_terms)
 
-    def grade(
+    async def grade(
         self,
         selected_chunk_ids: list[str],
         answer: str,
@@ -144,6 +146,24 @@ class TaskGrader:
         evidence_chunks = selected_chunks or required_chunks
         citation_accuracy = self._citation_accuracy(answer, normalized_selected, normalized_expected_citations)
         unsupported_claim_rate = self._unsupported_claim_rate(answer, evidence_chunks)
+        semantic_groundedness = 1.0 - unsupported_claim_rate
+        semantic_coverage = answer_quality
+        grading_notes = ""
+
+        if llm_configured():
+            llm_result = await judge_answer(
+                task=task,
+                answer=answer,
+                selected_chunks=selected_chunks,
+                required_chunks=required_chunks,
+            )
+            answer_quality = llm_result["answer_quality"]
+            semantic_groundedness = llm_result["groundedness"]
+            semantic_coverage = llm_result["coverage"]
+            citation_accuracy = (citation_accuracy + llm_result["citation_support"]) / 2.0
+            unsupported_claim_rate = max(0.0, min(1.0, 1.0 - semantic_groundedness))
+            grading_notes = llm_result["notes"]
+
         hallucination_penalty = min(1.0, unsupported_claim_rate)
 
         base_score = (
@@ -163,6 +183,10 @@ class TaskGrader:
             "citation_accuracy": citation_accuracy,
             "unsupported_claim_rate": unsupported_claim_rate,
             "hallucination_penalty": hallucination_penalty,
+            "semantic_groundedness": semantic_groundedness,
+            "semantic_coverage": semantic_coverage,
         }
+        if grading_notes:
+            breakdown["grading_notes"] = grading_notes
         passed = score >= 0.7
         return GraderResult(score=score, breakdown=breakdown, passed=passed)

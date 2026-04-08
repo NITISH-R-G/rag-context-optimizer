@@ -13,6 +13,7 @@ from typing import Any
 from env.corpus import Chunk, load_corpus, resolve_corpus_path
 from env.context_tuner import ContextTunedPlanner
 from env.graders import TaskGrader
+from env.llm_runtime import estimate_tokens
 from env.models import ChunkSummary, RagAction, RagObservation
 from env.retriever import HybridRetriever
 from env.tasks import ALL_TASKS, TASKS_BY_NAME, Task
@@ -143,7 +144,7 @@ class RagContextOptimizerEnv:
             reward, info = self._handle_compress(action.chunk_id or "", float(action.compression_ratio or 0.0))
         elif action.action_type == "submit_answer":
             self._last_answer = action.answer or ""
-            result = self._finalize_submission(reason="submit_answer")
+            result = await self._finalize_submission(reason="submit_answer")
             self._step_number += 1
             result.observation.step_number = self._step_number
             return result
@@ -151,7 +152,7 @@ class RagContextOptimizerEnv:
         self._step_number += 1
 
         if self._step_number >= self.task.max_steps:
-            return self._finalize_submission(reason="max_steps_reached")
+            return await self._finalize_submission(reason="max_steps_reached")
 
         observation = self._build_observation()
         return StepResult(
@@ -179,6 +180,7 @@ class RagContextOptimizerEnv:
                 }
             )
         optimized_prompt = self._build_optimized_prompt()
+        optimized_prompt_tokens = await estimate_tokens(optimized_prompt) if optimized_prompt else 0
         return {
             "task": asdict(self.task) if is_dataclass(self.task) else self.task,
             "step_number": self._step_number,
@@ -194,7 +196,7 @@ class RagContextOptimizerEnv:
             "available_chunk_ids": [chunk.chunk_id for chunk in self._available_chunks],
             "selected_chunk_details": selected_chunk_details,
             "optimized_prompt_preview": optimized_prompt,
-            "optimized_prompt_tokens": max(1, len(optimized_prompt) // 4) if optimized_prompt else 0,
+            "optimized_prompt_tokens": optimized_prompt_tokens,
             "context_tuning": (
                 {
                     "mode": self._last_tuning.mode,
@@ -498,7 +500,7 @@ class RagContextOptimizerEnv:
             "compression_ratio": compression_ratio,
         }
 
-    def _finalize_submission(self, reason: str) -> StepResult:
+    async def _finalize_submission(self, reason: str) -> StepResult:
         self._done = True
 
         if not self._selected_chunks:
@@ -511,7 +513,7 @@ class RagContextOptimizerEnv:
                 info={"event": reason, "grader": None, "passed": False},
             )
 
-        grader_result = self.grader.grade(
+        grader_result = await self.grader.grade(
             selected_chunk_ids=list(self._selected_chunks),
             answer=self._last_answer,
             token_budget=self.task.token_budget,
