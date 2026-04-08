@@ -1,0 +1,2 @@
+# Placeholder lockfile for offline validation environments.
+# Regenerate with `uv lock` in a network-enabled environment before publication.

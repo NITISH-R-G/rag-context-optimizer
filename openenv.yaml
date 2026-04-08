@@ -1,0 +1,16 @@
+name: rag-context-optimizer
+version: "1.0.0"
+description: "Enterprise RAG context optimization environment - minimize context cost, maximize answer quality"
+tasks:
+  - name: single_domain_qa
+    difficulty: easy
+    max_steps: 6
+  - name: cross_domain_synthesis
+    difficulty: medium
+    max_steps: 8
+  - name: adversarial_compression
+    difficulty: hard
+    max_steps: 10
+action_space: ["select_chunk", "deselect_chunk", "compress_chunk", "submit_answer"]
+observation_space: ["query", "available_chunks", "selected_chunks", "total_tokens_used", "token_budget"]
+reward_range: [0.0, 1.0]

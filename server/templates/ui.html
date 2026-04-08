@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Enterprise Context Optimizer</title>
+    <style>
+      :root {
+        --bg: #f5f5f7;
+        --panel: rgba(255, 255, 255, 0.78);
+        --panel-strong: rgba(255, 255, 255, 0.92);
+        --ink: #1d1d1f;
+        --muted: #6e6e73;
+        --line: rgba(29, 29, 31, 0.08);
+        --line-strong: rgba(29, 29, 31, 0.12);
+        --accent: #0071e3;
+        --accent-deep: #0058b9;
+        --good: #177245;
+        --warn: #9a6700;
+        --error: #b42318;
+        --shadow: 0 18px 48px rgba(0, 0, 0, 0.08);
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        min-height: 100%;
+      }
+      body {
+        margin: 0;
+        font-family: "SF Pro Display", "SF Pro Text", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top, rgba(255, 255, 255, 0.95), rgba(245, 245, 247, 0) 38%),
+          linear-gradient(180deg, #fbfbfd 0%, var(--bg) 100%);
+        letter-spacing: -0.01em;
+      }
+      .shell {
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 20px 20px 24px;
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: auto auto minmax(0, 1fr);
+        gap: 16px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        padding: 24px;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+      h1, h2, h3, p { margin-top: 0; }
+      h1 {
+        font-size: clamp(2.2rem, 5vw, 3.6rem);
+        line-height: 1.02;
+        font-weight: 700;
+        letter-spacing: -0.04em;
+        margin-bottom: 14px;
+      }
+      h3 {
+        font-size: 1.1rem;
+        letter-spacing: -0.02em;
+      }
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+        gap: 16px;
+      }
+      .hero p {
+        max-width: 58ch;
+      }
+      .muted {
+        color: var(--muted);
+        line-height: 1.65;
+        font-size: 1rem;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 18px;
+      }
+      .stat {
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        border-radius: 22px;
+        padding: 16px;
+        background: linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.56));
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.65);
+      }
+      .stat-label {
+        font-size: 0.78rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .stat-value {
+        margin-top: 8px;
+        font-size: 1.55rem;
+        font-weight: 700;
+        letter-spacing: -0.03em;
+      }
+      textarea, button {
+        font: inherit;
+        border-radius: 18px;
+      }
+      select {
+        font: inherit;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        padding: 10px 14px;
+        background: var(--panel-strong);
+        color: var(--ink);
+      }
+      textarea {
+        width: 100%;
+        min-height: 100%;
+        border: 1px solid var(--line);
+        padding: 18px 20px;
+        resize: none;
+        background: var(--panel-strong);
+        color: var(--ink);
+        line-height: 1.6;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.85);
+        transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+      }
+      textarea:focus {
+        outline: none;
+        border-color: rgba(0, 113, 227, 0.36);
+        box-shadow: 0 0 0 4px rgba(0, 113, 227, 0.12);
+      }
+      button {
+        cursor: pointer;
+        border: 1px solid transparent;
+        padding: 12px 18px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        transition: transform .16s ease, box-shadow .18s ease, background .18s ease, opacity .18s ease;
+      }
+      button:hover:not(:disabled) {
+        transform: translateY(-1px);
+      }
+      .primary {
+        color: white;
+        background: linear-gradient(180deg, #1a88ff 0%, var(--accent) 100%);
+        box-shadow: 0 10px 24px rgba(0, 113, 227, 0.24);
+      }
+      .primary:hover:not(:disabled) {
+        background: linear-gradient(180deg, #3394ff 0%, var(--accent-deep) 100%);
+      }
+      button:disabled {
+        opacity: 0.6;
+        cursor: wait;
+        transform: none;
+      }
+      .status {
+        margin-top: 16px;
+        min-height: 50px;
+        border-radius: 18px;
+        padding: 14px 16px;
+        border: 1px solid rgba(154, 103, 0, 0.14);
+        background: rgba(255, 244, 214, 0.78);
+        color: var(--warn);
+        font-weight: 600;
+      }
+      .status.good {
+        border-color: rgba(23, 114, 69, 0.14);
+        background: rgba(232, 248, 238, 0.88);
+        color: var(--good);
+      }
+      .status.error {
+        border-color: rgba(180, 35, 24, 0.14);
+        background: rgba(254, 242, 242, 0.92);
+        color: var(--error);
+      }
+      .panel-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        min-height: 0;
+      }
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        border-radius: 22px;
+        background: #ffffff;
+        color: var(--ink);
+        padding: 20px;
+        min-height: 100%;
+        overflow: auto;
+        line-height: 1.72;
+        font-size: 0.98rem;
+        border: 1px solid var(--line);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+      }
+      .toolbar {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-top: 16px;
+      }
+      .mini {
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.5;
+      }
+      .chips {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+      }
+      .grounding-list {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .grounding-item {
+        padding: 12px 14px;
+        border-radius: 16px;
+        background: rgba(0, 113, 227, 0.05);
+        border: 1px solid rgba(0, 113, 227, 0.08);
+      }
+      .grounding-title {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 4px;
+      }
+      .chip {
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(0, 113, 227, 0.08);
+        color: var(--accent);
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1px solid rgba(0, 113, 227, 0.08);
+      }
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.72);
+        border: 1px solid rgba(255,255,255,0.78);
+        color: var(--muted);
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+      }
+      .summary-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(320px, 380px);
+        gap: 16px;
+        align-items: start;
+      }
+      .summary-copy {
+        background: linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.58));
+      }
+      .workspace {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 16px;
+        min-height: 0;
+      }
+      .pane {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        min-height: 0;
+      }
+      .pane-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .pane-subtitle {
+        margin: 4px 0 0;
+      }
+      .output-frame {
+        min-height: 0;
+      }
+      @media (max-width: 900px) {
+        .hero, .stats, .summary-grid, .workspace {
+          grid-template-columns: 1fr;
+        }
+        .shell {
+          padding: 20px 14px 32px;
+        }
+      }
+    </style>
+</head>
+<body>
+  <div class="shell">
+      <section class="hero">
+        <div class="card">
+          <div class="eyebrow">Enterprise Knowledge Ops | Build 2026-04-08b</div>
+          <h1>Enterprise Context Optimizer</h1>
+          <p class="muted">
+            Paste any raw analyst, support, policy, or engineering prompt below and the backend will retrieve, rank, compress, and rewrite supporting context automatically. The output is designed to be clean, copy-paste-ready, and free of chunk metadata clutter.
+          </p>
+          <p class="mini" id="buildStamp">Build: v5</p>
+        </div>
+        <div class="card summary-copy">
+          <h3>What You Get</h3>
+          <p class="muted">One click runs the full optimization pipeline. Retrieval, chunk compression, and prompt tightening stay in the backend. The interface stays focused on one clean input and one copy-ready output for enterprise knowledge workflows.</p>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="toolbar" style="justify-content:space-between; margin-top:0;">
+          <div>
+            <h3 style="margin-bottom:6px;">Optimization Summary</h3>
+            <p class="mini" id="summaryNote">`Current Input` tracks the text in the prompt box. `Context Tokens` tracks backend support material, not your typed prompt.</p>
+          </div>
+          <div class="toolbar" style="margin-top:0;">
+            <label class="mini" for="corpusFamilySelect">Corpus Pack</label>
+            <select id="corpusFamilySelect">
+              <option value="enterprise_v1">enterprise_v1</option>
+              <option value="enterprise_v2">enterprise_v2</option>
+            </select>
+            <label class="mini" for="compressionModeSelect">Mode</label>
+            <select id="compressionModeSelect">
+              <option value="balanced">balanced</option>
+              <option value="grounded">grounded</option>
+              <option value="aggressive">aggressive</option>
+            </select>
+            <button id="optimizeBtn" class="primary" type="button">Optimize Prompt</button>
+            <button id="copyBtn" class="primary" type="button">Copy Output</button>
+            <span id="busyLabel" class="mini">Idle</span>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="stat-label">Current Input</div><div class="stat-value" id="currentInputTokensStat">-</div></div>
+          <div class="stat"><div class="stat-label">Optimized Output</div><div class="stat-value" id="finalTokensStat">-</div></div>
+          <div class="stat"><div class="stat-label">Chunks Used</div><div class="stat-value" id="selectedChunksStat">-</div></div>
+          <div class="stat"><div class="stat-label">Context Tokens</div><div class="stat-value" id="compressedTokensStat">-</div></div>
+          <div class="stat"><div class="stat-label">Citation Ready</div><div class="stat-value" id="citationReadyStat">-</div></div>
+          <div class="stat"><div class="stat-label">Grounded Overlap</div><div class="stat-value" id="groundedOverlapStat">-</div></div>
+          <div class="stat"><div class="stat-label">Tuning Mode</div><div class="stat-value" id="tuningModeStat">-</div></div>
+          <div class="stat"><div class="stat-label">Demo Seeds</div><div class="stat-value" id="demoSeedStat">-</div></div>
+        </div>
+        <div id="statusBox" class="status">Ready. Paste a prompt and click Optimize Prompt.</div>
+        <p class="mini" id="citationGuidance">Citation guidance will appear here. Use grounded mode when you want the optimizer to prefer inline evidence anchors.</p>
+        <div class="chips" id="keywordChips"></div>
+        <div class="chips" id="citationChips"></div>
+        <div class="chips" id="demoChips"></div>
+        <div class="grounding-list" id="groundingList"></div>
+      </section>
+
+      <section class="panel-grid">
+        <div class="workspace">
+          <section class="card pane">
+            <div class="pane-header">
+              <div>
+                <h3 style="margin:0;">Original Prompt</h3>
+                <p class="mini pane-subtitle">Paste or edit your source prompt here.</p>
+              </div>
+            </div>
+            <textarea id="promptInput" placeholder="Paste your prompt here. Then click Optimize Prompt."></textarea>
+          </section>
+          <section class="card pane">
+            <div class="pane-header">
+              <div>
+                <h3 style="margin:0;">Optimized Prompt</h3>
+                <p class="mini pane-subtitle">A shorter, cleaner version designed to be ready to copy and paste into your next model call.</p>
+              </div>
+            </div>
+            <pre id="outputPanel" class="output-frame">No optimized prompt yet.</pre>
+          </section>
+        </div>
+      </section>
+  </div>
+
+  <script>
+    const els = {
+      promptInput: document.getElementById("promptInput"),
+      optimizeBtn: document.getElementById("optimizeBtn"),
+      copyBtn: document.getElementById("copyBtn"),
+      corpusFamilySelect: document.getElementById("corpusFamilySelect"),
+      compressionModeSelect: document.getElementById("compressionModeSelect"),
+      busyLabel: document.getElementById("busyLabel"),
+      statusBox: document.getElementById("statusBox"),
+      citationGuidance: document.getElementById("citationGuidance"),
+      outputPanel: document.getElementById("outputPanel"),
+      currentInputTokensStat: document.getElementById("currentInputTokensStat"),
+      selectedChunksStat: document.getElementById("selectedChunksStat"),
+      compressedTokensStat: document.getElementById("compressedTokensStat"),
+      finalTokensStat: document.getElementById("finalTokensStat"),
+      citationReadyStat: document.getElementById("citationReadyStat"),
+      groundedOverlapStat: document.getElementById("groundedOverlapStat"),
+      tuningModeStat: document.getElementById("tuningModeStat"),
+      demoSeedStat: document.getElementById("demoSeedStat"),
+      keywordChips: document.getElementById("keywordChips"),
+      citationChips: document.getElementById("citationChips"),
+      demoChips: document.getElementById("demoChips"),
+      groundingList: document.getElementById("groundingList"),
+      summaryNote: document.getElementById("summaryNote"),
+    };
+
+    function approxTokens(text) {
+      const value = (text || "").trim();
+      if (!value) return 0;
+      return Math.max(1, Math.floor(value.length / 4));
+    }
+
+    function setBusy(isBusy, label = "Working...") {
+      els.optimizeBtn.disabled = isBusy;
+      els.copyBtn.disabled = isBusy;
+      els.busyLabel.textContent = isBusy ? label : "Idle";
+    }
+
+    function setStatus(message, tone = "warn") {
+      els.statusBox.textContent = message;
+      els.statusBox.className = "status";
+      if (tone === "good") els.statusBox.classList.add("good");
+      if (tone === "error") els.statusBox.classList.add("error");
+    }
+
+    async function fetchJson(url, options = {}) {
+      const response = await fetch(url, {
+        headers: { "Content-Type": "application/json" },
+        ...options,
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.detail || JSON.stringify(body));
+      return body;
+    }
+
+    function renderResult(result) {
+      els.outputPanel.textContent = result.optimized_prompt || "No optimized prompt returned.";
+      const stats = result.stats || {};
+      // Avoid newer JS syntax here; some browsers silently fail and stop updating the UI.
+      els.currentInputTokensStat.textContent = (stats.original_prompt_tokens !== undefined && stats.original_prompt_tokens !== null) ? String(stats.original_prompt_tokens) : String(approxTokens(els.promptInput.value));
+      els.selectedChunksStat.textContent = (stats.selected_chunks !== undefined && stats.selected_chunks !== null) ? String(stats.selected_chunks) : "-";
+      els.compressedTokensStat.textContent = (stats.compressed_context_tokens !== undefined && stats.compressed_context_tokens !== null) ? String(stats.compressed_context_tokens) : "-";
+      els.finalTokensStat.textContent = (stats.optimized_prompt_tokens !== undefined && stats.optimized_prompt_tokens !== null) ? String(stats.optimized_prompt_tokens) : "-";
+      const grounding = result.grounding || {};
+      const tuning = result.context_tuning || {};
+      const optimizationMode = result.optimization_mode || els.compressionModeSelect.value || "balanced";
+      els.citationReadyStat.textContent = grounding.citation_ready ? "Yes" : "No";
+      els.groundedOverlapStat.textContent = (grounding.grounded_overlap !== undefined && grounding.grounded_overlap !== null) ? String(grounding.grounded_overlap) : "-";
+      els.tuningModeStat.textContent = tuning.mode || "-";
+      els.demoSeedStat.textContent = tuning.top_demo_cases ? String(tuning.top_demo_cases.length) : "-";
+      const sourceTokens = (stats.source_tokens !== undefined && stats.source_tokens !== null) ? String(stats.source_tokens) : "-";
+      els.summaryNote.textContent = "`Current Input` tracks the text in the prompt box. `Context Tokens` is compressed backend support context. Raw support before compression: " + sourceTokens + ". Active optimization mode: " + optimizationMode + ".";
+      if (result.corpus_family) {
+        els.summaryNote.textContent += " Active corpus pack: " + result.corpus_family + ".";
+      }
+      if (tuning.leave_one_out) {
+        els.summaryNote.textContent += " Leave-one-out masking is active.";
+      }
+      if (optimizationMode === "grounded") {
+        els.summaryNote.textContent += " Grounded mode prefers inline citations even if the final prompt stays slightly longer.";
+      } else if (optimizationMode === "aggressive") {
+        els.summaryNote.textContent += " Aggressive mode prioritizes shorter output over richer evidence phrasing.";
+      } else {
+        els.summaryNote.textContent += " Balanced mode tries to preserve constraints while still shortening the prompt.";
+      }
+      const chips = result.selected_keywords || [];
+      els.keywordChips.innerHTML = chips.map((keyword) => `<span class="chip">${keyword}</span>`).join("");
+      const citations = grounding.citations || [];
+      els.citationChips.innerHTML = citations.map((citation) => `<span class="chip">[${citation}]</span>`).join("");
+      els.citationGuidance.textContent = grounding.citation_guidance || (grounding.citation_ready ? "Inline citations are present in the optimized prompt." : "No citation guidance available.");
+      const demos = tuning.top_demo_cases || [];
+      els.demoChips.innerHTML = demos.map((demo) => `<span class="chip">${demo}</span>`).join("");
+      const notes = grounding.evidence_notes || [];
+      els.groundingList.innerHTML = notes.map((item) => `<div class="grounding-item"><div class="grounding-title">[${item.chunk_id}]</div><div>${item.note}</div></div>`).join("");
+    }
+
+    els.optimizeBtn.addEventListener("click", async () => {
+      const prompt = els.promptInput.value.trim();
+      if (!prompt) {
+        setStatus("Please paste a prompt first.", "error");
+        return;
+      }
+      setBusy(true, "Optimizing...");
+      setStatus("Running retrieval, ranking, compression, and prompt rewriting...", "warn");
+      try {
+        const result = await fetchJson("/optimize-prompt", {
+          method: "POST",
+          body: JSON.stringify({
+            prompt,
+            corpus_family: els.corpusFamilySelect.value,
+            compression_mode: els.compressionModeSelect.value,
+          }),
+        });
+        renderResult(result);
+        setStatus("Optimization complete. The output below is ready to copy and paste.", "good");
+      } catch (error) {
+        setStatus(error.message, "error");
+      } finally {
+        setBusy(false);
+      }
+    });
+
+    els.copyBtn.addEventListener("click", async () => {
+      const text = els.outputPanel.textContent || "";
+      if (!text || text === "No optimized prompt yet.") {
+        setStatus("There is no optimized output to copy yet.", "error");
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus("Optimized prompt copied to clipboard.", "good");
+      } catch (_error) {
+        setStatus("Copy failed. You can still select the output manually.", "error");
+      }
+    });
+
+    els.promptInput.addEventListener("input", () => {
+      els.currentInputTokensStat.textContent = String(approxTokens(els.promptInput.value));
+      els.finalTokensStat.textContent = "-";
+      els.selectedChunksStat.textContent = "-";
+      els.compressedTokensStat.textContent = "-";
+      els.citationReadyStat.textContent = "-";
+      els.groundedOverlapStat.textContent = "-";
+      els.tuningModeStat.textContent = "-";
+      els.demoSeedStat.textContent = "-";
+      els.citationGuidance.textContent = "Citation guidance will appear here. Use grounded mode when you want the optimizer to prefer inline evidence anchors.";
+      els.citationChips.innerHTML = "";
+      els.demoChips.innerHTML = "";
+      els.groundingList.innerHTML = "";
+      els.summaryNote.textContent = "Prompt changed. Click Optimize Prompt to refresh the optimized output, grounding, and backend context stats.";
+    });
+  </script>
+</body>
+</html>
