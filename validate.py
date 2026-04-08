@@ -120,8 +120,7 @@ def run_inference_script(base_url: str) -> bool:
     env = os.environ.copy()
     env["RAG_ENV_URL"] = base_url
     env["ALLOW_BASELINE_FALLBACK"] = "1"
-    env["HF_TOKEN"] = ""
-    env["OPENAI_API_KEY"] = ""
+    env["HF_TOKEN"] = "offline-validation-token"
     process = subprocess.run(
         [sys.executable, "inference.py"],
         cwd=PROJECT_ROOT,
@@ -133,7 +132,8 @@ def run_inference_script(base_url: str) -> bool:
     stdout = process.stdout or ""
     has_start = "[START]" in stdout
     has_end = "[END]" in stdout
-    return process.returncode == 0 and has_start and has_end
+    end_has_score = " score=" in stdout
+    return process.returncode == 0 and has_start and has_end and not end_has_score
 
 
 def main() -> int:

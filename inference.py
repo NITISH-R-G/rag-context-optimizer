@@ -12,14 +12,14 @@ import sys
 from typing import Any
 
 import httpx
+from openai import OpenAI
 
 from env.models import RagAction
 
 ENV_NAME = "rag-context-optimizer"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
-HF_TOKEN = os.getenv("HF_TOKEN", "")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+HF_TOKEN = os.getenv("HF_TOKEN")
 ALLOW_BASELINE_FALLBACK = os.getenv("ALLOW_BASELINE_FALLBACK", "").strip().lower() in {"1", "true", "yes"}
 RAG_ENV_TASK = os.getenv("RAG_ENV_TASK", "single_domain_qa")
 RAG_ENV_URL = os.getenv("RAG_ENV_URL", "http://localhost:7860")
@@ -59,6 +59,10 @@ def _format_error(error: str | None) -> str:
 
 def _clamp_score(value: float) -> float:
     return max(0.0, min(1.0, value))
+
+
+def _format_rewards(rewards: list[float]) -> str:
+    return ",".join(f"{reward:.2f}" for reward in rewards)
 
 
 def _format_action(action: dict[str, Any]) -> str:
@@ -211,31 +215,27 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int]:
 
     print(f"[START] task={task_name} env={ENV_NAME} model={MODEL_NAME}")
 
-    try:
-        from openai import OpenAI
-    except ModuleNotFoundError:
-        print("[END] success=false steps=0 score=0.000 rewards=")
-        return 0.0, [], 0
+    if HF_TOKEN is None:
+        raise ValueError("HF_TOKEN environment variable is required")
 
-    api_key = HF_TOKEN or OPENAI_API_KEY
     openai_client: Any | None = None
-    if api_key:
-        openai_client = OpenAI(base_url=API_BASE_URL, api_key=api_key)
+    if HF_TOKEN:
+        openai_client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
     else:
-        fallback_reason = "no_api_key"
+        fallback_reason = "empty_hf_token"
         if ALLOW_BASELINE_FALLBACK:
             print(
-                f"[warn] No HF_TOKEN or OPENAI_API_KEY detected; using deterministic fallback policy for {task_name}.",
+                f"[warn] Empty HF_TOKEN detected; using deterministic fallback policy for {task_name}.",
                 file=sys.stderr,
                 flush=True,
             )
         else:
             print(
-                f"[warn] No HF_TOKEN or OPENAI_API_KEY detected; aborting model-backed run for {task_name}. Set ALLOW_BASELINE_FALLBACK=1 to force offline heuristic mode.",
+                f"[warn] Empty HF_TOKEN detected; aborting model-backed run for {task_name}. Set ALLOW_BASELINE_FALLBACK=1 to force offline heuristic mode.",
                 file=sys.stderr,
                 flush=True,
             )
-            print("[END] success=false steps=0 score=0.000 rewards=")
+            print("[END] success=false steps=0 rewards=")
             return 0.0, [], 0
 
     try:
@@ -257,8 +257,7 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int]:
                     if not ALLOW_BASELINE_FALLBACK:
                         terminal_error = f"model_unavailable:{fallback_reason}"
                         print(
-                            f"[END] success=false steps={steps} score={score:.3f} "
-                            f"rewards={','.join(f'{reward:.2f}' for reward in rewards)}",
+                            f"[END] success=false steps={steps} rewards={_format_rewards(rewards)}",
                         )
                         return score, rewards, steps
                     print(
@@ -299,15 +298,13 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int]:
 
             score = _clamp_score(score)
             print(
-                f"[END] success={_format_bool(success)} steps={steps} score={score:.3f} "
-                f"rewards={','.join(f'{reward:.2f}' for reward in rewards)}"
+                f"[END] success={_format_bool(success)} steps={steps} rewards={_format_rewards(rewards)}"
             )
             return score, rewards, steps
     except Exception:
         score = _clamp_score(score)
         print(
-            f"[END] success=false steps={steps} score={score:.3f} "
-            f"rewards={','.join(f'{reward:.2f}' for reward in rewards)}"
+            f"[END] success=false steps={steps} rewards={_format_rewards(rewards)}"
         )
         return score, rewards, steps
 
