@@ -278,7 +278,7 @@ async def optimize_prompt(
 ) -> PromptOptimizationResult:
     clean_prompt = prompt.strip()
     env = RagContextOptimizerEnv(
-        task_name="single_domain_qa",
+        task_name="refund_triage_easy",
         query_override=clean_prompt,
         token_budget_override=800,
         max_steps_override=6,

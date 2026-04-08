@@ -59,7 +59,7 @@ async def judge_answer(
                 "name": task.name,
                 "difficulty": task.difficulty,
                 "query": task.query,
-                "required_chunk_ids": task.required_chunk_ids,
+                "required_artifact_ids": task.required_artifact_ids,
                 "expected_citation_ids": task.expected_citation_ids,
             },
             "answer": answer,

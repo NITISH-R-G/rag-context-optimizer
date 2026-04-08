@@ -1,5 +1,5 @@
 """
-Deterministic graders for rag-context-optimizer tasks.
+Deterministic graders for the incident operations environment.
 """
 
 from __future__ import annotations
@@ -8,8 +8,6 @@ import re
 from dataclasses import dataclass
 
 from env.corpus import Chunk
-from env.llm_runtime import llm_configured
-from env.llm_services import judge_answer
 from env.retriever import HybridRetriever
 from env.tasks import Task
 
@@ -35,158 +33,123 @@ def _extract_citations(text: str) -> list[str]:
 
 
 def _normalize_chunk_id(chunk_id: str) -> str:
-    chunk_id = chunk_id.strip()
-    return chunk_id
-
-
-def _normalize_domain_filter(domain_filter: str | None) -> str | None:
-    if domain_filter is None:
-        return None
-    mapping = {
-        "customer_support_operations": "Customer Support Operations",
-        "incident_response_playbooks": "Incident Response Playbooks",
-        "platform_reliability_release_engineering": "Platform Reliability & Release Engineering",
-    }
-    return mapping.get(domain_filter, domain_filter)
-
-
-def _f1_score(selected: set[str], relevant: set[str]) -> float:
-    if not selected and not relevant:
-        return 1.0
-    if not selected or not relevant:
-        return 0.0
-    overlap = len(selected & relevant)
-    if overlap == 0:
-        return 0.0
-    precision = overlap / len(selected)
-    recall = overlap / len(relevant)
-    return 2 * precision * recall / (precision + recall)
+    return chunk_id.strip()
 
 
 @dataclass(frozen=True, slots=True)
 class GraderResult:
     score: float
-    breakdown: dict[str, float]
+    breakdown: dict[str, float | str]
     passed: bool
 
 
 class TaskGrader:
-    def _filter_relevant_by_domain(self, relevant_ids: set[str], retriever: HybridRetriever, task: Task) -> set[str]:
-        normalized_domain = _normalize_domain_filter(task.domain_filter)
-        if normalized_domain is None:
-            return relevant_ids
-        allowed_ids = {chunk.chunk_id for chunk in retriever.corpus if chunk.domain == normalized_domain}
-        return relevant_ids & allowed_ids
-
     def _required_chunks(self, retriever: HybridRetriever, task: Task) -> list[Chunk]:
-        normalized_required = {_normalize_chunk_id(chunk_id) for chunk_id in task.required_chunk_ids}
+        normalized_required = {_normalize_chunk_id(chunk_id) for chunk_id in task.required_artifact_ids}
         return [chunk for chunk in retriever.corpus if chunk.chunk_id in normalized_required]
 
-    def _answer_quality(self, answer: str, required_chunks: list[Chunk]) -> float:
-        answer_terms = _content_terms(answer)
-        required_terms = _content_terms(" ".join(chunk.text for chunk in required_chunks))
-        required_terms |= _content_terms(" ".join(" ".join(chunk.keywords) for chunk in required_chunks))
-        if not answer_terms or not required_terms:
-            return 0.0
-        union = answer_terms | required_terms
-        if not union:
-            return 0.0
-        return len(answer_terms & required_terms) / len(union)
+    def _keyword_coverage(self, text: str, required_keywords: list[str]) -> float:
+        content = text.lower()
+        if not required_keywords:
+            return 1.0
+        hits = sum(1 for keyword in required_keywords if keyword.lower() in content)
+        return hits / len(required_keywords)
 
-    def _citation_accuracy(self, answer: str, selected_chunk_ids: set[str], expected_citation_ids: set[str]) -> float:
+    def _artifact_coverage(self, prioritized_artifact_ids: set[str], task: Task) -> float:
+        required = {_normalize_chunk_id(chunk_id) for chunk_id in task.required_artifact_ids}
+        if not required:
+            return 1.0
+        return len(prioritized_artifact_ids & required) / len(required)
+
+    def _domain_coverage(self, prioritized_artifact_ids: set[str], retriever: HybridRetriever, task: Task) -> float:
+        required = {_normalize_chunk_id(chunk_id) for chunk_id in task.required_artifact_ids}
+        required_domains = {
+            chunk.domain
+            for chunk in retriever.corpus
+            if chunk.chunk_id in required
+        }
+        if not required_domains:
+            return 1.0
+        prioritized_domains = {
+            chunk.domain
+            for chunk in retriever.corpus
+            if chunk.chunk_id in prioritized_artifact_ids
+        }
+        return len(prioritized_domains & required_domains) / len(required_domains)
+
+    def _citation_accuracy(self, answer: str, prioritized_artifact_ids: set[str], task: Task) -> float:
         citations = {_normalize_chunk_id(chunk_id) for chunk_id in _extract_citations(answer)}
+        expected = {_normalize_chunk_id(chunk_id) for chunk_id in task.expected_citation_ids}
         if not citations:
             return 0.0
-        valid_citations = citations & selected_chunk_ids
-        precision = len(valid_citations) / len(citations)
-        recall = len(valid_citations & expected_citation_ids) / len(expected_citation_ids) if expected_citation_ids else 1.0
+        valid = citations & prioritized_artifact_ids
+        precision = len(valid) / len(citations)
+        recall = len(valid & expected) / len(expected) if expected else 1.0
         return (precision + recall) / 2.0
 
     def _unsupported_claim_rate(self, answer: str, evidence_chunks: list[Chunk]) -> float:
         answer_terms = _content_terms(re.sub(r"\[[a-z0-9_]+\]", " ", answer.lower()))
-        evidence_terms = _content_terms(" ".join(chunk.text for chunk in evidence_chunks))
+        evidence_terms = _content_terms(
+            " ".join(chunk.text for chunk in evidence_chunks) + " " +
+            " ".join(" ".join(chunk.keywords) for chunk in evidence_chunks)
+        )
         if not answer_terms:
             return 0.0
         unsupported = answer_terms - evidence_terms
         return len(unsupported) / len(answer_terms)
 
-    async def grade(
+    def grade(
         self,
-        selected_chunk_ids: list[str],
+        prioritized_artifact_ids: list[str],
+        reviewed_artifact_ids: list[str],
         answer: str,
+        plan_draft: str,
+        workflow_stage: str,
         token_budget: int,
         total_tokens_used: int,
         retriever: HybridRetriever,
         task: Task,
     ) -> GraderResult:
-        normalized_selected = {_normalize_chunk_id(chunk_id) for chunk_id in selected_chunk_ids}
-        normalized_required = {_normalize_chunk_id(chunk_id) for chunk_id in task.required_chunk_ids}
-        relevant = self._filter_relevant_by_domain(normalized_required, retriever, task)
+        prioritized = {_normalize_chunk_id(chunk_id) for chunk_id in prioritized_artifact_ids}
+        reviewed = {_normalize_chunk_id(chunk_id) for chunk_id in reviewed_artifact_ids}
+        required_chunks = self._required_chunks(retriever, task)
+        evidence_chunks = [chunk for chunk in retriever.corpus if chunk.chunk_id in prioritized] or required_chunks
 
-        retrieval_precision = _f1_score(normalized_selected, relevant)
+        artifact_coverage = self._artifact_coverage(prioritized, task)
+        review_coverage = self._artifact_coverage(reviewed, task)
+        domain_coverage = self._domain_coverage(prioritized, retriever, task)
+        plan_quality = self._keyword_coverage(plan_draft, task.required_plan_keywords)
+        report_quality = self._keyword_coverage(answer, task.required_report_keywords)
+        citation_accuracy = self._citation_accuracy(answer, prioritized, task)
         token_efficiency = 1.0 - (total_tokens_used / token_budget) if total_tokens_used <= token_budget else 0.0
         token_efficiency = max(0.0, min(1.0, token_efficiency))
-
-        required_chunks = self._required_chunks(retriever, task)
-        answer_quality = self._answer_quality(answer, required_chunks)
-
-        normalized_expected_citations = {
-            _normalize_chunk_id(chunk_id)
-            for chunk_id in (task.expected_citation_ids or task.required_chunk_ids)
-        }
-        required_chunks_hit = (
-            len(normalized_selected & normalized_required) / len(normalized_required)
-            if normalized_required
-            else 1.0
-        )
-
-        selected_chunks = [
-            chunk for chunk in retriever.corpus if chunk.chunk_id in normalized_selected
-        ]
-        evidence_chunks = selected_chunks or required_chunks
-        citation_accuracy = self._citation_accuracy(answer, normalized_selected, normalized_expected_citations)
+        workflow_readiness = 1.0 if workflow_stage in {"resolution", "submitted"} and plan_draft.strip() else 0.25 if plan_draft.strip() else 0.0
         unsupported_claim_rate = self._unsupported_claim_rate(answer, evidence_chunks)
-        semantic_groundedness = 1.0 - unsupported_claim_rate
-        semantic_coverage = answer_quality
-        grading_notes = ""
-
-        if llm_configured():
-            llm_result = await judge_answer(
-                task=task,
-                answer=answer,
-                selected_chunks=selected_chunks,
-                required_chunks=required_chunks,
-            )
-            answer_quality = llm_result["answer_quality"]
-            semantic_groundedness = llm_result["groundedness"]
-            semantic_coverage = llm_result["coverage"]
-            citation_accuracy = (citation_accuracy + llm_result["citation_support"]) / 2.0
-            unsupported_claim_rate = max(0.0, min(1.0, 1.0 - semantic_groundedness))
-            grading_notes = llm_result["notes"]
-
         hallucination_penalty = min(1.0, unsupported_claim_rate)
 
         base_score = (
-            0.25 * retrieval_precision
-            + 0.25 * token_efficiency
-            + 0.35 * answer_quality
-            + 0.15 * required_chunks_hit
+            0.24 * artifact_coverage
+            + 0.12 * review_coverage
+            + 0.12 * domain_coverage
+            + 0.16 * plan_quality
+            + 0.18 * report_quality
+            + 0.10 * citation_accuracy
+            + 0.08 * token_efficiency
+            + 0.10 * workflow_readiness
         )
-        score = base_score + (0.10 * citation_accuracy) - (0.15 * hallucination_penalty)
-        score = max(0.0, min(1.0, score))
+        score = max(0.0, min(1.0, base_score - (0.18 * hallucination_penalty)))
 
-        breakdown = {
-            "retrieval_precision": retrieval_precision,
-            "token_efficiency": token_efficiency,
-            "answer_quality": answer_quality,
-            "required_chunks_hit": required_chunks_hit,
+        breakdown: dict[str, float | str] = {
+            "artifact_coverage": artifact_coverage,
+            "review_coverage": review_coverage,
+            "domain_coverage": domain_coverage,
+            "plan_quality": plan_quality,
+            "report_quality": report_quality,
             "citation_accuracy": citation_accuracy,
+            "token_efficiency": token_efficiency,
+            "workflow_readiness": workflow_readiness,
             "unsupported_claim_rate": unsupported_claim_rate,
             "hallucination_penalty": hallucination_penalty,
-            "semantic_groundedness": semantic_groundedness,
-            "semantic_coverage": semantic_coverage,
         }
-        if grading_notes:
-            breakdown["grading_notes"] = grading_notes
-        passed = score >= 0.7
+        passed = score >= 0.72
         return GraderResult(score=score, breakdown=breakdown, passed=passed)

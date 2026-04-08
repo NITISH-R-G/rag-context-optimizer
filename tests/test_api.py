@@ -25,8 +25,8 @@ def test_reset_accepts_empty_body():
 
 
 def test_episode_state_is_isolated():
-    first_reset = client.post("/reset", json={"task_name": "single_domain_qa"})
-    second_reset = client.post("/reset", json={"task_name": "cross_domain_synthesis"})
+    first_reset = client.post("/reset", json={"task_name": "refund_triage_easy"})
+    second_reset = client.post("/reset", json={"task_name": "cross_function_brief_medium"})
     assert first_reset.status_code == 200
     assert second_reset.status_code == 200
 
@@ -35,7 +35,10 @@ def test_episode_state_is_isolated():
     assert first_episode != second_episode
 
     first_chunk = first_reset.json()["observation"]["available_chunks"][0]["chunk_id"]
-    step = client.post(f"/step?episode_id={first_episode}", json={"action_type": "select_chunk", "chunk_id": first_chunk})
+    step = client.post(
+        f"/step?episode_id={first_episode}",
+        json={"action_type": "inspect_artifact", "artifact_id": first_chunk},
+    )
     assert step.status_code == 200
     assert step.json()["episode_id"] == first_episode
 
@@ -43,5 +46,5 @@ def test_episode_state_is_isolated():
     second_state = client.get(f"/state?episode_id={second_episode}")
     assert first_state.status_code == 200
     assert second_state.status_code == 200
-    assert first_chunk in first_state.json()["selected_chunks"]
-    assert second_state.json()["selected_chunks"] == []
+    assert first_chunk in first_state.json()["reviewed_artifacts"]
+    assert second_state.json()["reviewed_artifacts"] == []

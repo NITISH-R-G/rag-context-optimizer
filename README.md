@@ -8,149 +8,142 @@ app_port: 7860
 pinned: false
 tags:
   - openenv
-  - rag
+  - incident-ops
   - benchmark
-  - retrieval
+  - enterprise
 ---
 
 # rag-context-optimizer
 
-## Overview
+`rag-context-optimizer` is now a real-world OpenEnv environment for enterprise incident operations.
 
-`rag-context-optimizer` is an OpenEnv-compatible environment for enterprise context selection under token constraints.
+Instead of only picking context chunks, the agent must work through a realistic operational loop:
+- inspect incident and support artifacts
+- prioritize the evidence that belongs in the working set
+- summarize heavy artifacts when token pressure rises
+- draft a resolution plan
+- submit a grounded final memo or escalation note
 
-It models a real workflow that teams actually face in production AI systems:
-- customer support agents deciding which policy evidence to retrieve
-- incident responders deciding which runbook details to include
-- reliability and release teams deciding what context is worth paying to send to a model
+This models work that support leads, incident commanders, and release managers actually do during outages and security escalations.
 
-Instead of rewarding naive retrieve-everything behavior, the environment rewards agents that choose relevant evidence, manage token budget carefully, compress when appropriate, and produce grounded answers.
+## Why This Is A Real Environment
 
-The current benchmark is organized around three enterprise knowledge workflows:
-- support policy triage
-- outage and incident synthesis
-- high-pressure adversarial compression during a security-flavored active incident
+The environment simulates operational decisions humans make during live enterprise incidents:
+- refund triage after a confirmed outage
+- cross-functional outage briefing across support, incident response, and release engineering
+- executive escalation handling during a suspected admin compromise
 
-## Why This Is A Real Task
-
-This is not a toy prompt-shortening demo. It represents a production control problem:
-- too little context causes low-quality or unsafe answers
-- too much context increases latency and cost
-- irrelevant context increases hallucination risk
-- uncited answers are harder to trust in support and incident workflows
-
-That makes the environment useful for:
-- benchmarking OpenEnv agents
-- training PyTorch or bandit-style controllers over deterministic feedback
-- evaluating retrieval and compression policies before production rollout
-- comparing grounded answering strategies against unsupported free-form behavior
+That makes it useful for:
+- evaluating operational agent behavior
+- training evidence prioritization policies
+- benchmarking grounded reporting under token pressure
+- comparing safe workflow planning against premature free-form answering
 
 ## OpenEnv API
 
-The environment exposes the standard HTTP interface:
+Standard endpoints:
 - `POST /reset`
 - `POST /step`
 - `GET /state`
 
-It also includes:
+Additional helper endpoints:
 - `GET /health`
 - `GET /tasks`
 - `POST /optimize-step`
 - `POST /optimize-prompt`
 
-Metadata lives in [openenv.yaml](/C:/Users/User/Documents/META%20HACKATHON/rag-context-optimizer/openenv.yaml).
+Metadata lives in [openenv.yaml](/C:/Users/nitis/Downloads/Meta%20OpenEnv/openenv.yaml).
 
 ## Observation Space
 
-`RagObservation` is returned by `/reset` and `/step`.
+`RagObservation` includes:
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `query` | `str` | The task query the agent must answer. |
-| `available_chunks` | `List[ChunkSummary]` | Candidate evidence chunks the agent can act on. |
-| `selected_chunks` | `List[str]` | Chunk IDs currently selected into working context. |
-| `total_tokens_used` | `int` | Current context token cost after compression. |
-| `token_budget` | `int` | Maximum allowed token budget for the episode. |
-| `step_number` | `int` | Current episode step count. |
-| `task_name` | `str` | Active task identifier. |
-| `last_action_feedback` | `Optional[str]` | Human-readable feedback for the previous action. |
+| `case_id` | `str` | Unique simulated case identifier |
+| `case_summary` | `str` | Real-world case context |
+| `objective` | `str` | Deliverable the agent must produce |
+| `workflow_stage` | `triage \| analysis \| resolution \| submitted` | Current stage |
+| `customer_tier` | `standard \| business \| enterprise` | Customer criticality |
+| `incident_severity` | `sev3 \| sev2 \| sev1` | Incident severity |
+| `available_artifacts` | `List[ChunkSummary]` | Artifacts available for inspection or prioritization |
+| `reviewed_artifacts` | `List[str]` | Artifacts the agent has inspected |
+| `prioritized_artifacts` | `List[str]` | Artifacts in the working set |
+| `plan_draft` | `Optional[str]` | Current operational plan |
+| `report_requirements` | `List[str]` | Final memo requirements |
+| `progress_signals` | `Dict[str, float]` | Partial progress metrics |
+| `total_tokens_used` | `int` | Current working-set token cost |
+| `token_budget` | `int` | Allowed token budget |
 
-`ChunkSummary` includes:
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `chunk_id` | `str` | Unique evidence identifier. |
-| `domain` | `str` | Chunk source domain. |
-| `tokens` | `int` | Approximate token cost. |
-| `keywords` | `List[str]` | Retrieval hints for the agent. |
+Compatibility mirrors are also present for legacy clients:
+- `query`
+- `available_chunks`
+- `selected_chunks`
 
 ## Action Space
 
-The agent acts through `RagAction`.
+Canonical actions:
 
 | Action Type | Parameters | Effect |
 | --- | --- | --- |
-| `select_chunk` | `chunk_id` | Adds a chunk if it fits the remaining budget. |
-| `deselect_chunk` | `chunk_id` | Removes a selected chunk. |
-| `compress_chunk` | `chunk_id`, `compression_ratio` | Reduces token cost for a selected chunk. |
-| `submit_answer` | `answer` | Ends the episode and triggers grading. |
+| `inspect_artifact` | `artifact_id` | Review an artifact without yet committing it to the working set |
+| `prioritize_artifact` | `artifact_id` | Add a reviewed artifact to the working set |
+| `summarize_artifact` | `artifact_id`, `compression_ratio` | Compress a prioritized artifact to reduce token cost |
+| `set_resolution_plan` | `plan` | Draft the operational plan before submission |
+| `submit_report` | `answer` | Submit the final grounded memo and end the episode |
 
-Answering guidance:
-- final answers may cite evidence with chunk IDs such as `[support_003]`
-- citation accuracy is rewarded
-- unsupported claims are penalized
-- task definitions include expected citation targets for deterministic grading
+Legacy aliases are still accepted for compatibility:
+- `select_chunk`
+- `deselect_chunk`
+- `compress_chunk`
+- `submit_answer`
 
 ## Tasks
 
-The benchmark contains three tasks with increasing difficulty.
-
 | Task | Difficulty | Max Steps | Token Budget | Description |
 | --- | --- | --- | --- | --- |
-| `single_domain_qa` | easy | `6` | `800` | Draft a customer refund recommendation using support policy evidence. |
-| `cross_domain_synthesis` | medium | `8` | `500` | Produce a cross-functional outage brief spanning support, incident, and reliability evidence. |
-| `adversarial_compression` | hard | `10` | `300` | Produce a tightly budgeted active-incident brief for a compromised admin account. |
+| `refund_triage_easy` | easy | `7` | `850` | Build a refund-review memo from support policy evidence after an outage |
+| `cross_function_brief_medium` | medium | `8` | `620` | Prepare a cross-functional outage brief spanning support, incident command, and release controls |
+| `executive_escalation_hard` | hard | `10` | `360` | Draft a terse executive escalation note for a suspected admin compromise |
 
-These tasks are implemented in [env/tasks.py](/C:/Users/User/Documents/META%20HACKATHON/rag-context-optimizer/env/tasks.py) and graded in [env/graders.py](/C:/Users/User/Documents/META%20HACKATHON/rag-context-optimizer/env/graders.py).
+Task definitions live in [env/tasks.py](/C:/Users/nitis/Downloads/Meta%20OpenEnv/env/tasks.py).
 
 ## Reward Design
 
-The final score is normalized to `[0.0, 1.0]` and combines:
-- retrieval precision
-- token efficiency
-- answer quality
-- required chunk coverage
-- citation accuracy
-- hallucination penalty
+The environment provides shaped signal across the trajectory:
+- positive reward for inspecting required evidence
+- positive reward for prioritizing the right artifacts
+- positive reward for multi-domain coverage on cross-functional tasks
+- positive reward for high-quality operational plans
+- positive reward for safe token compression
+- penalty for over-compressing critical evidence
+- penalty for deprioritizing required artifacts
+- final deterministic score in `[0, 1]` based on:
+  - artifact coverage
+  - review coverage
+  - domain coverage
+  - plan quality
+  - report quality
+  - citation accuracy
+  - token efficiency
+  - workflow readiness
+  - unsupported claim penalty
 
-The environment also emits trajectory-level shaping rewards for:
-- selecting useful evidence
-- compressing cautiously
-- avoiding wasteful budget use
-- removing unhelpful context
+The grader is deterministic and task-specific.
 
-This produces denser signal than a submit-only environment.
+## LLM-backed Helpers
 
-## Prompt Optimization Modes
+The environment includes optional LLM-backed helpers:
+- `/optimize-step` proposes the next workflow action
+- `/optimize-prompt` rewrites prompts under budget while preserving grounding
 
-The `/optimize-prompt` helper supports three modes:
-- `balanced`: default mode, preserves constraints while shortening
-- `grounded`: prefers inline citations and evidence anchoring, even if the final prompt is slightly less compressed
-- `aggressive`: prioritizes maximum shortening over richer evidence phrasing
-
-Example:
-
-```bash
-curl -X POST http://localhost:7860/optimize-prompt \
-  -H "Content-Type: application/json" \
-  -d '{"prompt":"Draft a customer-safe incident update and cite evidence.","corpus_family":"enterprise_v2","compression_mode":"grounded"}'
-```
+The authoritative grader remains deterministic for reproducibility.
 
 ## Local Setup
 
 ### Requirements
 
-- Python 3.11 recommended
+- Python 3.11+ recommended
 - Docker
 - `openenv-core`
 
@@ -161,13 +154,13 @@ pip install -r requirements.txt
 pip install openenv-core
 ```
 
-### Run locally
+### Run
 
 ```bash
 uvicorn app:app --host 0.0.0.0 --port 7860
 ```
 
-### Test locally
+### Validate
 
 ```bash
 docker build .
@@ -175,22 +168,38 @@ openenv validate
 python validate.py
 ```
 
-## API Usage
+## API Examples
 
 ### Reset
 
 ```bash
 curl -X POST http://localhost:7860/reset \
   -H "Content-Type: application/json" \
-  -d '{"task_name":"single_domain_qa"}'
+  -d '{"task_name":"refund_triage_easy"}'
 ```
 
-### Step
+### Inspect
 
 ```bash
 curl -X POST http://localhost:7860/step \
   -H "Content-Type: application/json" \
-  -d '{"action_type":"select_chunk","chunk_id":"support_003"}'
+  -d '{"action_type":"inspect_artifact","artifact_id":"support_003"}'
+```
+
+### Prioritize
+
+```bash
+curl -X POST http://localhost:7860/step \
+  -H "Content-Type: application/json" \
+  -d '{"action_type":"prioritize_artifact","artifact_id":"support_003"}'
+```
+
+### Plan
+
+```bash
+curl -X POST http://localhost:7860/step \
+  -H "Content-Type: application/json" \
+  -d '{"action_type":"set_resolution_plan","plan":"Verify outage evidence, confirm the billing ledger, and route exceptions to finance review."}'
 ```
 
 ### Submit
@@ -198,93 +207,53 @@ curl -X POST http://localhost:7860/step \
 ```bash
 curl -X POST http://localhost:7860/step \
   -H "Content-Type: application/json" \
-  -d '{"action_type":"submit_answer","answer":"Verify outage evidence and billing records before issuing an immediate refund. [support_001] [support_003]"}'
-```
-
-### State
-
-```bash
-curl http://localhost:7860/state
-```
-
-### Health
-
-```bash
-curl http://localhost:7860/health
+  -d '{"action_type":"submit_report","answer":"Proceed to refund review only after outage evidence and the billing ledger are confirmed. [support_001] [support_003]"}'
 ```
 
 ## Baseline Inference
 
-The baseline runner is [inference.py](/C:/Users/User/Documents/META%20HACKATHON/rag-context-optimizer/inference.py).
+The baseline runner is [inference.py](/C:/Users/nitis/Downloads/Meta%20OpenEnv/inference.py).
 
-Submission-critical requirements:
+Submission-critical requirements satisfied:
 - file name is exactly `inference.py`
 - located at the project root
 - uses the OpenAI client
 - reads:
   - `API_BASE_URL` with a default
   - `MODEL_NAME` with a default
-  - `HF_TOKEN` with no default
-  - `API_KEY` when the validator injects a LiteLLM proxy
-- emits strict stdout lines only in this format:
-
-```text
-[START] task=<task_name> env=<benchmark> model=<model_name>
-[STEP] step=<n> action=<action_str> reward=<0.00> done=<true|false> error=<msg|null>
-[END] success=<true|false> steps=<n> rewards=<r1,r2,...,rn>
-```
-
-Important runtime behavior:
-- `HF_TOKEN` is the required published credential path
-- `API_KEY` is also supported and takes priority when the validator injects a LiteLLM proxy
-- `ALLOW_BASELINE_FALLBACK=1` enables deterministic offline fallback for local validation only
-- offline fallback is intended for smoke testing, not benchmark claims
+  - `HF_TOKEN` as the published credential path
+  - `API_KEY` when validator proxy credentials are injected
+- emits strict `[START]`, `[STEP]`, `[END]` stdout logs
 
 ### Environment variables
 
 | Variable | Required | Default | Purpose |
 | --- | --- | --- | --- |
-| `API_BASE_URL` | no | `https://router.huggingface.co/v1` | OpenAI-compatible endpoint for model calls |
+| `API_BASE_URL` | no | `https://router.huggingface.co/v1` | OpenAI-compatible endpoint |
 | `MODEL_NAME` | no | `Qwen/Qwen2.5-72B-Instruct` | Model used for baseline inference |
-| `HF_TOKEN` | yes | none | Primary Hugging Face / API credential for baseline inference |
-| `API_KEY` | no | none | Validator-injected LiteLLM proxy key; overrides `HF_TOKEN` when present |
+| `HF_TOKEN` | yes | none | Primary token |
+| `API_KEY` | no | none | Validator-injected proxy key; overrides `HF_TOKEN` |
 | `RAG_ENV_URL` | no | `http://localhost:7860` | Environment base URL |
-| `RAG_ENV_TASK` | no | `single_domain_qa` | Preferred starting task order |
-| `ALLOW_BASELINE_FALLBACK` | no | unset | Optional offline smoke-test mode |
-| `RAG_CORPUS_PATH` | no | unset | Optional alternate corpus file |
-| `RAG_CORPUS_FAMILY` | no | unset | Optional built-in corpus pack selector |
+| `RAG_ENV_TASK` | no | `refund_triage_easy` | Preferred starting task |
 
 ## Baseline Scores
 
-Recorded local scores for the current baseline:
+Current local validation run:
 
-| Policy | single_domain_qa | cross_domain_synthesis | adversarial_compression |
+| Policy | refund_triage_easy | cross_function_brief_medium | executive_escalation_hard |
 | --- | --- | --- | --- |
-| baseline script | `0.1524` | `0.1644` | `0.0000` |
-| deterministic validator policy | `0.4821` | `0.3270` | `0.2740` |
-
-These scores are intentionally modest. Strong performance requires balancing relevance, grounding, and token budget rather than simply selecting the largest plausible evidence set.
+| baseline script | reproducible via `python validate.py` | reproducible via `python validate.py` | reproducible via `python validate.py` |
 
 ## Deployment
-
-This repository is designed for a Docker-based Hugging Face Space.
 
 Live deployment:
 - Space URL: [nitishrg15102007-rag-context-optimizer.hf.space](https://nitishrg15102007-rag-context-optimizer.hf.space)
 - Space repo: [NITISHRG15102007/rag-context-optimizer](https://huggingface.co/spaces/NITISHRG15102007/rag-context-optimizer)
 
-Suggested validation flow before submission:
+Recommended pre-submission flow:
 
 ```bash
 docker build .
 openenv validate
 python validate.py
 ```
-
-External validator example:
-
-```bash
-./validate-submission.sh https://nitishrg15102007-rag-context-optimizer.hf.space ./rag-context-optimizer
-```
-
-FastAPI docs are available at `/docs` when the server is running.

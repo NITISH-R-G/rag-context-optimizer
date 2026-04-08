@@ -1,5 +1,5 @@
 """
-Typed Pydantic models for the rag-context-optimizer environment.
+Typed Pydantic models for the incident operations OpenEnv environment.
 """
 
 from __future__ import annotations
@@ -14,23 +14,19 @@ class ChunkSummary(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "chunk_id": "climate_006",
-                    "domain": "Climate Policy",
-                    "tokens": 505,
-                    "keywords": ["battery storage", "renewables", "transmission", "solar", "curtailment"],
+                    "chunk_id": "support_003",
+                    "domain": "Customer Support Operations",
+                    "tokens": 132,
+                    "keywords": ["refund policy", "incident timeline", "billing ledger"],
                 }
             ]
         }
     )
 
-    chunk_id: str = Field(..., description="Unique identifier for the chunk exposed to the agent.")
-    domain: str = Field(..., description="Top-level corpus domain for the chunk.")
-    tokens: int = Field(..., ge=1, description="Approximate token count for the chunk before compression.")
-    keywords: list[str] = Field(
-        ...,
-        min_length=1,
-        description="Important retrieval keywords associated with the chunk.",
-    )
+    chunk_id: str = Field(..., description="Unique artifact identifier exposed to the agent.")
+    domain: str = Field(..., description="High-level source domain for the artifact.")
+    tokens: int = Field(..., ge=1, description="Approximate token cost for including the artifact.")
+    keywords: list[str] = Field(..., min_length=1, description="Important artifact hints available before inspection.")
 
     @field_validator("chunk_id", "domain")
     @classmethod
@@ -54,49 +50,89 @@ class RagObservation(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "query": "Which policy design improved carbon tax acceptance among households?",
-                    "available_chunks": [
+                    "case_id": "case-refund-triage-001",
+                    "case_summary": "A business customer requests a refund after a confirmed outage.",
+                    "objective": "Prepare a refund triage memo grounded in support evidence.",
+                    "workflow_stage": "triage",
+                    "customer_tier": "business",
+                    "incident_severity": "sev2",
+                    "available_artifacts": [
                         {
-                            "chunk_id": "climate_001",
-                            "domain": "Climate Policy",
-                            "tokens": 501,
-                            "keywords": ["carbon tax", "rebates", "power sector", "emissions", "permit market"],
+                            "chunk_id": "support_003",
+                            "domain": "Customer Support Operations",
+                            "tokens": 132,
+                            "keywords": ["refund policy", "incident timeline", "billing ledger"],
                         }
                     ],
-                    "selected_chunks": ["climate_001"],
-                    "total_tokens_used": 501,
-                    "token_budget": 1200,
-                    "step_number": 2,
-                    "task_name": "easy_climate_query",
-                    "last_action_feedback": "Chunk climate_001 selected successfully.",
+                    "reviewed_artifacts": [],
+                    "prioritized_artifacts": [],
+                    "plan_draft": None,
+                    "report_requirements": ["State whether the case should proceed to refund review."],
+                    "total_tokens_used": 0,
+                    "token_budget": 850,
+                    "step_number": 0,
+                    "task_name": "refund_triage_easy",
+                    "last_action_feedback": None,
+                    "query": "Prepare an incident-linked refund triage memo.",
+                    "available_chunks": [],
+                    "selected_chunks": [],
                 }
             ]
         }
     )
 
-    query: str = Field(..., description="The question the agent must answer using retrieval and compression actions.")
+    case_id: str = Field(..., description="Unique identifier for the active simulated incident case.")
+    case_summary: str = Field(..., description="Short real-world case summary presented to the agent.")
+    objective: str = Field(..., description="The operational deliverable the agent must produce.")
+    workflow_stage: Literal["triage", "analysis", "resolution", "submitted"] = Field(
+        ..., description="Current workflow stage in the incident operations process."
+    )
+    customer_tier: Literal["standard", "business", "enterprise"] = Field(
+        ..., description="Customer tier for the active case."
+    )
+    incident_severity: Literal["sev3", "sev2", "sev1"] = Field(
+        ..., description="Severity of the active incident."
+    )
+    available_artifacts: list[ChunkSummary] = Field(
+        ..., description="Artifacts that can be inspected, prioritized, or summarized."
+    )
+    reviewed_artifacts: list[str] = Field(
+        default_factory=list,
+        description="Artifact ids the agent has inspected so far.",
+    )
+    prioritized_artifacts: list[str] = Field(
+        default_factory=list,
+        description="Artifact ids currently included in the working resolution set.",
+    )
+    plan_draft: Optional[str] = Field(
+        default=None,
+        description="Current draft of the resolution plan or operational recommendation.",
+    )
+    report_requirements: list[str] = Field(
+        default_factory=list,
+        description="Deterministic requirements the final report must satisfy.",
+    )
+    progress_signals: dict[str, float] = Field(
+        default_factory=dict,
+        description="Normalized progress metrics for artifact coverage, planning, and workflow readiness.",
+    )
+    total_tokens_used: int = Field(..., ge=0, description="Current token cost of the prioritized working set.")
+    token_budget: int = Field(..., ge=1, description="Maximum allowed token budget for the current task.")
+    step_number: int = Field(..., ge=0, description="Current step number in the episode.")
+    task_name: str = Field(..., description="Active task identifier.")
+    last_action_feedback: Optional[str] = Field(default=None, description="Outcome of the previous action.")
+
+    query: str = Field(..., description="Compatibility mirror of objective for legacy clients.")
     available_chunks: list[ChunkSummary] = Field(
-        ...,
-        description="All chunk summaries currently available for selection in the episode.",
+        default_factory=list,
+        description="Compatibility mirror of available_artifacts for legacy clients.",
     )
     selected_chunks: list[str] = Field(
         default_factory=list,
-        description="Chunk ids the agent has selected so far for building context.",
-    )
-    total_tokens_used: int = Field(
-        ...,
-        ge=0,
-        description="Current total token count consumed by the selected chunks.",
-    )
-    token_budget: int = Field(..., ge=1, description="Maximum token budget allowed for the current task.")
-    step_number: int = Field(..., ge=0, description="Current step number in the episode.")
-    task_name: str = Field(..., description="Human-readable name of the active benchmark task.")
-    last_action_feedback: Optional[str] = Field(
-        default=None,
-        description="Short explanation of what happened after the previous action.",
+        description="Compatibility mirror of prioritized_artifacts for legacy clients.",
     )
 
-    @field_validator("query", "task_name")
+    @field_validator("case_id", "case_summary", "objective", "task_name", "query")
     @classmethod
     def validate_required_strings(cls, value: str) -> str:
         value = value.strip()
@@ -104,12 +140,18 @@ class RagObservation(BaseModel):
             raise ValueError("Value must not be empty.")
         return value
 
-    @field_validator("selected_chunks")
+    @field_validator("reviewed_artifacts", "prioritized_artifacts", "selected_chunks")
     @classmethod
-    def validate_selected_chunks(cls, value: list[str]) -> list[str]:
-        cleaned = [chunk_id.strip() for chunk_id in value if chunk_id.strip()]
+    def validate_ids(cls, value: list[str]) -> list[str]:
+        cleaned = [artifact_id.strip() for artifact_id in value if artifact_id.strip()]
         if len(cleaned) != len(set(cleaned)):
-            raise ValueError("selected_chunks must not contain duplicates.")
+            raise ValueError("Artifact id lists must not contain duplicates.")
+        return cleaned
+
+    @field_validator("report_requirements")
+    @classmethod
+    def validate_report_requirements(cls, value: list[str]) -> list[str]:
+        cleaned = [item.strip() for item in value if item.strip()]
         return cleaned
 
     @field_validator("last_action_feedback")
@@ -121,9 +163,15 @@ class RagObservation(BaseModel):
         return value or None
 
     @model_validator(mode="after")
-    def validate_token_budget_relation(self) -> "RagObservation":
+    def validate_budget_and_aliases(self) -> "RagObservation":
         if self.total_tokens_used > self.token_budget:
-            raise ValueError("total_tokens_used cannot exceed token_budget in the observation state.")
+            raise ValueError("total_tokens_used cannot exceed token_budget.")
+        if self.query != self.objective:
+            raise ValueError("query must mirror objective.")
+        if self.selected_chunks != self.prioritized_artifacts:
+            raise ValueError("selected_chunks must mirror prioritized_artifacts.")
+        if len(self.available_chunks) != len(self.available_artifacts):
+            raise ValueError("available_chunks must mirror available_artifacts.")
         return self
 
 
@@ -131,48 +179,32 @@ class RagAction(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
             "examples": [
-                {
-                    "action_type": "select_chunk",
-                    "chunk_id": "climate_001",
-                    "compression_ratio": None,
-                    "answer": None,
-                },
-                {
-                    "action_type": "compress_chunk",
-                    "chunk_id": "climate_001",
-                    "compression_ratio": 0.5,
-                    "answer": None,
-                },
-                {
-                    "action_type": "submit_answer",
-                    "chunk_id": None,
-                    "compression_ratio": None,
-                    "answer": "Quarterly dividend checks improved household acceptance of the carbon tax.",
-                },
+                {"action_type": "inspect_artifact", "artifact_id": "support_003"},
+                {"action_type": "summarize_artifact", "artifact_id": "support_003", "compression_ratio": 0.55},
+                {"action_type": "set_resolution_plan", "plan": "Verify outage evidence and route manual exceptions to finance review."},
+                {"action_type": "submit_report", "answer": "Proceed to refund review only after outage and billing evidence are confirmed. [support_001] [support_003]"},
             ]
         }
     )
 
-    action_type: Literal["select_chunk", "deselect_chunk", "compress_chunk", "submit_answer"] = Field(
-        ...,
-        description="The environment action the agent wants to perform.",
-    )
-    chunk_id: Optional[str] = Field(
-        default=None,
-        description="Target chunk id for select, deselect, or compress actions.",
-    )
-    compression_ratio: Optional[float] = Field(
-        default=None,
-        ge=0.3,
-        le=0.9,
-        description="Compression ratio to apply during compress_chunk actions.",
-    )
-    answer: Optional[str] = Field(
-        default=None,
-        description="Final answer text supplied when the agent submits an answer.",
-    )
+    action_type: Literal[
+        "inspect_artifact",
+        "prioritize_artifact",
+        "summarize_artifact",
+        "set_resolution_plan",
+        "submit_report",
+        "select_chunk",
+        "deselect_chunk",
+        "compress_chunk",
+        "submit_answer",
+    ] = Field(..., description="The environment action the agent wants to perform.")
+    artifact_id: Optional[str] = Field(default=None, description="Target artifact id for artifact actions.")
+    chunk_id: Optional[str] = Field(default=None, description="Legacy alias for artifact_id.")
+    compression_ratio: Optional[float] = Field(default=None, ge=0.3, le=0.9)
+    plan: Optional[str] = Field(default=None, description="Draft of the current operational resolution plan.")
+    answer: Optional[str] = Field(default=None, description="Final report or resolution memo to submit.")
 
-    @field_validator("chunk_id", "answer")
+    @field_validator("artifact_id", "chunk_id", "plan", "answer")
     @classmethod
     def normalize_optional_strings(cls, value: Optional[str]) -> Optional[str]:
         if value is None:
@@ -182,72 +214,33 @@ class RagAction(BaseModel):
 
     @model_validator(mode="after")
     def validate_action_semantics(self) -> "RagAction":
-        if self.action_type in {"select_chunk", "deselect_chunk"}:
-            if self.chunk_id is None:
-                raise ValueError("chunk_id is required for select_chunk and deselect_chunk actions.")
-            if self.compression_ratio is not None or self.answer is not None:
-                raise ValueError("select_chunk and deselect_chunk actions only accept chunk_id.")
-        elif self.action_type == "compress_chunk":
-            if self.chunk_id is None:
-                raise ValueError("chunk_id is required for compress_chunk.")
+        normalized_artifact_id = self.artifact_id or self.chunk_id
+        if self.action_type in {"inspect_artifact", "prioritize_artifact", "select_chunk", "deselect_chunk"}:
+            if normalized_artifact_id is None:
+                raise ValueError("artifact_id or chunk_id is required for artifact selection actions.")
+        elif self.action_type in {"summarize_artifact", "compress_chunk"}:
+            if normalized_artifact_id is None:
+                raise ValueError("artifact_id or chunk_id is required for summarize actions.")
             if self.compression_ratio is None:
-                raise ValueError("compression_ratio is required for compress_chunk.")
-            if self.answer is not None:
-                raise ValueError("compress_chunk does not accept answer.")
-        elif self.action_type == "submit_answer":
+                raise ValueError("compression_ratio is required for summarize actions.")
+        elif self.action_type == "set_resolution_plan":
+            if self.plan is None:
+                raise ValueError("plan is required for set_resolution_plan.")
+        elif self.action_type in {"submit_report", "submit_answer"}:
             if self.answer is None:
-                raise ValueError("answer is required for submit_answer.")
-            if self.chunk_id is not None or self.compression_ratio is not None:
-                raise ValueError("submit_answer only accepts answer.")
+                raise ValueError("answer is required for submit_report/submit_answer.")
         return self
 
 
 class RagReward(BaseModel):
-    model_config = ConfigDict(
-        json_schema_extra={
-            "examples": [
-                {
-                    "total": 0.82,
-                    "token_efficiency": 0.9,
-                    "answer_quality": 0.84,
-                    "retrieval_precision": 0.78,
-                    "penalty": 0.05,
-                }
-            ]
-        }
-    )
-
-    total: float = Field(..., ge=0.0, le=1.0, description="Overall normalized reward for the step or episode.")
-    token_efficiency: float = Field(
-        ...,
-        ge=0.0,
-        le=1.0,
-        description="Reward component capturing how efficiently the agent used tokens.",
-    )
-    answer_quality: float = Field(
-        ...,
-        ge=0.0,
-        le=1.0,
-        description="Reward component measuring answer correctness and completeness.",
-    )
-    retrieval_precision: float = Field(
-        ...,
-        ge=0.0,
-        le=1.0,
-        description="Reward component measuring how relevant the selected chunks were.",
-    )
-    penalty: float = Field(
-        ...,
-        ge=0.0,
-        le=1.0,
-        description="Normalized deduction applied for wasteful or invalid behavior.",
-    )
+    total: float = Field(..., ge=0.0, le=1.0)
+    token_efficiency: float = Field(..., ge=0.0, le=1.0)
+    answer_quality: float = Field(..., ge=0.0, le=1.0)
+    retrieval_precision: float = Field(..., ge=0.0, le=1.0)
+    penalty: float = Field(..., ge=0.0, le=1.0)
 
     @model_validator(mode="after")
     def validate_total_bound(self) -> "RagReward":
-        recomposed = self.token_efficiency + self.answer_quality + self.retrieval_precision - self.penalty
-        if recomposed < -1e-6:
-            raise ValueError("Reward components minus penalty must not be negative.")
         if self.total > 1.0 or self.total < 0.0:
             raise ValueError("total must remain within [0.0, 1.0].")
         return self

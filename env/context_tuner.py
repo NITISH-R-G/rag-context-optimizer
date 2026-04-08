@@ -110,17 +110,17 @@ class ContextTunedPlanner:
     def _build_demo_cases(self, tasks: list[Task]) -> list[DemoCase]:
         demo_cases: list[DemoCase] = []
         query_variants = {
-            "single_domain_qa": [
-                "Support refund decision after a confirmed outage with billing checks and customer-safe evidence.",
-                "Customer refund escalation during an outage: verify impact, billing ledger, and exception policy.",
+            "refund_triage_easy": [
+                "Refund triage memo after a confirmed outage with billing checks and finance review steps.",
+                "Business customer outage escalation: verify the billing ledger, incident evidence, and compensation path.",
             ],
-            "cross_domain_synthesis": [
-                "Outage command brief that aligns support triage, incident communications, and release rollback safety.",
-                "Cross-functional major-incident summary linking support actions, incident sequencing, and release controls.",
+            "cross_function_brief_medium": [
+                "Cross-functional outage brief linking support handling, incident command discipline, and release rollback safeguards.",
+                "Major outage coordination memo for support, incident response, and release engineering teams.",
             ],
-            "adversarial_compression": [
-                "Compromised admin account incident brief: immediate customer-harm reduction plus release-engineering safeguards.",
-                "Active security incident with admin compromise: containment steps, customer protections, and rollback analogies.",
+            "executive_escalation_hard": [
+                "Executive escalation note for compromised admin account response with customer protection and change freeze controls.",
+                "Severe security incident brief balancing customer harm reduction, evidence preservation, and release safeguards.",
             ],
         }
         for task in tasks:
@@ -128,15 +128,15 @@ class ContextTunedPlanner:
             preferred_domains = (
                 (normalized_domain,) if normalized_domain else tuple(sorted({
                     self._chunk_map[chunk_id].domain
-                    for chunk_id in task.required_chunk_ids
+                    for chunk_id in task.required_artifact_ids
                     if chunk_id in self._chunk_map
                 }))
             )
             base = DemoCase(
                 name=f"{task.name}_gold",
                 query=task.query,
-                positive_chunk_ids=tuple(task.required_chunk_ids),
-                expected_citations=tuple(task.expected_citation_ids or task.required_chunk_ids),
+                positive_chunk_ids=tuple(task.required_artifact_ids),
+                expected_citations=tuple(task.expected_citation_ids or task.required_artifact_ids),
                 preferred_domains=preferred_domains,
             )
             demo_cases.append(base)
@@ -145,8 +145,8 @@ class ContextTunedPlanner:
                     DemoCase(
                         name=f"{task.name}_variant_{index}",
                         query=variant,
-                        positive_chunk_ids=tuple(task.required_chunk_ids),
-                        expected_citations=tuple(task.expected_citation_ids or task.required_chunk_ids),
+                        positive_chunk_ids=tuple(task.required_artifact_ids),
+                        expected_citations=tuple(task.expected_citation_ids or task.required_artifact_ids),
                         preferred_domains=preferred_domains,
                     )
                 )

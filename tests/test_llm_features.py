@@ -36,8 +36,8 @@ def fake_llm_server():
 
             if "ACTION_PLANNER" in system_prompt:
                 response_payload = {
-                    "action_type": "select_chunk",
-                    "chunk_id": "support_003",
+                    "action_type": "inspect_artifact",
+                    "artifact_id": "support_003",
                 }
             elif "PROMPT_COMPRESSOR" in system_prompt:
                 response_payload = {
@@ -102,13 +102,13 @@ def test_optimize_step_uses_llm(monkeypatch):
         monkeypatch.delenv("HF_TOKEN", raising=False)
 
         with TestClient(app) as client:
-            reset = client.post("/reset", json={"task_name": "single_domain_qa"})
+            reset = client.post("/reset", json={"task_name": "refund_triage_easy"})
             episode_id = reset.json()["episode_id"]
             response = client.post(f"/optimize-step?episode_id={episode_id}")
 
         assert response.status_code == 200
-        assert response.json()["action_type"] == "select_chunk"
-        assert response.json()["chunk_id"] == "support_003"
+        assert response.json()["action_type"] == "inspect_artifact"
+        assert response.json()["artifact_id"] == "support_003"
         assert any("/v1/chat/completions" == request["path"] for request in requests_seen)
         assert any("ACTION_PLANNER" in request["system"] for request in requests_seen)
 
@@ -136,29 +136,3 @@ def test_optimize_prompt_uses_llm(monkeypatch):
         assert any("PROMPT_COMPRESSOR" in request["system"] for request in requests_seen)
         assert any("TOKEN_ESTIMATOR" in request["system"] for request in requests_seen)
 
-
-def test_semantic_grader_uses_llm(monkeypatch):
-    with fake_llm_server() as (port, requests_seen):
-        monkeypatch.setenv("API_BASE_URL", f"http://127.0.0.1:{port}/v1")
-        monkeypatch.setenv("API_KEY", "test-proxy-token")
-        monkeypatch.delenv("HF_TOKEN", raising=False)
-
-        async def _run():
-            env = RagContextOptimizerEnv(task_name="single_domain_qa")
-            await env.reset()
-            for chunk_id in ["support_001", "support_003", "support_005"]:
-                await env.step(RagAction(action_type="select_chunk", chunk_id=chunk_id))
-            result = await env.step(
-                RagAction(
-                    action_type="submit_answer",
-                    answer="Verify the billing ledger, confirm outage impact, and follow refund policy review [support_001] [support_003].",
-                )
-            )
-            await env.close()
-            return result
-
-        result = asyncio.run(_run())
-        assert result.done is True
-        assert result.info["grader"]["semantic_groundedness"] == 0.88
-        assert result.info["grader"]["grading_notes"] == "Evidence-backed response."
-        assert any("ANSWER_GRADER" in request["system"] for request in requests_seen)

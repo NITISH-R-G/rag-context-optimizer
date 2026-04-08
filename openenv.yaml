@@ -1,16 +1,16 @@
 name: rag-context-optimizer
 version: "1.0.0"
-description: "Enterprise RAG context optimization environment - minimize context cost, maximize answer quality"
+description: "Enterprise incident operations environment - inspect evidence, plan safe resolutions, and submit grounded escalation reports"
 tasks:
-  - name: single_domain_qa
+  - name: refund_triage_easy
     difficulty: easy
-    max_steps: 6
-  - name: cross_domain_synthesis
+    max_steps: 7
+  - name: cross_function_brief_medium
     difficulty: medium
     max_steps: 8
-  - name: adversarial_compression
+  - name: executive_escalation_hard
     difficulty: hard
     max_steps: 10
-action_space: ["select_chunk", "deselect_chunk", "compress_chunk", "submit_answer"]
-observation_space: ["query", "available_chunks", "selected_chunks", "total_tokens_used", "token_budget"]
+action_space: ["inspect_artifact", "prioritize_artifact", "summarize_artifact", "set_resolution_plan", "submit_report"]
+observation_space: ["case_summary", "objective", "workflow_stage", "available_artifacts", "reviewed_artifacts", "prioritized_artifacts", "plan_draft", "total_tokens_used", "token_budget"]
 reward_range: [0.0, 1.0]

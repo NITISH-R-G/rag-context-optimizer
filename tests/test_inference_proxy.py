@@ -51,7 +51,7 @@ def test_inference_uses_proxy_api_key():
                             "role": "assistant",
                             "content": json.dumps(
                                 {
-                                    "action_type": "submit_answer",
+                                    "action_type": "submit_report",
                                     "answer": "Proxy verified [support_003]",
                                 }
                             ),
@@ -92,7 +92,7 @@ def test_inference_uses_proxy_api_key():
 
         env = os.environ.copy()
         env["RAG_ENV_URL"] = f"http://127.0.0.1:{app_port}"
-        env["RAG_ENV_TASK"] = "single_domain_qa"
+        env["RAG_ENV_TASK"] = "refund_triage_easy"
         env["API_BASE_URL"] = f"http://127.0.0.1:{proxy_port}/v1"
         env["API_KEY"] = "proxy-check-token"
         env["HF_TOKEN"] = "legacy-should-not-win"

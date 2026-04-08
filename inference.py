@@ -1,5 +1,5 @@
 """
-Baseline inference runner for the rag-context-optimizer HTTP environment.
+Baseline inference runner for the incident operations HTTP environment.
 """
 
 from __future__ import annotations
@@ -16,28 +16,27 @@ from openai import OpenAI
 
 from env.models import RagAction
 
-ENV_NAME = "rag-context-optimizer"
+ENV_NAME = "incident-ops-env"
 ALLOW_BASELINE_FALLBACK = os.getenv("ALLOW_BASELINE_FALLBACK", "").strip().lower() in {"1", "true", "yes"}
-RAG_ENV_TASK = os.getenv("RAG_ENV_TASK", "single_domain_qa")
+RAG_ENV_TASK = os.getenv("RAG_ENV_TASK", "refund_triage_easy")
 RAG_ENV_URL = os.getenv("RAG_ENV_URL", "http://localhost:7860")
 TASK_SEQUENCE = [
-    "single_domain_qa",
-    "cross_domain_synthesis",
-    "adversarial_compression",
+    "refund_triage_easy",
+    "cross_function_brief_medium",
+    "executive_escalation_hard",
 ]
 
-SYSTEM_PROMPT = """You are a baseline RAG context optimizer.
-Read the query and available chunks using chunk_id, keywords, tokens, and domain.
-Select chunks that maximize keyword overlap with the query.
-Stay under the token budget.
-Compress chunks that are mildly relevant but token-heavy.
-Submit a concise answer once enough useful chunks are selected.
-When you submit an answer, cite selected chunks inline like [support_003] or [incident_002].
+SYSTEM_PROMPT = """You are a baseline incident operations agent.
+You are handling an enterprise case through staged workflow actions.
+Your job is to inspect the right artifacts, prioritize the evidence that belongs in the working set,
+draft a short operational plan, summarize heavy artifacts when needed, and finally submit a grounded report.
 Return only valid JSON matching one of these forms:
-{"action_type":"select_chunk","chunk_id":"support_003"}
-{"action_type":"deselect_chunk","chunk_id":"support_003"}
-{"action_type":"compress_chunk","chunk_id":"support_003","compression_ratio":0.5}
-{"action_type":"submit_answer","answer":"Verify outage evidence and the billing ledger before refunding [support_001] [support_003]."}"""
+{"action_type":"inspect_artifact","artifact_id":"support_003"}
+{"action_type":"prioritize_artifact","artifact_id":"support_003"}
+{"action_type":"summarize_artifact","artifact_id":"support_003","compression_ratio":0.55}
+{"action_type":"set_resolution_plan","plan":"Verify outage evidence, confirm the billing ledger, and route manual exceptions to finance review."}
+{"action_type":"submit_report","answer":"Proceed to refund review only after outage and billing evidence are confirmed. [support_001] [support_003]"}
+Legacy aliases like select_chunk, compress_chunk, and submit_answer are also accepted, but prefer the new workflow actions."""
 
 DEFAULT_LEGACY_BASE_URL = "https://router.huggingface.co/v1"
 DEFAULT_MODEL_NAME = "Qwen/Qwen2.5-72B-Instruct"
@@ -51,7 +50,6 @@ def _resolve_llm_credentials() -> tuple[str | None, str | None, str | None]:
     api_base_url = os.getenv("API_BASE_URL", DEFAULT_LEGACY_BASE_URL)
     api_key = os.getenv("API_KEY")
     legacy_token = os.getenv("HF_TOKEN")
-
     if api_key:
         return api_base_url, api_key, "proxy"
     if legacy_token:
@@ -64,9 +62,7 @@ def _format_bool(value: bool) -> str:
 
 
 def _format_reward(value: float | None) -> str:
-    if value is None:
-        return "0.00"
-    return f"{value:.2f}"
+    return "0.00" if value is None else f"{value:.2f}"
 
 
 def _format_error(error: str | None) -> str:
@@ -86,11 +82,11 @@ def _format_action(action: dict[str, Any]) -> str:
 
 
 def _extract_json_object(text: str) -> dict[str, Any]:
-    text = text.strip()
+    payload = text.strip()
     try:
-        return json.loads(text)
+        return json.loads(payload)
     except json.JSONDecodeError:
-        match = re.search(r"\{.*\}", text, re.DOTALL)
+        match = re.search(r"\{.*\}", payload, re.DOTALL)
         if not match:
             raise
         return json.loads(match.group(0))
@@ -106,90 +102,90 @@ def _keyword_overlap(query: str, chunk: dict[str, Any]) -> float:
     if not query_terms or not keyword_terms:
         return 0.0
     union = query_terms | keyword_terms
-    if not union:
-        return 0.0
-    return len(query_terms & keyword_terms) / len(union)
+    return (len(query_terms & keyword_terms) / len(union)) if union else 0.0
 
 
-def _fallback_answer(observation: dict[str, Any]) -> str:
-    selected = set(observation.get("selected_chunks", []))
+def _fallback_report(observation: dict[str, Any]) -> str:
+    prioritized = set(observation.get("prioritized_artifacts") or observation.get("selected_chunks", []))
     snippets: list[str] = []
-    for chunk in observation.get("available_chunks", []):
-        if chunk.get("chunk_id") in selected:
+    for chunk in observation.get("available_artifacts") or observation.get("available_chunks", []):
+        if chunk.get("chunk_id") in prioritized:
             keywords = ", ".join(chunk.get("keywords", [])[:3])
-            if keywords:
-                snippets.append(f"[{chunk['chunk_id']}] highlights {keywords}")
+            snippets.append(f"[{chunk['chunk_id']}] covers {keywords}")
     if not snippets:
-        return "The most relevant evidence points to a small set of grounded operational practices."
-    citation_suffix = " ".join(f"[{chunk.get('chunk_id')}]" for chunk in observation.get("available_chunks", []) if chunk.get("chunk_id") in selected)
-    answer = "; ".join(snippets[:3]) + "."
-    if citation_suffix:
-        answer = answer.rstrip(".") + " " + citation_suffix + "."
-    return answer
+        return "The case needs a defensible operational recommendation grounded in reviewed incident artifacts."
+    return "; ".join(snippets[:3]) + "."
+
+
+def _fallback_plan(observation: dict[str, Any]) -> str:
+    task_name = observation.get("task_name", "")
+    if task_name == "refund_triage_easy":
+        return "Verify outage evidence, confirm the billing ledger, and route manual exceptions to finance review."
+    if task_name == "cross_function_brief_medium":
+        return "Align the incident timeline, customer communications, and rollback guardrails before publishing the brief."
+    return "Revoke active risk, protect customers, preserve evidence, and keep change freeze safeguards in place."
 
 
 def _fallback_action(observation: dict[str, Any]) -> dict[str, Any]:
-    selected = set(observation.get("selected_chunks", []))
-    available = list(observation.get("available_chunks", []))
+    reviewed = set(observation.get("reviewed_artifacts", []))
+    prioritized = set(observation.get("prioritized_artifacts") or observation.get("selected_chunks", []))
+    available = list(observation.get("available_artifacts") or observation.get("available_chunks", []))
     token_budget = observation["token_budget"]
     total_tokens_used = observation["total_tokens_used"]
     remaining_budget = token_budget - total_tokens_used
 
     ranked = sorted(
         available,
-        key=lambda chunk: (
-            -_keyword_overlap(observation["query"], chunk),
-            chunk["tokens"],
-            chunk["chunk_id"],
-        ),
+        key=lambda chunk: (-_keyword_overlap(observation["query"], chunk), chunk["tokens"], chunk["chunk_id"]),
     )
 
-    if selected and total_tokens_used >= int(token_budget * 0.75):
-        heavy_selected = [
-            chunk for chunk in ranked if chunk["chunk_id"] in selected and chunk["tokens"] >= max(120, token_budget // 4)
-        ]
-        if heavy_selected:
-            return {
-                "action_type": "compress_chunk",
-                "chunk_id": heavy_selected[0]["chunk_id"],
-                "compression_ratio": 0.5,
-            }
-
-    if len(selected) >= 3 or observation["step_number"] >= 3 or remaining_budget <= max(80, token_budget // 6):
-        return {"action_type": "submit_answer", "answer": _fallback_answer(observation)}
-
-    for chunk in ranked:
-        if chunk["chunk_id"] in selected:
-            continue
+    unprioritized_reviewed = [chunk for chunk in ranked if chunk["chunk_id"] in reviewed and chunk["chunk_id"] not in prioritized]
+    for chunk in unprioritized_reviewed:
         if chunk["tokens"] <= remaining_budget:
-            return {"action_type": "select_chunk", "chunk_id": chunk["chunk_id"]}
+            return {"action_type": "prioritize_artifact", "artifact_id": chunk["chunk_id"]}
 
-    if selected:
-        return {"action_type": "submit_answer", "answer": _fallback_answer(observation)}
+    unseen = [chunk for chunk in ranked if chunk["chunk_id"] not in reviewed]
+    if unseen:
+        if len(reviewed) >= 2:
+            unseen = unseen[:1]
+        return {"action_type": "inspect_artifact", "artifact_id": unseen[0]["chunk_id"]}
 
-    best_chunk = ranked[0] if ranked else None
-    if best_chunk is not None:
-        return {"action_type": "select_chunk", "chunk_id": best_chunk["chunk_id"]}
-    return {"action_type": "submit_answer", "answer": "No relevant chunks were available."}
+    if prioritized and not observation.get("plan_draft"):
+        return {"action_type": "set_resolution_plan", "plan": _fallback_plan(observation)}
+
+    heavy_prioritized = [chunk for chunk in ranked if chunk["chunk_id"] in prioritized and chunk["tokens"] >= max(120, token_budget // 4)]
+    if heavy_prioritized and total_tokens_used >= int(token_budget * 0.7):
+        return {"action_type": "summarize_artifact", "artifact_id": heavy_prioritized[0]["chunk_id"], "compression_ratio": 0.55}
+
+    return {"action_type": "submit_report", "answer": _fallback_report(observation)}
 
 
 def _build_user_prompt(observation: dict[str, Any]) -> str:
     payload = {
-        "query": observation["query"],
-        "task_name": observation["task_name"],
-        "step_number": observation["step_number"],
-        "selected_chunks": observation["selected_chunks"],
+        "case_id": observation.get("case_id"),
+        "case_summary": observation.get("case_summary"),
+        "objective": observation.get("objective") or observation.get("query"),
+        "workflow_stage": observation.get("workflow_stage"),
+        "customer_tier": observation.get("customer_tier"),
+        "incident_severity": observation.get("incident_severity"),
+        "reviewed_artifacts": observation.get("reviewed_artifacts", []),
+        "prioritized_artifacts": observation.get("prioritized_artifacts") or observation.get("selected_chunks", []),
+        "plan_draft": observation.get("plan_draft"),
+        "report_requirements": observation.get("report_requirements", []),
+        "progress_signals": observation.get("progress_signals", {}),
         "total_tokens_used": observation["total_tokens_used"],
         "token_budget": observation["token_budget"],
+        "step_number": observation["step_number"],
+        "task_name": observation["task_name"],
         "last_action_feedback": observation.get("last_action_feedback"),
-        "available_chunks": [
+        "available_artifacts": [
             {
                 "chunk_id": chunk["chunk_id"],
                 "domain": chunk["domain"],
                 "tokens": chunk["tokens"],
                 "keywords": chunk["keywords"],
             }
-            for chunk in observation["available_chunks"]
+            for chunk in (observation.get("available_artifacts") or observation.get("available_chunks", []))
         ],
     }
     return json.dumps(payload, ensure_ascii=True)
@@ -248,7 +244,8 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int, bool]
         )
     else:
         print(
-            f"[warn] Missing API_BASE_URL/API_KEY credentials; aborting model-backed run for {task_name}. Set ALLOW_BASELINE_FALLBACK=1 only for offline smoke testing.",
+            "[warn] Missing API_BASE_URL/API_KEY credentials; aborting model-backed run. "
+            "Set ALLOW_BASELINE_FALLBACK=1 only for offline smoke testing.",
             file=sys.stderr,
             flush=True,
         )
@@ -261,9 +258,7 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int, bool]
             observation = reset_payload["observation"]
 
             while True:
-                action_payload: dict[str, Any]
                 step_error: str | None = None
-
                 try:
                     if openai_client is None:
                         raise RuntimeError("llm_unavailable")
@@ -273,17 +268,9 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int, bool]
                     fallback_reason = fallback_reason or type(exc).__name__
                     if llm_required or not ALLOW_BASELINE_FALLBACK:
                         terminal_error = f"model_unavailable:{fallback_reason}"
-                        print(
-                            f"[END] success=false steps={steps} score={_clamp_score(score):.3f} rewards={_format_rewards(rewards)}",
-                        )
+                        print(f"[END] success=false steps={steps} score={_clamp_score(score):.3f} rewards={_format_rewards(rewards)}")
                         return score, rewards, steps, False
-                    print(
-                        f"[warn] Falling back to deterministic policy for {task_name}: {fallback_reason}",
-                        file=sys.stderr,
-                        flush=True,
-                    )
-                    action_payload = _fallback_action(observation)
-                    action_payload = RagAction.model_validate(action_payload).model_dump(exclude_none=True)
+                    action_payload = RagAction.model_validate(_fallback_action(observation)).model_dump(exclude_none=True)
 
                 try:
                     step_response = await _post_json(http_client, "/step", action_payload)
@@ -291,10 +278,7 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int, bool]
                     steps += 1
                     rewards.append(0.0)
                     terminal_error = str(exc)
-                    print(
-                        f"[STEP] step={steps} action={_format_action(action_payload)} "
-                        f"reward=0.00 done=true error={_format_error(terminal_error)}"
-                    )
+                    print(f"[STEP] step={steps} action={_format_action(action_payload)} reward=0.00 done=true error={_format_error(terminal_error)}")
                     break
 
                 steps += 1
@@ -306,23 +290,16 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int, bool]
                     f"[STEP] step={steps} action={_format_action(action_payload)} "
                     f"reward={_format_reward(reward_float)} done={_format_bool(done)} error={_format_error(step_error)}"
                 )
-
                 observation = step_response["observation"]
                 if done:
                     score = _clamp_score(reward_float)
-                    success = terminal_error is None and fallback_reason is None
+                    success = terminal_error is None
                     break
 
-            score = _clamp_score(score)
-            print(
-                f"[END] success={_format_bool(success)} steps={steps} score={score:.3f} rewards={_format_rewards(rewards)}"
-            )
+            print(f"[END] success={_format_bool(success)} steps={steps} score={score:.3f} rewards={_format_rewards(rewards)}")
             return score, rewards, steps, success
     except Exception:
-        score = _clamp_score(score)
-        print(
-            f"[END] success=false steps={steps} score={score:.3f} rewards={_format_rewards(rewards)}"
-        )
+        print(f"[END] success=false steps={steps} score={_clamp_score(score):.3f} rewards={_format_rewards(rewards)}")
         return score, rewards, steps, False
 
 

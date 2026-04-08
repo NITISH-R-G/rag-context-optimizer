@@ -15,9 +15,9 @@ import httpx
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 TASKS = [
-    "single_domain_qa",
-    "cross_domain_synthesis",
-    "adversarial_compression",
+    "refund_triage_easy",
+    "cross_function_brief_medium",
+    "executive_escalation_hard",
 ]
 
 
@@ -63,7 +63,9 @@ def greedy_action(observation: dict) -> dict:
         observation["step_number"] >= 3
         or observation["total_tokens_used"] >= int(observation["token_budget"] * 0.7)
     ):
-        return {"action_type": "submit_answer", "answer": "A concise answer synthesized from the selected chunks."}
+        if not observation.get("plan_draft"):
+            return {"action_type": "set_resolution_plan", "plan": "Verify evidence, protect customers, and publish only grounded actions."}
+        return {"action_type": "submit_report", "answer": "A concise grounded incident operations brief using the prioritized artifacts."}
 
     if selected:
         heavy = sorted(
@@ -72,16 +74,15 @@ def greedy_action(observation: dict) -> dict:
         )
         if heavy and heavy[0]["tokens"] > max(120, observation["token_budget"] // 3):
             return {
-                "action_type": "compress_chunk",
-                "chunk_id": heavy[0]["chunk_id"],
+                "action_type": "summarize_artifact",
+                "artifact_id": heavy[0]["chunk_id"],
                 "compression_ratio": 0.5,
             }
 
     for chunk in sorted(available, key=overlap):
-        if chunk["tokens"] <= remaining_budget:
-            return {"action_type": "select_chunk", "chunk_id": chunk["chunk_id"]}
+        return {"action_type": "inspect_artifact", "artifact_id": chunk["chunk_id"]}
 
-    return {"action_type": "submit_answer", "answer": "A concise answer synthesized from the selected chunks."}
+    return {"action_type": "submit_report", "answer": "A concise grounded incident operations brief using the prioritized artifacts."}
 
 
 def planner_action(client: httpx.Client, base_url: str, fallback_observation: dict) -> dict:
@@ -145,7 +146,7 @@ def run_inference_script(base_url: str) -> bool:
                             "role": "assistant",
                             "content": json.dumps(
                                 {
-                                    "action_type": "submit_answer",
+                                    "action_type": "submit_report",
                                     "answer": "Validated via proxy [support_003]",
                                 }
                             ),
@@ -214,7 +215,7 @@ def main() -> int:
             print_check("GET /health", health_ok)
             all_passed &= health_ok
 
-            reset = client.post(f"{base_url}/reset", json={"task_name": "single_domain_qa"})
+            reset = client.post(f"{base_url}/reset", json={"task_name": "refund_triage_easy"})
             reset_ok = reset.status_code == 200 and "observation" in reset.json()
             print_check("POST /reset", reset_ok)
             all_passed &= reset_ok
@@ -225,8 +226,8 @@ def main() -> int:
                 if chunk.get("chunk_id"):
                     first_chunk_id = chunk["chunk_id"]
                     break
-            step_payload = {"action_type": "select_chunk", "chunk_id": first_chunk_id} if first_chunk_id else {
-                "action_type": "submit_answer",
+            step_payload = {"action_type": "inspect_artifact", "artifact_id": first_chunk_id} if first_chunk_id else {
+                "action_type": "submit_report",
                 "answer": "No chunk available for validation.",
             }
             step = client.post(f"{base_url}/step", json=step_payload)
