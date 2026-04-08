@@ -156,6 +156,24 @@ def _rewrite_prompt_text(prompt: str, target_tokens: int) -> str:
     return output
 
 
+def _lightweight_short_prompt_rewrite(prompt: str) -> str:
+    raw = " ".join(prompt.strip().split())
+    if not raw:
+        return ""
+
+    cleaned = raw
+    cleaned = re.sub(r"\b[Pp]lease\s+", "", cleaned)
+    cleaned = re.sub(r"\bhelp me to\b", "help me", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\bhelp me\b", "Help me", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\bi want to\b", "I want to", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\bcan you help me\b", "Help me", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+
+    if cleaned:
+        cleaned = cleaned[0].upper() + cleaned[1:]
+    return cleaned
+
+
 def _sentence_rank(query: str, text: str) -> list[str]:
     query_terms = _tokenize(query)
     sentences = [segment.strip() for segment in re.split(r"(?<=[.!?])\s+", text) if segment.strip()]
@@ -336,7 +354,12 @@ async def optimize_prompt(
             if len(distilled_points) >= (3 if mode == "grounded" else (2 if input_tokens < 80 else 3)):
                 break
 
-    lines: list[str] = [clean_prompt if preserve_short_prompt else (rewritten if rewritten else clean_prompt)]
+    short_prompt_rewrite = _lightweight_short_prompt_rewrite(clean_prompt) if preserve_short_prompt else ""
+    lines: list[str] = [
+        short_prompt_rewrite if preserve_short_prompt and short_prompt_rewrite else (
+            clean_prompt if preserve_short_prompt else (rewritten if rewritten else clean_prompt)
+        )
+    ]
     if distilled_points and (mode == "grounded" or input_tokens >= 80):
         lines.append("")
         lines.append("Context:")
@@ -346,7 +369,7 @@ async def optimize_prompt(
 
     # Very short prompts are often already compact; avoid degrading them at all.
     if preserve_short_prompt and not distilled_points:
-        optimized_prompt = clean_prompt
+        optimized_prompt = short_prompt_rewrite if short_prompt_rewrite and short_prompt_rewrite != clean_prompt else clean_prompt
     elif mode != "grounded" and input_tokens > 0 and _approx_tokens(optimized_prompt) >= input_tokens:
         max_chars = max(12, (input_tokens - 1) * 4)
         optimized_prompt = _truncate_to_word_boundary(optimized_prompt, max_chars)
