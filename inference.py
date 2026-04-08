@@ -17,11 +17,6 @@ from openai import OpenAI
 from env.models import RagAction
 
 ENV_NAME = "rag-context-optimizer"
-API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
-MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
-API_KEY = os.getenv("API_KEY")
-HF_TOKEN = os.getenv("HF_TOKEN")
-CLIENT_API_KEY = API_KEY or HF_TOKEN
 ALLOW_BASELINE_FALLBACK = os.getenv("ALLOW_BASELINE_FALLBACK", "").strip().lower() in {"1", "true", "yes"}
 RAG_ENV_TASK = os.getenv("RAG_ENV_TASK", "single_domain_qa")
 RAG_ENV_URL = os.getenv("RAG_ENV_URL", "http://localhost:7860")
@@ -43,6 +38,29 @@ Return only valid JSON matching one of these forms:
 {"action_type":"deselect_chunk","chunk_id":"support_003"}
 {"action_type":"compress_chunk","chunk_id":"support_003","compression_ratio":0.5}
 {"action_type":"submit_answer","answer":"Verify outage evidence and the billing ledger before refunding [support_001] [support_003]."}"""
+
+DEFAULT_LEGACY_BASE_URL = "https://router.huggingface.co/v1"
+DEFAULT_MODEL_NAME = "Qwen/Qwen2.5-72B-Instruct"
+
+
+def _model_name() -> str:
+    return os.getenv("MODEL_NAME", DEFAULT_MODEL_NAME)
+
+
+def _resolve_llm_credentials() -> tuple[str | None, str | None, str | None]:
+    api_base_url = os.getenv("API_BASE_URL")
+    api_key = os.getenv("API_KEY")
+    legacy_token = os.getenv("HF_TOKEN")
+
+    if api_base_url and api_key:
+        return api_base_url, api_key, "proxy"
+    if api_base_url and not api_key:
+        raise ValueError("API_KEY is required when API_BASE_URL is set")
+    if api_key and not api_base_url:
+        raise ValueError("API_BASE_URL is required when API_KEY is set")
+    if legacy_token:
+        return DEFAULT_LEGACY_BASE_URL, legacy_token, "legacy"
+    return None, None, None
 
 
 def _format_bool(value: bool) -> str:
@@ -183,10 +201,11 @@ def _build_user_prompt(observation: dict[str, Any]) -> str:
 
 async def _llm_action(client: OpenAI, observation: dict[str, Any]) -> dict[str, Any]:
     prompt = _build_user_prompt(observation)
+    model_name = _model_name()
 
     def _call() -> Any:
         return client.chat.completions.create(
-            model=MODEL_NAME,
+            model=model_name,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": prompt},
@@ -214,31 +233,31 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int]:
     score = 0.0
     terminal_error: str | None = None
     fallback_reason: str | None = None
+    model_name = _model_name()
 
-    print(f"[START] task={task_name} env={ENV_NAME} model={MODEL_NAME}")
+    print(f"[START] task={task_name} env={ENV_NAME} model={model_name}")
 
-    if CLIENT_API_KEY is None:
-        raise ValueError("API_KEY environment variable is required")
-
+    api_base_url, client_api_key, auth_mode = _resolve_llm_credentials()
+    llm_required = auth_mode in {"proxy", "legacy"}
     openai_client: Any | None = None
-    if CLIENT_API_KEY:
-        openai_client = OpenAI(base_url=API_BASE_URL, api_key=CLIENT_API_KEY)
+
+    if llm_required:
+        openai_client = OpenAI(base_url=api_base_url, api_key=client_api_key)
+    elif ALLOW_BASELINE_FALLBACK:
+        fallback_reason = "missing_llm_credentials"
+        print(
+            f"[warn] Missing API_BASE_URL/API_KEY credentials; using deterministic fallback policy for {task_name}.",
+            file=sys.stderr,
+            flush=True,
+        )
     else:
-        fallback_reason = "empty_api_key"
-        if ALLOW_BASELINE_FALLBACK:
-            print(
-                f"[warn] Empty API_KEY detected; using deterministic fallback policy for {task_name}.",
-                file=sys.stderr,
-                flush=True,
-            )
-        else:
-            print(
-                f"[warn] Empty API_KEY detected; aborting model-backed run for {task_name}. Set ALLOW_BASELINE_FALLBACK=1 to force offline heuristic mode.",
-                file=sys.stderr,
-                flush=True,
-            )
-            print("[END] success=false steps=0 rewards=")
-            return 0.0, [], 0
+        print(
+            f"[warn] Missing API_BASE_URL/API_KEY credentials; aborting model-backed run for {task_name}. Set ALLOW_BASELINE_FALLBACK=1 only for offline smoke testing.",
+            file=sys.stderr,
+            flush=True,
+        )
+        print("[END] success=false steps=0 rewards=")
+        return 0.0, [], 0
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as http_client:
@@ -256,7 +275,7 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int]:
                     action_payload = RagAction.model_validate(llm_payload).model_dump(exclude_none=True)
                 except Exception as exc:
                     fallback_reason = fallback_reason or type(exc).__name__
-                    if not ALLOW_BASELINE_FALLBACK:
+                    if llm_required or not ALLOW_BASELINE_FALLBACK:
                         terminal_error = f"model_unavailable:{fallback_reason}"
                         print(
                             f"[END] success=false steps={steps} rewards={_format_rewards(rewards)}",

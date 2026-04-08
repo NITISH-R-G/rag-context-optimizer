@@ -120,7 +120,8 @@ def run_inference_script(base_url: str) -> bool:
     env = os.environ.copy()
     env["RAG_ENV_URL"] = base_url
     env["ALLOW_BASELINE_FALLBACK"] = "1"
-    env["HF_TOKEN"] = "offline-validation-token"
+    env["API_BASE_URL"] = "http://127.0.0.1:9/v1"
+    env["API_KEY"] = "offline-validation-token"
     process = subprocess.run(
         [sys.executable, "inference.py"],
         cwd=PROJECT_ROOT,
