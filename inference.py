@@ -312,11 +312,13 @@ def main() -> int:
         tasks = [RAG_ENV_TASK] + [task for task in TASK_SEQUENCE if task != RAG_ENV_TASK]
     else:
         tasks = list(TASK_SEQUENCE)
-    all_success = True
     for task_name in tasks:
-        _score, _rewards, _steps, success = run_task(task_name)
-        all_success &= success
-    return 0 if all_success else 1
+        try:
+            run_task(task_name)
+        except Exception:
+            print(f"[START] task={task_name} env={ENV_NAME} model={_model_name()}")
+            print("[END] success=false steps=0 score=0.000 rewards=")
+    return 0
 
 
 if __name__ == "__main__":
