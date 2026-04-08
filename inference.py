@@ -19,7 +19,9 @@ from env.models import RagAction
 ENV_NAME = "rag-context-optimizer"
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
+API_KEY = os.getenv("API_KEY")
 HF_TOKEN = os.getenv("HF_TOKEN")
+CLIENT_API_KEY = API_KEY or HF_TOKEN
 ALLOW_BASELINE_FALLBACK = os.getenv("ALLOW_BASELINE_FALLBACK", "").strip().lower() in {"1", "true", "yes"}
 RAG_ENV_TASK = os.getenv("RAG_ENV_TASK", "single_domain_qa")
 RAG_ENV_URL = os.getenv("RAG_ENV_URL", "http://localhost:7860")
@@ -215,23 +217,23 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int]:
 
     print(f"[START] task={task_name} env={ENV_NAME} model={MODEL_NAME}")
 
-    if HF_TOKEN is None:
-        raise ValueError("HF_TOKEN environment variable is required")
+    if CLIENT_API_KEY is None:
+        raise ValueError("API_KEY environment variable is required")
 
     openai_client: Any | None = None
-    if HF_TOKEN:
-        openai_client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN)
+    if CLIENT_API_KEY:
+        openai_client = OpenAI(base_url=API_BASE_URL, api_key=CLIENT_API_KEY)
     else:
-        fallback_reason = "empty_hf_token"
+        fallback_reason = "empty_api_key"
         if ALLOW_BASELINE_FALLBACK:
             print(
-                f"[warn] Empty HF_TOKEN detected; using deterministic fallback policy for {task_name}.",
+                f"[warn] Empty API_KEY detected; using deterministic fallback policy for {task_name}.",
                 file=sys.stderr,
                 flush=True,
             )
         else:
             print(
-                f"[warn] Empty HF_TOKEN detected; aborting model-backed run for {task_name}. Set ALLOW_BASELINE_FALLBACK=1 to force offline heuristic mode.",
+                f"[warn] Empty API_KEY detected; aborting model-backed run for {task_name}. Set ALLOW_BASELINE_FALLBACK=1 to force offline heuristic mode.",
                 file=sys.stderr,
                 flush=True,
             )
