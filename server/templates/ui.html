@@ -281,11 +281,56 @@
         gap: 12px;
         margin-bottom: 14px;
       }
+      .pane-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .secondary {
+        color: var(--ink);
+        background: rgba(255,255,255,0.82);
+        border: 1px solid var(--line);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.75);
+      }
+      .secondary:hover:not(:disabled) {
+        background: rgba(255,255,255,0.95);
+      }
       .pane-subtitle {
         margin: 4px 0 0;
       }
       .output-frame {
         min-height: 0;
+      }
+      .diff-panel {
+        margin-top: 14px;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 14px 16px;
+        background: rgba(255,255,255,0.86);
+        min-height: 96px;
+        line-height: 1.7;
+        color: var(--ink);
+        overflow: auto;
+      }
+      .diff-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.82rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .diff-added {
+        background: rgba(22, 163, 74, 0.14);
+        color: #137333;
+        border-radius: 8px;
+        padding: 2px 4px;
+      }
+      .diff-removed {
+        background: rgba(220, 38, 38, 0.12);
+        color: #b42318;
+        border-radius: 8px;
+        padding: 2px 4px;
       }
       @media (max-width: 900px) {
         .hero, .stats, .summary-grid, .workspace {
@@ -333,7 +378,6 @@
               <option value="aggressive">aggressive</option>
             </select>
             <button id="optimizeBtn" class="primary" type="button">Optimize Prompt</button>
-            <button id="copyBtn" class="primary" type="button">Copy Output</button>
             <span id="busyLabel" class="mini">Idle</span>
           </div>
         </div>
@@ -363,8 +407,15 @@
                 <h3 style="margin:0;">Original Prompt</h3>
                 <p class="mini pane-subtitle">Paste or edit your source prompt here.</p>
               </div>
+              <div class="pane-actions">
+                <button id="pasteBtn" class="secondary" type="button">Paste</button>
+              </div>
             </div>
             <textarea id="promptInput" placeholder="Paste your prompt here. Then click Optimize Prompt."></textarea>
+            <div class="diff-panel">
+              <span class="diff-label">Removed From Original</span>
+              <div id="originalDiffPanel">No diff yet.</div>
+            </div>
           </section>
           <section class="card pane">
             <div class="pane-header">
@@ -372,8 +423,15 @@
                 <h3 style="margin:0;">Optimized Prompt</h3>
                 <p class="mini pane-subtitle">A shorter, cleaner version designed to be ready to copy and paste into your next model call.</p>
               </div>
+              <div class="pane-actions">
+                <button id="copyBtn" class="secondary" type="button">Copy</button>
+              </div>
             </div>
             <pre id="outputPanel" class="output-frame">No optimized prompt yet.</pre>
+            <div class="diff-panel">
+              <span class="diff-label">Added / Changed In Optimized Prompt</span>
+              <div id="optimizedDiffPanel">No diff yet.</div>
+            </div>
           </section>
         </div>
       </section>
@@ -384,6 +442,7 @@
       promptInput: document.getElementById("promptInput"),
       optimizeBtn: document.getElementById("optimizeBtn"),
       copyBtn: document.getElementById("copyBtn"),
+      pasteBtn: document.getElementById("pasteBtn"),
       corpusFamilySelect: document.getElementById("corpusFamilySelect"),
       compressionModeSelect: document.getElementById("compressionModeSelect"),
       busyLabel: document.getElementById("busyLabel"),
@@ -403,6 +462,8 @@
       demoChips: document.getElementById("demoChips"),
       groundingList: document.getElementById("groundingList"),
       summaryNote: document.getElementById("summaryNote"),
+      originalDiffPanel: document.getElementById("originalDiffPanel"),
+      optimizedDiffPanel: document.getElementById("optimizedDiffPanel"),
     };
 
     function approxTokens(text) {
@@ -414,6 +475,7 @@
     function setBusy(isBusy, label = "Working...") {
       els.optimizeBtn.disabled = isBusy;
       els.copyBtn.disabled = isBusy;
+      els.pasteBtn.disabled = isBusy;
       els.busyLabel.textContent = isBusy ? label : "Idle";
     }
 
@@ -434,8 +496,79 @@
       return body;
     }
 
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function diffWords(original, optimized) {
+      const a = (original || "").trim() ? (original || "").trim().split(/\s+/) : [];
+      const b = (optimized || "").trim() ? (optimized || "").trim().split(/\s+/) : [];
+      const dp = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
+
+      for (let i = a.length - 1; i >= 0; i--) {
+        for (let j = b.length - 1; j >= 0; j--) {
+          if (a[i] === b[j]) {
+            dp[i][j] = dp[i + 1][j + 1] + 1;
+          } else {
+            dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
+          }
+        }
+      }
+
+      const left = [];
+      const right = [];
+      let i = 0;
+      let j = 0;
+      while (i < a.length && j < b.length) {
+        if (a[i] === b[j]) {
+          const safe = escapeHtml(a[i]);
+          left.push(safe);
+          right.push(safe);
+          i += 1;
+          j += 1;
+        } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+          left.push(`<span class="diff-removed">${escapeHtml(a[i])}</span>`);
+          i += 1;
+        } else {
+          right.push(`<span class="diff-added">${escapeHtml(b[j])}</span>`);
+          j += 1;
+        }
+      }
+
+      while (i < a.length) {
+        left.push(`<span class="diff-removed">${escapeHtml(a[i])}</span>`);
+        i += 1;
+      }
+      while (j < b.length) {
+        right.push(`<span class="diff-added">${escapeHtml(b[j])}</span>`);
+        j += 1;
+      }
+
+      return {
+        originalHtml: left.join(" "),
+        optimizedHtml: right.join(" "),
+      };
+    }
+
+    function renderDiff(original, optimized) {
+      if (!(original || "").trim() || !(optimized || "").trim()) {
+        els.originalDiffPanel.textContent = "No diff yet.";
+        els.optimizedDiffPanel.textContent = "No diff yet.";
+        return;
+      }
+      const diff = diffWords(original, optimized);
+      els.originalDiffPanel.innerHTML = diff.originalHtml || escapeHtml(original);
+      els.optimizedDiffPanel.innerHTML = diff.optimizedHtml || escapeHtml(optimized);
+    }
+
     function renderResult(result) {
       els.outputPanel.textContent = result.optimized_prompt || "No optimized prompt returned.";
+      renderDiff(els.promptInput.value, result.optimized_prompt || "");
       const stats = result.stats || {};
       // Avoid newer JS syntax here; some browsers silently fail and stop updating the UI.
       els.currentInputTokensStat.textContent = (stats.original_prompt_tokens !== undefined && stats.original_prompt_tokens !== null) ? String(stats.original_prompt_tokens) : String(approxTokens(els.promptInput.value));
@@ -515,6 +648,21 @@
       }
     });
 
+    els.pasteBtn.addEventListener("click", async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (!text || !text.trim()) {
+          setStatus("Clipboard is empty.", "error");
+          return;
+        }
+        els.promptInput.value = text;
+        els.promptInput.dispatchEvent(new Event("input"));
+        setStatus("Prompt pasted from clipboard.", "good");
+      } catch (_error) {
+        setStatus("Paste failed. Your browser may block clipboard read access.", "error");
+      }
+    });
+
     els.promptInput.addEventListener("input", () => {
       els.currentInputTokensStat.textContent = String(approxTokens(els.promptInput.value));
       els.finalTokensStat.textContent = "-";
@@ -528,6 +676,8 @@
       els.citationChips.innerHTML = "";
       els.demoChips.innerHTML = "";
       els.groundingList.innerHTML = "";
+      els.originalDiffPanel.textContent = "No diff yet.";
+      els.optimizedDiffPanel.textContent = "No diff yet.";
       els.summaryNote.textContent = "Prompt changed. Click Optimize Prompt to refresh the optimized output, grounding, and backend context stats.";
     });
   </script>
