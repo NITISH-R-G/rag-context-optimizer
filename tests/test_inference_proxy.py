@@ -14,7 +14,7 @@ import httpx
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PYTHON = ROOT / ".venv" / "Scripts" / "python.exe"
+PYTHON = sys.executable
 
 
 def _free_port() -> int:
