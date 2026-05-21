@@ -1,17 +1,20 @@
 from __future__ import annotations
 
-import asyncio
 import json
 import socket
 import threading
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import sys
+from pathlib import Path
 
-from fastapi.testclient import TestClient
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-from app import app
-from env.environment import RagContextOptimizerEnv
-from env.models import RagAction
+from fastapi.testclient import TestClient # noqa: E402
+
+from app import app # noqa: E402
 
 
 def _free_port() -> int:

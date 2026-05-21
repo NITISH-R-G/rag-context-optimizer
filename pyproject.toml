@@ -33,3 +33,11 @@ test = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.mypy]
+ignore_missing_imports = true
+check_untyped_defs = true
+disallow_untyped_defs = false
+exclude = [
+    "^tests/"
+]

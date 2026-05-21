@@ -51,7 +51,6 @@ def greedy_action(observation: dict) -> dict:
     query_terms = set(observation["query"].lower().split())
     selected = set(observation.get("selected_chunks", []))
     available = [chunk for chunk in observation["available_chunks"] if chunk["chunk_id"] not in selected]
-    remaining_budget = observation["token_budget"] - observation["total_tokens_used"]
 
     def overlap(chunk: dict) -> tuple[float, int, str]:
         keyword_terms = set(" ".join(chunk["keywords"]).lower().split())

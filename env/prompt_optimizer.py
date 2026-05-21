@@ -325,7 +325,7 @@ async def optimize_prompt(
         env._selected_chunks.append(best_chunk.chunk_id)
 
     for chunk_id in list(selected_ids):
-        chunk = env._chunk_map().get(chunk_id)
+        chunk = env._chunk_map().get(chunk_id) # type: ignore
         if chunk is None:
             continue
         tuned = tuning.tuned_scores.get(chunk_id)
@@ -345,7 +345,7 @@ async def optimize_prompt(
     distilled_points: list[tuple[str, str]] = []
     if not preserve_short_prompt:
         for chunk_id in env._selected_chunks:
-            chunk = env._chunk_map().get(chunk_id)
+            chunk = env._chunk_map().get(chunk_id) # type: ignore
             if chunk is None:
                 continue
             best = _summarize_chunk_for_output(chunk, env._effective_chunk_text(chunk_id))
@@ -446,7 +446,7 @@ async def optimize_prompt(
         selected_keywords=[
             keyword
             for chunk_id in env._selected_chunks
-            for keyword in (env._chunk_map().get(chunk_id).keywords if env._chunk_map().get(chunk_id) else [])
+            for keyword in (env._chunk_map()[chunk_id].keywords if chunk_id in env._chunk_map() else [])
         ][:10],
         optimization_mode=mode,
     )

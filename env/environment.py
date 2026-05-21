@@ -86,7 +86,7 @@ class RagContextOptimizerEnv:
         self._plan_draft = ""
         self._workflow_stage: str = "triage"
         self._case_id = f"{self.task.name}-001"
-        self._last_tuning = None
+        self._last_tuning: Any = None
 
     @staticmethod
     def _build_task(
@@ -348,7 +348,7 @@ class RagContextOptimizerEnv:
             case_id=self._case_id,
             case_summary=self.task.case_summary,
             objective=self.task.query,
-            workflow_stage=self._workflow_stage,
+            workflow_stage=self._workflow_stage, # type: ignore
             customer_tier=self.task.customer_tier,
             incident_severity=self.task.incident_severity,
             available_artifacts=available,
@@ -474,13 +474,13 @@ class RagContextOptimizerEnv:
 
     def _update_workflow_stage(self) -> None:
         if self._done:
-            self._workflow_stage = "submitted"
+            self._workflow_stage = "submitted"  # type: ignore
         elif self._plan_draft.strip():
-            self._workflow_stage = "resolution"
+            self._workflow_stage = "resolution"  # type: ignore
         elif self._reviewed_artifacts:
-            self._workflow_stage = "analysis"
+            self._workflow_stage = "analysis"  # type: ignore
         else:
-            self._workflow_stage = "triage"
+            self._workflow_stage = "triage"  # type: ignore
 
     def _handle_inspect(self, chunk_id: str, auto_prioritize: bool) -> tuple[float, dict[str, Any]]:
         chunk = self._chunk_map().get(chunk_id)
