@@ -8,7 +8,7 @@ from contextlib import asynccontextmanager
 from dataclasses import asdict, is_dataclass
 import os
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any
 from uuid import uuid4
 
 from fastapi import Body, FastAPI, HTTPException, Request
@@ -130,7 +130,7 @@ def _serialize_observation(observation: Any) -> dict[str, Any]:
     if hasattr(observation, "model_dump"):
         return observation.model_dump()
     if is_dataclass(observation):
-        return asdict(observation)
+        return asdict(observation) # type: ignore
     return dict(observation)
 
 
@@ -209,7 +209,7 @@ def _suggest_action_fallback(env: RagContextOptimizerEnv) -> dict[str, Any]:
         heavy = sorted(
             selected_chunks,
             key=lambda chunk: (
-                -(chunk.tokens * (score_map.get(chunk.chunk_id).final_score if score_map.get(chunk.chunk_id) else 0.5)),
+                -(chunk.tokens * (score_map[chunk.chunk_id].final_score if chunk.chunk_id in score_map and score_map[chunk.chunk_id] else 0.5)),
                 chunk.chunk_id,
             ),
         )
@@ -237,7 +237,7 @@ def _suggest_action_fallback(env: RagContextOptimizerEnv) -> dict[str, Any]:
 
     candidate_priority_ids = [chunk_id for chunk_id in (tuning.suggested_citations or []) if chunk_id in reviewed and chunk_id not in selected]
     for chunk_id in candidate_priority_ids:
-        chunk = next((item for item in available_chunks if item.chunk_id == chunk_id), None)
+        chunk = next((item for item in available_chunks if item.chunk_id == chunk_id), None) # type: ignore
         if chunk is not None and chunk.tokens <= remaining_budget:
             return {"action_type": "prioritize_artifact", "artifact_id": chunk_id}
 
@@ -246,7 +246,7 @@ def _suggest_action_fallback(env: RagContextOptimizerEnv) -> dict[str, Any]:
         available = sorted(
             available,
             key=lambda chunk: (
-                -(score_map.get(chunk.chunk_id).final_score if score_map.get(chunk.chunk_id) else 0.0),
+                -(score_map[chunk.chunk_id].final_score if chunk.chunk_id in score_map and score_map[chunk.chunk_id] else 0.0),
                 chunk.tokens,
                 chunk.chunk_id,
             ),
@@ -254,7 +254,7 @@ def _suggest_action_fallback(env: RagContextOptimizerEnv) -> dict[str, Any]:
     for chunk in sorted(
         available,
         key=lambda chunk: (
-            -(score_map.get(chunk.chunk_id).final_score if score_map.get(chunk.chunk_id) else 0.0) / max(chunk.tokens, 1),
+            -(score_map[chunk.chunk_id].final_score if chunk.chunk_id in score_map and score_map[chunk.chunk_id] else 0.0) / max(chunk.tokens, 1),
             chunk.tokens,
             chunk.chunk_id,
         ),
@@ -264,7 +264,7 @@ def _suggest_action_fallback(env: RagContextOptimizerEnv) -> dict[str, Any]:
     for chunk in sorted(
         [chunk for chunk in available_chunks if chunk.chunk_id in reviewed and chunk.chunk_id not in selected],
         key=lambda chunk: (
-            -(score_map.get(chunk.chunk_id).final_score if score_map.get(chunk.chunk_id) else 0.0) / max(chunk.tokens, 1),
+            -(score_map[chunk.chunk_id].final_score if chunk.chunk_id in score_map and score_map[chunk.chunk_id] else 0.0) / max(chunk.tokens, 1),
             chunk.tokens,
             chunk.chunk_id,
         ),

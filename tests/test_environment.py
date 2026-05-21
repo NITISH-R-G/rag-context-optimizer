@@ -9,9 +9,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from env.environment import RagContextOptimizerEnv
-from env.models import RagAction
-from env.tasks import ALL_TASKS, TASK_EASY, TASK_HARD
+from env.environment import RagContextOptimizerEnv  # noqa: E402
+from env.models import RagAction  # noqa: E402
+from env.tasks import ALL_TASKS, TASK_EASY, TASK_HARD  # noqa: E402
 
 
 def _run(coro):
@@ -123,11 +123,11 @@ def test_compress_chunk_reduces_tokens():
 
 def test_submit_answer_ends_episode():
     env = RagContextOptimizerEnv(TASK_EASY.name)
-    result = _run(env.reset())
+    _ = _run(env.reset())
     for chunk_id in TASK_EASY.required_artifact_ids[:2]:
-        result = _run(env.step(RagAction(action_type="inspect_artifact", artifact_id=chunk_id)))
-        result = _run(env.step(RagAction(action_type="prioritize_artifact", artifact_id=chunk_id)))
-    result = _run(
+        _ = _run(env.step(RagAction(action_type="inspect_artifact", artifact_id=chunk_id)))
+        _ = _run(env.step(RagAction(action_type="prioritize_artifact", artifact_id=chunk_id)))
+    _ = _run(
         env.step(RagAction(action_type="set_resolution_plan", plan="Verify outage evidence, confirm the billing ledger, and route manual exceptions to finance review."))
     )
 
