@@ -176,3 +176,16 @@ def test_hard_task_harder_than_easy():
     easy_score = _average_random_agent_score(TASK_EASY.name, runs=5)
     hard_score = _average_random_agent_score(TASK_HARD.name, runs=5)
     assert easy_score > hard_score
+
+def test_bad_action_returns_error():
+    env = RagContextOptimizerEnv(task_name="refund_triage_easy")
+    _run(env.reset())
+    res = _run(env.step(RagAction(action_type="inspect_artifact", artifact_id="does_not_exist")))
+    assert res.reward <= 0
+    assert "event" in res.info
+    assert res.info["event"] == "artifact_not_found"
+
+def test_close_env():
+    env = RagContextOptimizerEnv(task_name="refund_triage_easy")
+    _run(env.reset())
+    _run(env.close())
