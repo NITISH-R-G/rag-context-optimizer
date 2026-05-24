@@ -5,3 +5,4 @@ env_test/
 env_verify/
 *.egg-info/
 env_verify2/
+.coverage

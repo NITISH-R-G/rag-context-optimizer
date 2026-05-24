@@ -152,7 +152,7 @@ def _serialize_step_result(result: Any, reset: bool = False, episode_id: str | N
 
 
 def _is_bad_action_event(event: str | None) -> bool:
-    return event in {"chunk_not_found"}
+    return event in {"artifact_not_found"}
 
 
 def _episode_store() -> EpisodeStore:
