@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import requests
+import httpx
 import streamlit as st
 
 
@@ -12,13 +12,13 @@ st.caption("Use any prompt, keep the token budget tight, and let the optimizer p
 
 
 def api_get(path: str):
-    response = requests.get(f"{API_URL}{path}", timeout=20)
+    response = httpx.get(f"{API_URL}{path}", timeout=20.0)
     response.raise_for_status()
     return response.json()
 
 
 def api_post(path: str, payload: dict | None = None):
-    response = requests.post(f"{API_URL}{path}", json=payload or {}, timeout=20)
+    response = httpx.post(f"{API_URL}{path}", json=payload or {}, timeout=20.0)
     response.raise_for_status()
     return response.json()
 
