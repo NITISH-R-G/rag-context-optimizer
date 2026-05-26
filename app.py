@@ -190,8 +190,6 @@ async def _optimize_prompt_backend(
 def _get_tuning(env: RagContextOptimizerEnv) -> Any:
     if env._last_tuning is not None:
         return env._last_tuning
-    if not hasattr(env, "_tuning_cache"):
-        env._tuning_cache = {}
     cache_key = env.task.query
     if cache_key not in env._tuning_cache:
         env._tuning_cache[cache_key] = env.context_tuner.tune(env.task.query, env._available_chunks)
