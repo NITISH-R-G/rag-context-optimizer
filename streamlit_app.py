@@ -4,7 +4,12 @@ import httpx
 import streamlit as st
 
 
-API_URL = st.secrets.get("API_URL", "http://localhost:7860") if hasattr(st, "secrets") else "http://localhost:7860"
+try:
+    API_URL = st.secrets.get("API_URL", "http://localhost:7860") if hasattr(st, "secrets") else "http://localhost:7860"
+except FileNotFoundError:
+    API_URL = "http://localhost:7860"
+except Exception:
+    API_URL = "http://localhost:7860"
 
 
 
@@ -81,7 +86,7 @@ def main():
         if not custom_query.strip():
             st.sidebar.error("Enter a custom prompt first.")
         else:
-            start_episode(selected_task, custom_query.strip(), int(token_budget), int(max_steps))
+            start_episode(str(selected_task or ""), custom_query.strip(), int(token_budget), int(max_steps))
             st.rerun()
 
     if sidebar_cols[1].button("Refresh", use_container_width=True):
