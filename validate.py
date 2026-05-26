@@ -42,7 +42,7 @@ def wait_for_server(base_url: str, timeout: float = 20.0) -> bool:
                 response = client.get(f"{base_url}/health")
                 if response.status_code == 200:
                     return True
-            except Exception:
+            except httpx.RequestError:
                 time.sleep(0.5)
     return False
 
@@ -89,7 +89,7 @@ def planner_action(client: httpx.Client, base_url: str, fallback_observation: di
         response = client.post(f"{base_url}/optimize-step")
         if response.status_code == 200:
             return response.json()
-    except Exception:
+    except httpx.RequestError:
         pass
     return greedy_action(fallback_observation)
 
