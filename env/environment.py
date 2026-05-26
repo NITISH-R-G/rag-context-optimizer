@@ -87,6 +87,7 @@ class RagContextOptimizerEnv:
         self._workflow_stage: str = "triage"
         self._case_id = f"{self.task.name}-001"
         self._last_tuning: Any = None
+        self._tuning_cache: dict[str, Any] = {}
 
     @staticmethod
     def _build_task(
