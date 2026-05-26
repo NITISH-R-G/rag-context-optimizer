@@ -76,7 +76,10 @@ class EpisodeStore:
 
 
 def _request_logging_enabled() -> bool:
-    return os.getenv("DEBUG_LOG_REQUESTS", "").strip().lower() in {"1", "true", "yes"}
+    try:
+        return bool(int(os.environ.get("LOG_REQUESTS", "0")))
+    except ValueError:
+        return False
 
 
 @asynccontextmanager

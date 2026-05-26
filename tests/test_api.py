@@ -87,3 +87,22 @@ def test_step_invalid_episode_id():
     response = client.post("/step?episode_id=invalid_id", json={"action_type": "submit_report", "answer": "test"})
     assert response.status_code == 404
     assert "Episode not found" in response.json()["detail"]
+
+def test_request_logging_enabled(monkeypatch):
+    from app import _request_logging_enabled
+
+    # Test valid 1
+    monkeypatch.setenv("LOG_REQUESTS", "1")
+    assert _request_logging_enabled() is True
+
+    # Test valid 0
+    monkeypatch.setenv("LOG_REQUESTS", "0")
+    assert _request_logging_enabled() is False
+
+    # Test invalid string causing ValueError
+    monkeypatch.setenv("LOG_REQUESTS", "abc")
+    assert _request_logging_enabled() is False
+
+    # Test missing env variable (defaults to 0)
+    monkeypatch.delenv("LOG_REQUESTS", raising=False)
+    assert _request_logging_enabled() is False
