@@ -17,7 +17,11 @@ from openai import OpenAI
 from env.models import RagAction
 
 ENV_NAME = "incident-ops-env"
-ALLOW_BASELINE_FALLBACK = os.getenv("ALLOW_BASELINE_FALLBACK", "").strip().lower() in {"1", "true", "yes"}
+ALLOW_BASELINE_FALLBACK = os.getenv("ALLOW_BASELINE_FALLBACK", "").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+}
 RAG_ENV_TASK = os.getenv("RAG_ENV_TASK", "refund_triage_easy")
 RAG_ENV_URL = os.getenv("RAG_ENV_URL", "http://localhost:7860")
 TASK_SEQUENCE = [
@@ -106,9 +110,14 @@ def _keyword_overlap(query: str, chunk: dict[str, Any]) -> float:
 
 
 def _fallback_report(observation: dict[str, Any]) -> str:
-    prioritized = set(observation.get("prioritized_artifacts") or observation.get("selected_chunks", []))
+    prioritized = set(
+        observation.get("prioritized_artifacts")
+        or observation.get("selected_chunks", [])
+    )
     snippets: list[str] = []
-    for chunk in observation.get("available_artifacts") or observation.get("available_chunks", []):
+    for chunk in observation.get("available_artifacts") or observation.get(
+        "available_chunks", []
+    ):
         if chunk.get("chunk_id") in prioritized:
             keywords = ", ".join(chunk.get("keywords", [])[:3])
             snippets.append(f"[{chunk['chunk_id']}] covers {keywords}")
@@ -128,21 +137,38 @@ def _fallback_plan(observation: dict[str, Any]) -> str:
 
 def _fallback_action(observation: dict[str, Any]) -> dict[str, Any]:
     reviewed = set(observation.get("reviewed_artifacts", []))
-    prioritized = set(observation.get("prioritized_artifacts") or observation.get("selected_chunks", []))
-    available = list(observation.get("available_artifacts") or observation.get("available_chunks", []))
+    prioritized = set(
+        observation.get("prioritized_artifacts")
+        or observation.get("selected_chunks", [])
+    )
+    available = list(
+        observation.get("available_artifacts")
+        or observation.get("available_chunks", [])
+    )
     token_budget = observation["token_budget"]
     total_tokens_used = observation["total_tokens_used"]
     remaining_budget = token_budget - total_tokens_used
 
     ranked = sorted(
         available,
-        key=lambda chunk: (-_keyword_overlap(observation["query"], chunk), chunk["tokens"], chunk["chunk_id"]),
+        key=lambda chunk: (
+            -_keyword_overlap(observation["query"], chunk),
+            chunk["tokens"],
+            chunk["chunk_id"],
+        ),
     )
 
-    unprioritized_reviewed = [chunk for chunk in ranked if chunk["chunk_id"] in reviewed and chunk["chunk_id"] not in prioritized]
+    unprioritized_reviewed = [
+        chunk
+        for chunk in ranked
+        if chunk["chunk_id"] in reviewed and chunk["chunk_id"] not in prioritized
+    ]
     for chunk in unprioritized_reviewed:
         if chunk["tokens"] <= remaining_budget:
-            return {"action_type": "prioritize_artifact", "artifact_id": chunk["chunk_id"]}
+            return {
+                "action_type": "prioritize_artifact",
+                "artifact_id": chunk["chunk_id"],
+            }
 
     unseen = [chunk for chunk in ranked if chunk["chunk_id"] not in reviewed]
     if unseen:
@@ -151,11 +177,23 @@ def _fallback_action(observation: dict[str, Any]) -> dict[str, Any]:
         return {"action_type": "inspect_artifact", "artifact_id": unseen[0]["chunk_id"]}
 
     if prioritized and not observation.get("plan_draft"):
-        return {"action_type": "set_resolution_plan", "plan": _fallback_plan(observation)}
+        return {
+            "action_type": "set_resolution_plan",
+            "plan": _fallback_plan(observation),
+        }
 
-    heavy_prioritized = [chunk for chunk in ranked if chunk["chunk_id"] in prioritized and chunk["tokens"] >= max(120, token_budget // 4)]
+    heavy_prioritized = [
+        chunk
+        for chunk in ranked
+        if chunk["chunk_id"] in prioritized
+        and chunk["tokens"] >= max(120, token_budget // 4)
+    ]
     if heavy_prioritized and total_tokens_used >= int(token_budget * 0.7):
-        return {"action_type": "summarize_artifact", "artifact_id": heavy_prioritized[0]["chunk_id"], "compression_ratio": 0.55}
+        return {
+            "action_type": "summarize_artifact",
+            "artifact_id": heavy_prioritized[0]["chunk_id"],
+            "compression_ratio": 0.55,
+        }
 
     return {"action_type": "submit_report", "answer": _fallback_report(observation)}
 
@@ -169,7 +207,8 @@ def _build_user_prompt(observation: dict[str, Any]) -> str:
         "customer_tier": observation.get("customer_tier"),
         "incident_severity": observation.get("incident_severity"),
         "reviewed_artifacts": observation.get("reviewed_artifacts", []),
-        "prioritized_artifacts": observation.get("prioritized_artifacts") or observation.get("selected_chunks", []),
+        "prioritized_artifacts": observation.get("prioritized_artifacts")
+        or observation.get("selected_chunks", []),
         "plan_draft": observation.get("plan_draft"),
         "report_requirements": observation.get("report_requirements", []),
         "progress_signals": observation.get("progress_signals", {}),
@@ -185,7 +224,10 @@ def _build_user_prompt(observation: dict[str, Any]) -> str:
                 "tokens": chunk["tokens"],
                 "keywords": chunk["keywords"],
             }
-            for chunk in (observation.get("available_artifacts") or observation.get("available_chunks", []))
+            for chunk in (
+                observation.get("available_artifacts")
+                or observation.get("available_chunks", [])
+            )
         ],
     }
     return json.dumps(payload, ensure_ascii=True)
@@ -211,7 +253,9 @@ async def _llm_action(client: OpenAI, observation: dict[str, Any]) -> dict[str, 
     return _extract_json_object(content)
 
 
-async def _post_json(http_client: httpx.AsyncClient, path: str, payload: dict[str, Any]) -> dict[str, Any]:
+async def _post_json(
+    http_client: httpx.AsyncClient, path: str, payload: dict[str, Any]
+) -> dict[str, Any]:
     response = await http_client.post(f"{RAG_ENV_URL}{path}", json=payload)
     if response.status_code >= 400:
         raise RuntimeError(f"{path} -> {response.status_code}: {response.text}")
@@ -254,7 +298,9 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int, bool]
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as http_client:
-            reset_payload = await _post_json(http_client, "/reset", {"task_name": task_name})
+            reset_payload = await _post_json(
+                http_client, "/reset", {"task_name": task_name}
+            )
             observation = reset_payload["observation"]
 
             while True:
@@ -263,22 +309,32 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int, bool]
                     if openai_client is None:
                         raise RuntimeError("llm_unavailable")
                     llm_payload = await _llm_action(openai_client, observation)
-                    action_payload = RagAction.model_validate(llm_payload).model_dump(exclude_none=True)
+                    action_payload = RagAction.model_validate(llm_payload).model_dump(
+                        exclude_none=True
+                    )
                 except Exception as exc:
                     fallback_reason = fallback_reason or type(exc).__name__
                     if llm_required or not ALLOW_BASELINE_FALLBACK:
                         terminal_error = f"model_unavailable:{fallback_reason}"
-                        print(f"[END] success=false steps={steps} score={_clamp_score(score):.3f} rewards={_format_rewards(rewards)}")
+                        print(
+                            f"[END] success=false steps={steps} score={_clamp_score(score):.3f} rewards={_format_rewards(rewards)}"
+                        )
                         return score, rewards, steps, False
-                    action_payload = RagAction.model_validate(_fallback_action(observation)).model_dump(exclude_none=True)
+                    action_payload = RagAction.model_validate(
+                        _fallback_action(observation)
+                    ).model_dump(exclude_none=True)
 
                 try:
-                    step_response = await _post_json(http_client, "/step", action_payload)
+                    step_response = await _post_json(
+                        http_client, "/step", action_payload
+                    )
                 except Exception as exc:
                     steps += 1
                     rewards.append(0.0)
                     terminal_error = str(exc)
-                    print(f"[STEP] step={steps} action={_format_action(action_payload)} reward=0.00 done=true error={_format_error(terminal_error)}")
+                    print(
+                        f"[STEP] step={steps} action={_format_action(action_payload)} reward=0.00 done=true error={_format_error(terminal_error)}"
+                    )
                     break
 
                 steps += 1
@@ -296,10 +352,14 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int, bool]
                     success = terminal_error is None
                     break
 
-            print(f"[END] success={_format_bool(success)} steps={steps} score={score:.3f} rewards={_format_rewards(rewards)}")
+            print(
+                f"[END] success={_format_bool(success)} steps={steps} score={score:.3f} rewards={_format_rewards(rewards)}"
+            )
             return score, rewards, steps, success
     except Exception:
-        print(f"[END] success=false steps={steps} score={_clamp_score(score):.3f} rewards={_format_rewards(rewards)}")
+        print(
+            f"[END] success=false steps={steps} score={_clamp_score(score):.3f} rewards={_format_rewards(rewards)}"
+        )
         return score, rewards, steps, False
 
 
@@ -309,7 +369,9 @@ def run_task(task_name: str) -> tuple[float, list[float], int, bool]:
 
 def main() -> int:
     if RAG_ENV_TASK in TASK_SEQUENCE:
-        tasks = [RAG_ENV_TASK] + [task for task in TASK_SEQUENCE if task != RAG_ENV_TASK]
+        tasks = [RAG_ENV_TASK] + [
+            task for task in TASK_SEQUENCE if task != RAG_ENV_TASK
+        ]
     else:
         tasks = list(TASK_SEQUENCE)
     for task_name in tasks:

@@ -26,7 +26,9 @@ def test_reset_accepts_empty_body():
 
 def test_episode_state_is_isolated():
     first_reset = client.post("/reset", json={"task_name": "refund_triage_easy"})
-    second_reset = client.post("/reset", json={"task_name": "cross_function_brief_medium"})
+    second_reset = client.post(
+        "/reset", json={"task_name": "cross_function_brief_medium"}
+    )
     assert first_reset.status_code == 200
     assert second_reset.status_code == 200
 
@@ -49,12 +51,14 @@ def test_episode_state_is_isolated():
     assert first_chunk in first_state.json()["reviewed_artifacts"]
     assert second_state.json()["reviewed_artifacts"] == []
 
+
 def test_health_endpoint():
     response = client.get("/health")
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "ok"
     assert "tasks" in body
+
 
 def test_tasks_endpoint():
     response = client.get("/tasks")
@@ -65,6 +69,7 @@ def test_tasks_endpoint():
         assert "name" in body[0]
         assert "difficulty" in body[0]
 
+
 def test_corpus_families_endpoint():
     response = client.get("/corpus-families")
     assert response.status_code == 200
@@ -72,8 +77,11 @@ def test_corpus_families_endpoint():
     assert "families" in body
     assert isinstance(body["families"], list)
 
+
 def test_optimize_prompt_empty():
-    response = client.post("/optimize-prompt", json={"prompt": "   ", "compression_mode": "balanced"})
+    response = client.post(
+        "/optimize-prompt", json={"prompt": "   ", "compression_mode": "balanced"}
+    )
     assert response.status_code == 400
     assert "empty" in response.json()["detail"].lower()
 
@@ -83,7 +91,11 @@ def test_reset_invalid_task():
     assert response.status_code == 400
     assert "Unknown task_name" in response.json()["detail"]
 
+
 def test_step_invalid_episode_id():
-    response = client.post("/step?episode_id=invalid_id", json={"action_type": "submit_report", "answer": "test"})
+    response = client.post(
+        "/step?episode_id=invalid_id",
+        json={"action_type": "submit_report", "answer": "test"},
+    )
     assert response.status_code == 404
     assert "Episode not found" in response.json()["detail"]
