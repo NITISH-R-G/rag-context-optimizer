@@ -2,8 +2,6 @@
 Baseline inference runner for the incident operations HTTP environment.
 """
 
-from __future__ import annotations
-
 import asyncio
 import json
 import os
@@ -12,6 +10,8 @@ import sys
 from typing import Any
 
 import httpx
+import pydantic
+import openai
 from openai import OpenAI
 
 from env.models import RagAction
@@ -264,7 +264,7 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int, bool]
                         raise RuntimeError("llm_unavailable")
                     llm_payload = await _llm_action(openai_client, observation)
                     action_payload = RagAction.model_validate(llm_payload).model_dump(exclude_none=True)
-                except Exception as exc:
+                except (openai.OpenAIError, pydantic.ValidationError, RuntimeError) as exc:
                     fallback_reason = fallback_reason or type(exc).__name__
                     if llm_required or not ALLOW_BASELINE_FALLBACK:
                         terminal_error = f"model_unavailable:{fallback_reason}"
@@ -274,7 +274,7 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int, bool]
 
                 try:
                     step_response = await _post_json(http_client, "/step", action_payload)
-                except Exception as exc:
+                except (httpx.HTTPError, RuntimeError) as exc:
                     steps += 1
                     rewards.append(0.0)
                     terminal_error = str(exc)

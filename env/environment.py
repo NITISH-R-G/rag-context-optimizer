@@ -76,6 +76,7 @@ class RagContextOptimizerEnv:
         )
 
         self._available_chunks: list[Chunk] = []
+        self._chunk_map_cache: dict[str, Chunk] | None = None
         self._reviewed_artifacts: list[str] = []
         self._selected_chunks: list[str] = []
         self._compression_ratios: dict[str, float] = {}
@@ -109,11 +110,14 @@ class RagContextOptimizerEnv:
         self._available_chunks = self._rank_chunks_for_query(self.task.query, candidate_chunks)
         if not self._query_overridden:
             chunk_by_id = {chunk.chunk_id: chunk for chunk in candidate_chunks}
+            existing_ids = {c.chunk_id for c in self._available_chunks}
             for chunk_id in self.task.required_artifact_ids + self.task.optional_artifact_ids:
                 chunk = chunk_by_id.get(chunk_id)
-                if chunk and all(existing.chunk_id != chunk_id for existing in self._available_chunks):
+                if chunk and chunk_id not in existing_ids:
                     self._available_chunks.append(chunk)
+                    existing_ids.add(chunk_id)
 
+        self._chunk_map_cache = None
         self._reviewed_artifacts = []
         self._selected_chunks = []
         self._compression_ratios = {}
@@ -368,7 +372,9 @@ class RagContextOptimizerEnv:
         )
 
     def _chunk_map(self) -> dict[str, Chunk]:
-        return {chunk.chunk_id: chunk for chunk in self._available_chunks}
+        if self._chunk_map_cache is None or len(self._chunk_map_cache) != len(self._available_chunks):
+            self._chunk_map_cache = {chunk.chunk_id: chunk for chunk in self._available_chunks}
+        return self._chunk_map_cache
 
     def _effective_chunk_tokens(self, chunk_id: str) -> int:
         chunk = self._chunk_map().get(chunk_id)

@@ -9,10 +9,20 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app import app  # noqa: E402
+from app import app, _is_bad_action_event  # noqa: E402
 
 
 client = TestClient(app)
+
+
+def test_is_bad_action_event():
+    assert _is_bad_action_event(None) is False
+    assert _is_bad_action_event("") is False
+    assert _is_bad_action_event("some_other_event") is False
+    assert _is_bad_action_event("bad_action_error") is True
+    assert _is_bad_action_event("this_is_a_bad_action_error_message") is True
+    assert _is_bad_action_event("not_implemented") is True
+    assert _is_bad_action_event("feature_not_implemented_yet") is True
 
 
 def test_reset_accepts_empty_body():
@@ -87,3 +97,13 @@ def test_step_invalid_episode_id():
     response = client.post("/step?episode_id=invalid_id", json={"action_type": "submit_report", "answer": "test"})
     assert response.status_code == 404
     assert "Episode not found" in response.json()["detail"]
+
+def test_is_bad_action_event():
+    assert _is_bad_action_event(None) is False
+    assert _is_bad_action_event("") is False
+    assert _is_bad_action_event("some_other_event") is False
+    assert _is_bad_action_event("artifact_not_found") is False
+    assert _is_bad_action_event("bad_action_error") is True
+    assert _is_bad_action_event("not_implemented") is True
+    assert _is_bad_action_event("some_bad_action_error_suffix") is True
+    assert _is_bad_action_event("prefix_not_implemented_suffix") is True
