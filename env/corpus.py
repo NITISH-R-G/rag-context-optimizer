@@ -26,6 +26,7 @@ class Chunk(BaseModel):
 
 
 _CORPUS_CACHE: list[Chunk] = []
+_CORPUS_ID_MAP: dict[str, Chunk] = {}
 _CORPUS_CACHE_PATH: Path | None = None
 
 _CORPUS_FAMILY_FILES = {
@@ -56,7 +57,7 @@ def list_corpus_families() -> list[str]:
 
 def load_corpus(path: str | Path) -> list[Chunk]:
     """Load a JSONL corpus file into validated Chunk objects."""
-    global _CORPUS_CACHE, _CORPUS_CACHE_PATH
+    global _CORPUS_CACHE, _CORPUS_CACHE_PATH, _CORPUS_ID_MAP
     corpus_path = resolve_corpus_path(path)
     if _CORPUS_CACHE_PATH == corpus_path and _CORPUS_CACHE:
         return list(_CORPUS_CACHE)
@@ -65,6 +66,7 @@ def load_corpus(path: str | Path) -> list[Chunk]:
         for line in corpus_path.read_text(encoding="utf-8").splitlines()
         if line.strip()
     ]
+    _CORPUS_ID_MAP = {chunk.chunk_id: chunk for chunk in _CORPUS_CACHE}
     _CORPUS_CACHE_PATH = corpus_path
     return list(_CORPUS_CACHE)
 
@@ -76,7 +78,4 @@ def get_chunks_by_domain(domain: str) -> list[Chunk]:
 
 def get_chunk_by_id(chunk_id: str) -> Optional[Chunk]:
     """Return a single chunk by id if it exists in the loaded corpus."""
-    for chunk in _CORPUS_CACHE:
-        if chunk.chunk_id == chunk_id:
-            return chunk
-    return None
+    return _CORPUS_ID_MAP.get(chunk_id)

@@ -6,3 +6,4 @@ env_verify/
 *.egg-info/
 env_verify2/
 .coverage
+data/large_corpus.jsonl
