@@ -274,7 +274,7 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int, bool]
 
                 try:
                     step_response = await _post_json(http_client, "/step", action_payload)
-                except Exception as exc:
+                except httpx.RequestError as exc:
                     steps += 1
                     rewards.append(0.0)
                     terminal_error = str(exc)
