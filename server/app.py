@@ -11,8 +11,13 @@ from app import app as app # noqa: F401, E402
 
 def main() -> None:
     import uvicorn
+    import argparse
 
-    uvicorn.run("server.app:app", host="0.0.0.0", port=7860, reload=False)
+    parser = argparse.ArgumentParser(description="Run FastAPI server")
+    parser.add_argument("--host", default="0.0.0.0")
+    parser.add_argument("--port", type=int, default=8000)
+    args = parser.parse_args()
+    uvicorn.run("server.app:app", host=args.host, port=args.port, reload=False)
 
 
 if __name__ == "__main__":
