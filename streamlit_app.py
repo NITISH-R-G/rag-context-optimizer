@@ -4,11 +4,17 @@ import httpx
 import streamlit as st
 
 
-API_URL = st.secrets.get("API_URL", "http://localhost:7860") if hasattr(st, "secrets") else "http://localhost:7860"
+API_URL = (
+    st.secrets.get("API_URL", "http://localhost:7860")
+    if hasattr(st, "secrets")
+    else "http://localhost:7860"
+)
 
 st.set_page_config(page_title="rag-context-optimizer", page_icon="R", layout="wide")
 st.title("RAG Context Optimizer")
-st.caption("Use any prompt, keep the token budget tight, and let the optimizer pick the best evidence per token.")
+st.caption(
+    "Use any prompt, keep the token budget tight, and let the optimizer pick the best evidence per token."
+)
 
 
 def api_get(path: str):
@@ -72,7 +78,9 @@ if sidebar_cols[0].button("Start / Reset", use_container_width=True):
     if not custom_query.strip():
         st.sidebar.error("Enter a custom prompt first.")
     else:
-        start_episode(selected_task, custom_query.strip(), int(token_budget), int(max_steps))
+        start_episode(
+            selected_task, custom_query.strip(), int(token_budget), int(max_steps)
+        )
         st.rerun()
 
 if sidebar_cols[1].button("Refresh", use_container_width=True):
@@ -110,7 +118,10 @@ if action_cols[1].button("Auto Run", use_container_width=True):
     for _ in range(20):
         suggestion = api_post("/optimize-step")
         do_step(suggestion)
-        if suggestion["action_type"] == "submit_answer" or st.session_state["payload"]["done"]:
+        if (
+            suggestion["action_type"] == "submit_answer"
+            or st.session_state["payload"]["done"]
+        ):
             break
     st.rerun()
 
@@ -119,7 +130,8 @@ if st.button("Submit Manual Answer", type="primary", use_container_width=True):
     do_step(
         {
             "action_type": "submit_answer",
-            "answer": manual_answer.strip() or "Concise answer synthesized from the selected evidence.",
+            "answer": manual_answer.strip()
+            or "Concise answer synthesized from the selected evidence.",
         }
     )
     st.rerun()
@@ -134,14 +146,20 @@ for index, chunk in enumerate(observation["available_chunks"]):
     container.write(", ".join(chunk["keywords"]))
     c1, c2 = container.columns(2)
     if selected:
-      if c1.button("Deselect", key=f"deselect-{chunk['chunk_id']}", use_container_width=True):
-          do_step({"action_type": "deselect_chunk", "chunk_id": chunk["chunk_id"]})
-          st.rerun()
+        if c1.button(
+            "Deselect", key=f"deselect-{chunk['chunk_id']}", use_container_width=True
+        ):
+            do_step({"action_type": "deselect_chunk", "chunk_id": chunk["chunk_id"]})
+            st.rerun()
     else:
-      if c1.button("Select", key=f"select-{chunk['chunk_id']}", use_container_width=True):
-          do_step({"action_type": "select_chunk", "chunk_id": chunk["chunk_id"]})
-          st.rerun()
-    if c2.button("Compress 50%", key=f"compress-{chunk['chunk_id']}", use_container_width=True):
+        if c1.button(
+            "Select", key=f"select-{chunk['chunk_id']}", use_container_width=True
+        ):
+            do_step({"action_type": "select_chunk", "chunk_id": chunk["chunk_id"]})
+            st.rerun()
+    if c2.button(
+        "Compress 50%", key=f"compress-{chunk['chunk_id']}", use_container_width=True
+    ):
         do_step(
             {
                 "action_type": "compress_chunk",

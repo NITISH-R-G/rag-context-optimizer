@@ -12,4 +12,6 @@ from server.app import main  # noqa: E402
 @patch("uvicorn.run")
 def test_server_main(mock_run):
     main()
-    mock_run.assert_called_once_with("server.app:app", host="0.0.0.0", port=7860, reload=False)
+    mock_run.assert_called_once_with(
+        "server.app:app", host="0.0.0.0", port=7860, reload=False
+    )
