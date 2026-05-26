@@ -102,6 +102,13 @@ class ContextTunedPlanner:
         self.retriever = retriever
         self.corpus = list(corpus)
         self._chunk_map = {chunk.chunk_id: chunk for chunk in self.corpus}
+
+        self._chunk_static_features: dict[str, tuple[float, float, float, float]] = {}
+        for chunk in self.corpus:
+            token_efficiency = 1.0 - min(chunk.tokens, 700) / 700.0
+            domain_flags = _DOMAIN_TO_FLAGS.get(chunk.domain, (0.0, 0.0, 0.0))
+            self._chunk_static_features[chunk.chunk_id] = (token_efficiency, domain_flags[0], domain_flags[1], domain_flags[2])
+
         self._demo_cases = self._build_demo_cases(tasks)
         self._token_dropout = 0.14
         self._train_steps = 28
@@ -196,17 +203,22 @@ class ContextTunedPlanner:
         base = self.retriever.hybrid_score(query, chunk)
         bm25 = self.retriever.bm25_score(query, chunk)
         keyword = self.retriever.keyword_overlap_score(query, chunk)
-        token_efficiency = 1.0 - min(chunk.tokens, 700) / 700.0
-        domain_flags = _DOMAIN_TO_FLAGS.get(chunk.domain, (0.0, 0.0, 0.0))
+
+        static_features = self._chunk_static_features.get(chunk.chunk_id)
+        if static_features is None:
+            token_efficiency = 1.0 - min(chunk.tokens, 700) / 700.0
+            domain_flags = _DOMAIN_TO_FLAGS.get(chunk.domain, (0.0, 0.0, 0.0))
+            static_features = (token_efficiency, domain_flags[0], domain_flags[1], domain_flags[2])
+
         return [
             base,
             bm25,
             keyword,
             self._query_chunk_overlap(query, chunk),
-            token_efficiency,
-            domain_flags[0],
-            domain_flags[1],
-            domain_flags[2],
+            static_features[0],
+            static_features[1],
+            static_features[2],
+            static_features[3],
             self._citation_prior(chunk.chunk_id, demos, weights),
             self._domain_prior(chunk, demos, weights),
         ]
