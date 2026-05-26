@@ -2,8 +2,6 @@
 Baseline inference runner for the incident operations HTTP environment.
 """
 
-from __future__ import annotations
-
 import asyncio
 import json
 import os
