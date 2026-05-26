@@ -187,21 +187,18 @@ async def _optimize_prompt_backend(
     }
 
 
-def _suggest_action_fallback(env: RagContextOptimizerEnv) -> dict[str, Any]:
-    observation = env._build_observation()
-    selected = set(observation.prioritized_artifacts)
-    reviewed = set(observation.reviewed_artifacts)
-    remaining_budget = observation.token_budget - observation.total_tokens_used
-    tuning = env._last_tuning or env.context_tuner.tune(env.task.query, env._available_chunks)
-    score_map = tuning.tuned_scores
-    suggested_citations = tuning.suggested_citations or list(selected)[:3]
-
-    available_chunks = observation.available_artifacts
-    selected_chunks = [chunk for chunk in available_chunks if chunk.chunk_id in selected]
+def _check_resolution_plan(env: RagContextOptimizerEnv, reviewed: set[str], observation: Any) -> dict[str, Any] | None:
     if len(reviewed) >= 2 and not observation.plan_draft:
         plan = ", ".join(env.task.required_plan_keywords[:3])
         return {"action_type": "set_resolution_plan", "plan": f"Next actions: {plan}."}
+    return None
 
+
+def _check_compression(
+    observation: Any,
+    selected_chunks: list[Any],
+    score_map: dict[str, Any]
+) -> dict[str, Any] | None:
     if selected_chunks and (
         observation.total_tokens_used >= int(observation.token_budget * 0.65)
         or observation.step_number >= 3
@@ -220,7 +217,16 @@ def _suggest_action_fallback(env: RagContextOptimizerEnv) -> dict[str, Any]:
                 "chunk_id": heavy[0].chunk_id,
                 "compression_ratio": tuned.compression_ratio if tuned is not None else 0.5,
             }
+    return None
 
+
+def _check_early_submit(
+    env: RagContextOptimizerEnv,
+    observation: Any,
+    selected: set[str],
+    selected_chunks: list[Any],
+    suggested_citations: list[str]
+) -> dict[str, Any] | None:
     if len(selected) >= 2 or observation.step_number >= max(2, env.task.max_steps - 2):
         chosen_phrases: list[str] = []
         for chunk in selected_chunks[:3]:
@@ -234,13 +240,29 @@ def _suggest_action_fallback(env: RagContextOptimizerEnv) -> dict[str, Any]:
         if suggested_citations:
             answer = answer.rstrip(".") + " " + " ".join(f"[{chunk_id}]" for chunk_id in suggested_citations[:3]) + "."
         return {"action_type": "submit_answer", "answer": answer}
+    return None
 
-    candidate_priority_ids = [chunk_id for chunk_id in (tuning.suggested_citations or []) if chunk_id in reviewed and chunk_id not in selected]
+
+def _check_prioritize_candidates(
+    available_chunks: list[Any],
+    reviewed: set[str],
+    selected: set[str],
+    suggested_citations: list[str],
+    remaining_budget: int
+) -> dict[str, Any] | None:
+    candidate_priority_ids = [chunk_id for chunk_id in suggested_citations if chunk_id in reviewed and chunk_id not in selected]
     for chunk_id in candidate_priority_ids:
-        chunk = next((item for item in available_chunks if item.chunk_id == chunk_id), None) # type: ignore
+        chunk = next((item for item in available_chunks if item.chunk_id == chunk_id), None)
         if chunk is not None and chunk.tokens <= remaining_budget:
             return {"action_type": "prioritize_artifact", "artifact_id": chunk_id}
+    return None
 
+
+def _check_inspect_candidates(
+    available_chunks: list[Any],
+    reviewed: set[str],
+    score_map: dict[str, Any]
+) -> dict[str, Any] | None:
     available = [chunk for chunk in available_chunks if chunk.chunk_id not in reviewed]
     if len(reviewed) >= 2 and available:
         available = sorted(
@@ -260,7 +282,16 @@ def _suggest_action_fallback(env: RagContextOptimizerEnv) -> dict[str, Any]:
         ),
     ):
         return {"action_type": "inspect_artifact", "artifact_id": chunk.chunk_id}
+    return None
 
+
+def _check_fallback_prioritize(
+    available_chunks: list[Any],
+    reviewed: set[str],
+    selected: set[str],
+    score_map: dict[str, Any],
+    remaining_budget: int
+) -> dict[str, Any] | None:
     for chunk in sorted(
         [chunk for chunk in available_chunks if chunk.chunk_id in reviewed and chunk.chunk_id not in selected],
         key=lambda chunk: (
@@ -271,12 +302,20 @@ def _suggest_action_fallback(env: RagContextOptimizerEnv) -> dict[str, Any]:
     ):
         if chunk.tokens <= remaining_budget:
             return {"action_type": "prioritize_artifact", "artifact_id": chunk.chunk_id}
+    return None
 
+
+def _get_final_fallback_action(
+    available_chunks: list[Any],
+    reviewed: set[str],
+    selected_chunks: list[Any]
+) -> dict[str, Any]:
     if selected_chunks:
         return {
             "action_type": "submit_report",
             "answer": "Optimized answer based on the currently selected evidence.",
         }
+    available = [chunk for chunk in available_chunks if chunk.chunk_id not in reviewed]
     if available:
         smallest_chunk = min(available, key=lambda chunk: (chunk.tokens, chunk.chunk_id))
         return {
@@ -287,6 +326,45 @@ def _suggest_action_fallback(env: RagContextOptimizerEnv) -> dict[str, Any]:
             ),
         }
     return {"action_type": "submit_answer", "answer": "No usable evidence was available."}
+
+
+def _suggest_action_fallback(env: RagContextOptimizerEnv) -> dict[str, Any]:
+    observation = env._build_observation()
+    selected = set(observation.prioritized_artifacts)
+    reviewed = set(observation.reviewed_artifacts)
+    remaining_budget = observation.token_budget - observation.total_tokens_used
+    tuning = env._last_tuning or env.context_tuner.tune(env.task.query, env._available_chunks)
+    score_map = tuning.tuned_scores
+    suggested_citations = tuning.suggested_citations or list(selected)[:3]
+
+    available_chunks = observation.available_artifacts
+    selected_chunks = [chunk for chunk in available_chunks if chunk.chunk_id in selected]
+
+    action = _check_resolution_plan(env, reviewed, observation)
+    if action:
+        return action
+
+    action = _check_compression(observation, selected_chunks, score_map)
+    if action:
+        return action
+
+    action = _check_early_submit(env, observation, selected, selected_chunks, suggested_citations)
+    if action:
+        return action
+
+    action = _check_prioritize_candidates(available_chunks, reviewed, selected, tuning.suggested_citations or [], remaining_budget)
+    if action:
+        return action
+
+    action = _check_inspect_candidates(available_chunks, reviewed, score_map)
+    if action:
+        return action
+
+    action = _check_fallback_prioritize(available_chunks, reviewed, selected, score_map, remaining_budget)
+    if action:
+        return action
+
+    return _get_final_fallback_action(available_chunks, reviewed, selected_chunks)
 
 
 async def _suggest_action(env: RagContextOptimizerEnv) -> dict[str, Any]:
