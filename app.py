@@ -187,12 +187,22 @@ async def _optimize_prompt_backend(
     }
 
 
+def _get_tuning(env: RagContextOptimizerEnv) -> Any:
+    if env._last_tuning is not None:
+        return env._last_tuning
+    if not hasattr(env, "_tuning_cache"):
+        env._tuning_cache = {}
+    cache_key = env.task.query
+    if cache_key not in env._tuning_cache:
+        env._tuning_cache[cache_key] = env.context_tuner.tune(env.task.query, env._available_chunks)
+    return env._tuning_cache[cache_key]
+
 def _suggest_action_fallback(env: RagContextOptimizerEnv) -> dict[str, Any]:
     observation = env._build_observation()
     selected = set(observation.prioritized_artifacts)
     reviewed = set(observation.reviewed_artifacts)
     remaining_budget = observation.token_budget - observation.total_tokens_used
-    tuning = env._last_tuning or env.context_tuner.tune(env.task.query, env._available_chunks)
+    tuning = _get_tuning(env)
     score_map = tuning.tuned_scores
     suggested_citations = tuning.suggested_citations or list(selected)[:3]
 
@@ -294,7 +304,7 @@ async def _suggest_action(env: RagContextOptimizerEnv) -> dict[str, Any]:
         try:
             observation = env._build_observation()
             state = await env.state()
-            tuning = env._last_tuning or env.context_tuner.tune(env.task.query, env._available_chunks)
+            tuning = _get_tuning(env)
             return await suggest_action_with_llm(
                 observation,
                 selected_chunk_details=state.get("selected_chunk_details", []),
