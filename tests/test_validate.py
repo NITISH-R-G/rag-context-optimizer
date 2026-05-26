@@ -21,31 +21,31 @@ def test_find_free_port():
         sock.bind(("127.0.0.1", port))
         assert sock.getsockname()[1] == port
 
-from unittest.mock import patch, MagicMock
-from validate import wait_for_server
-import httpx
+from unittest.mock import patch, MagicMock # noqa: E402
+from validate import wait_for_server # noqa: E402
+import httpx # noqa: E402
 
 def test_wait_for_server_success():
     mock_response = MagicMock()
     mock_response.status_code = 200
 
     with patch("httpx.Client.get", return_value=mock_response):
-        assert wait_for_server("http://localhost:8000", timeout=0.1) == True
+        assert wait_for_server("http://localhost:8000", timeout=0.1)
 
 def test_wait_for_server_timeout():
     mock_request = MagicMock()
     with patch("httpx.Client.get", side_effect=httpx.RequestError("Error", request=mock_request)):
-        assert wait_for_server("http://localhost:8000", timeout=0.1) == False
+        assert not wait_for_server("http://localhost:8000", timeout=0.1)
 
 def test_wait_for_server_non_200():
     mock_response = MagicMock()
     mock_response.status_code = 404
 
     with patch("httpx.Client.get", return_value=mock_response):
-        assert wait_for_server("http://localhost:8000", timeout=0.1) == False
+        assert not wait_for_server("http://localhost:8000", timeout=0.1)
 
-import pytest
-from validate import check_health
+import pytest # noqa: E402
+from validate import check_health # noqa: E402
 
 @pytest.mark.asyncio
 async def test_check_health_success():
@@ -60,7 +60,7 @@ async def test_check_health_success():
     mock_client.get.return_value = future
 
     result = await check_health(mock_client)
-    assert result == True
+    assert result
 
 @pytest.mark.asyncio
 async def test_check_health_failure():
@@ -74,7 +74,7 @@ async def test_check_health_failure():
     mock_client.get.return_value = future
 
     result = await check_health(mock_client)
-    assert result == False
+    assert not result
 
 @pytest.mark.asyncio
 async def test_check_health_exception():
@@ -82,9 +82,9 @@ async def test_check_health_exception():
     mock_client.get.side_effect = Exception("Connection Error")
 
     result = await check_health(mock_client)
-    assert result == False
+    assert not result
 
-from validate import greedy_action
+from validate import greedy_action # noqa: E402
 
 def test_greedy_action_submit_fallback():
     observation = {
@@ -140,7 +140,7 @@ def test_greedy_action_inspect_artifact():
     assert result["action_type"] == "inspect_artifact"
     assert result["artifact_id"] == "chunk2"
 
-from validate import planner_action
+from validate import planner_action # noqa: E402
 
 def test_planner_action_success():
     mock_client = MagicMock()
@@ -173,7 +173,7 @@ def test_planner_action_fallback():
     result = planner_action(mock_client, "http://localhost:8000", observation)
     assert result["action_type"] == "submit_report"
 
-from validate import run_task
+from validate import run_task # noqa: E402
 
 def test_run_task_success(capsys):
     mock_client = MagicMock()
