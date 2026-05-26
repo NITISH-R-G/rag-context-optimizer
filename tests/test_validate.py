@@ -158,7 +158,7 @@ def test_planner_action_success():
 
 def test_planner_action_fallback():
     mock_client = MagicMock()
-    mock_client.post.side_effect = Exception("Connection Error")
+    mock_client.post.side_effect = httpx.RequestError("Connection Error", request=MagicMock())
 
     observation = {
         "query": "something",
