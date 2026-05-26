@@ -2,8 +2,6 @@
 FastAPI server exposing the rag-context-optimizer OpenEnv HTTP API.
 """
 
-from __future__ import annotations
-
 from contextlib import asynccontextmanager
 from dataclasses import asdict, is_dataclass
 import os
