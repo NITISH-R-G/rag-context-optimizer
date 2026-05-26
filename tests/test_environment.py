@@ -18,13 +18,6 @@ def _run(coro):
     return asyncio.run(coro)
 
 
-def _find_chunk(observation, chunk_id: str):
-    for chunk in observation.available_chunks:
-        if chunk.chunk_id == chunk_id:
-            return chunk
-    raise AssertionError(f"Chunk {chunk_id} not found")
-
-
 def _smallest_unselected_chunk(observation):
     selected = set(observation.selected_chunks)
     candidates = [chunk for chunk in observation.available_chunks if chunk.chunk_id not in selected]
