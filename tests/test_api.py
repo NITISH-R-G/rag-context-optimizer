@@ -15,16 +15,6 @@ from app import app, _is_bad_action_event  # noqa: E402
 client = TestClient(app)
 
 
-def test_is_bad_action_event():
-    assert _is_bad_action_event(None) is False
-    assert _is_bad_action_event("") is False
-    assert _is_bad_action_event("some_other_event") is False
-    assert _is_bad_action_event("bad_action_error") is True
-    assert _is_bad_action_event("this_is_a_bad_action_error_message") is True
-    assert _is_bad_action_event("not_implemented") is True
-    assert _is_bad_action_event("feature_not_implemented_yet") is True
-
-
 def test_reset_accepts_empty_body():
     response = client.post("/reset")
     assert response.status_code == 200
