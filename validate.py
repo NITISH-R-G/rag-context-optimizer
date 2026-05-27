@@ -12,6 +12,15 @@ from pathlib import Path
 import httpx
 
 PROJECT_ROOT = Path(__file__).resolve().parent
+API_URL = os.environ.get("API_URL", "http://localhost:8000")
+
+async def check_health(client: httpx.AsyncClient):
+    try:
+        r = await client.get(f"{API_URL}/api/health")
+        return r.status_code == 200
+    except Exception:
+        return False
+
 TASKS = [
     "refund_triage_easy",
     "cross_function_brief_medium",
