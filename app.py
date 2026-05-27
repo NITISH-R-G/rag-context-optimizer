@@ -12,7 +12,9 @@ from uuid import uuid4
 from fastapi import Body, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
+import json
+from openai import OpenAIError
 
 from env.corpus import list_corpus_families
 from env.environment import RagContextOptimizerEnv
@@ -379,7 +381,7 @@ async def _suggest_action(env: RagContextOptimizerEnv) -> dict[str, Any]:
                 suggested_citations=tuning.suggested_citations,
                 top_demo_cases=tuning.top_demo_cases,
             )
-        except Exception:
+        except (RuntimeError, json.JSONDecodeError, ValidationError, OpenAIError):
             pass
     return _suggest_action_fallback(env)
 
