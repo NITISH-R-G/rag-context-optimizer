@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-import pytest
+import pytest  # noqa: E402
 from app import app, _is_bad_action_event, EpisodeStore  # noqa: E402
 
 
@@ -99,7 +99,7 @@ def test_is_bad_action_event():
     assert _is_bad_action_event("some_bad_action_error_suffix") is True
     assert _is_bad_action_event("prefix_not_implemented_suffix") is True
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_episode_store_eviction():
     store = EpisodeStore(max_episodes=2)
 
@@ -123,7 +123,7 @@ async def test_episode_store_eviction():
     assert store.get(id2)[0] == id2
     assert store.get(id3)[0] == id3
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_episode_store_close_all():
     store = EpisodeStore(max_episodes=2)
     class MockEnv:
@@ -145,9 +145,9 @@ async def test_episode_store_close_all():
     with pytest.raises(KeyError):
         store.get(id2)
 
-@pytest.mark.asyncio
+@pytest.mark.anyio
 async def test_log_requests_middleware():
-    from app import log_requests, _request_logging_enabled
+    from app import log_requests
     import os
 
     class MockRequest:
