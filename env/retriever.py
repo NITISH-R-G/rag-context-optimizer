@@ -48,11 +48,48 @@ class HybridRetriever:
     """Hybrid lexical retriever with deterministic BM25 and keyword overlap scoring."""
 
     _STOPWORDS = {
-        "a", "an", "and", "are", "as", "at", "be", "but", "by", "do", "for", "from",
-        "how", "if", "in", "into", "is", "it", "its", "of", "on", "or", "should",
-        "that", "the", "their", "them", "there", "these", "this", "to", "using",
-        "what", "when", "where", "which", "while", "with", "without", "your",
+        "a",
+        "an",
+        "and",
+        "are",
+        "as",
+        "at",
+        "be",
+        "but",
+        "by",
+        "do",
+        "for",
+        "from",
+        "how",
+        "if",
+        "in",
+        "into",
+        "is",
+        "it",
+        "its",
+        "of",
+        "on",
+        "or",
+        "should",
+        "that",
+        "the",
+        "their",
+        "them",
+        "there",
+        "these",
+        "this",
+        "to",
+        "using",
+        "what",
+        "when",
+        "where",
+        "which",
+        "while",
+        "with",
+        "without",
+        "your",
     }
+    _TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
 
     _TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
 
@@ -78,6 +115,7 @@ class HybridRetriever:
                 self._doc_freqs[term] += 1
 
         self._avg_doc_length = total_length / len(self.corpus) if self.corpus else 0.0
+
     @staticmethod
     def _tokenize_for_bm25(text: str) -> list[str]:
         return [
@@ -120,7 +158,9 @@ class HybridRetriever:
                 continue
             idf = self._idf(term)
             numerator = freq * (self._k1 + 1.0)
-            denominator = freq + self._k1 * (1.0 - self._b + self._b * (doc_len / avg_doc_len))
+            denominator = freq + self._k1 * (
+                1.0 - self._b + self._b * (doc_len / avg_doc_len)
+            )
             score += idf * (numerator / denominator)
 
         return score
@@ -179,7 +219,9 @@ class HybridRetriever:
             raise ValueError("At least one weight must be positive.")
         bm25_component = self.bm25_score(query, chunk)
         keyword_component = self.keyword_overlap_score(query, chunk)
-        score = ((bm25_component * bm25_weight) + (keyword_component * keyword_weight)) / weight_sum
+        score = (
+            (bm25_component * bm25_weight) + (keyword_component * keyword_weight)
+        ) / weight_sum
         return max(0.0, min(1.0, score))
 
     def rank_chunks(self, query: str, top_k: int = 20) -> list[tuple[Chunk, float]]:
