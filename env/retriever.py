@@ -91,8 +91,6 @@ class HybridRetriever:
     }
     _TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
 
-    _TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
-
     def __init__(self, corpus: list[Chunk]):
         self.corpus = list(corpus)
         self._k1 = 1.5
@@ -118,18 +116,20 @@ class HybridRetriever:
 
     @staticmethod
     def _tokenize_for_bm25(text: str) -> list[str]:
+        stopwords = HybridRetriever._STOPWORDS
         return [
             token
             for token in HybridRetriever._TOKEN_PATTERN.findall(text.lower())
-            if token not in HybridRetriever._STOPWORDS and len(token) > 1
+            if token not in stopwords and len(token) > 1
         ]
 
     @staticmethod
     def _tokenize_query_terms(text: str) -> set[str]:
+        stopwords = HybridRetriever._STOPWORDS
         return {
             token
             for token in HybridRetriever._TOKEN_PATTERN.findall(text.lower())
-            if token not in HybridRetriever._STOPWORDS and len(token) > 1
+            if token not in stopwords and len(token) > 1
         }
 
     @staticmethod
