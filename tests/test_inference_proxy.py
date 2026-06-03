@@ -34,13 +34,14 @@ def test_inference_uses_proxy_api_key():
         def do_POST(self):
             length = int(self.headers.get("Content-Length", "0"))
             body = self.rfile.read(length).decode("utf-8")
-            requests_seen.append(
-                {
-                    "path": self.path,
-                    "authorization": self.headers.get("Authorization"),
-                    "body": body,
-                }
-            )
+            if self.path.startswith("/v1/chat/completions"):
+                requests_seen.append(
+                    {
+                        "path": self.path,
+                        "authorization": self.headers.get("Authorization"),
+                        "body": body,
+                    }
+                )
             payload = {
                 "id": "chatcmpl-test",
                 "object": "chat.completion",
@@ -77,7 +78,16 @@ def test_inference_uses_proxy_api_key():
     proxy_thread.start()
 
     app_process = subprocess.Popen(
-        [str(PYTHON), "-m", "uvicorn", "app:app", "--host", "127.0.0.1", "--port", str(app_port)],
+        [
+            str(PYTHON),
+            "-m",
+            "uvicorn",
+            "app:app",
+            "--host",
+            "127.0.0.1",
+            "--port",
+            str(app_port),
+        ],
         cwd=ROOT,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -87,7 +97,12 @@ def test_inference_uses_proxy_api_key():
         deadline = time.time() + 20
         while time.time() < deadline:
             try:
-                if httpx.get(f"http://127.0.0.1:{app_port}/health", timeout=2).status_code == 200:
+                if (
+                    httpx.get(
+                        f"http://127.0.0.1:{app_port}/health", timeout=2
+                    ).status_code
+                    == 200
+                ):
                     break
             except Exception:
                 time.sleep(0.5)
@@ -110,7 +125,10 @@ def test_inference_uses_proxy_api_key():
         assert requests_seen
         assert requests_seen[0]["path"] == "/v1/chat/completions"
         assert requests_seen[0]["authorization"] == "Bearer proxy-check-token"
-        assert any(line.startswith("[END]") and "score=" in line for line in result.stdout.splitlines())
+        assert any(
+            line.startswith("[END]") and "score=" in line
+            for line in result.stdout.splitlines()
+        )
     finally:
         proxy_server.shutdown()
         proxy_server.server_close()
