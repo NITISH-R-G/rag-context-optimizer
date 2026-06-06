@@ -18,7 +18,8 @@ def generate_dependency_graph(graph):
 
     for filepath, info in graph.get("files", {}).items():
         node_id = nodes.get(filepath)
-        if not node_id: continue
+        if not node_id:
+            continue
 
         for imp in info.get("imports", []):
             # Check if this import matches an internal file roughly
