@@ -36,6 +36,7 @@ True
 
 from __future__ import annotations
 
+import functools
 import math
 import re
 from collections import Counter, defaultdict
@@ -99,9 +100,13 @@ class HybridRetriever:
         self._doc_term_freqs: dict[str, Counter[str]] = {}
         self._doc_lengths: dict[str, int] = {}
         self._doc_freqs: dict[str, int] = defaultdict(int)
+        self._doc_keyword_terms: dict[str, frozenset[str]] = {}
 
         total_length = 0
         for chunk in self.corpus:
+            self._doc_keyword_terms[chunk.chunk_id] = self._tokenize_query_terms(
+                " ".join(chunk.keywords)
+            )
             tokens = self._tokenize_for_bm25(chunk.text)
             self._doc_tokens[chunk.chunk_id] = tokens
             term_freqs = Counter(tokens)
@@ -124,13 +129,14 @@ class HybridRetriever:
         ]
 
     @staticmethod
-    def _tokenize_query_terms(text: str) -> set[str]:
+    @functools.lru_cache(maxsize=1024)
+    def _tokenize_query_terms(text: str) -> frozenset[str]:
         stopwords = HybridRetriever._STOPWORDS
-        return {
+        return frozenset(
             token
             for token in HybridRetriever._TOKEN_PATTERN.findall(text.lower())
             if token not in stopwords and len(token) > 1
-        }
+        )
 
     @staticmethod
     def _normalize_score(value: float, maximum: float) -> float:
@@ -196,7 +202,7 @@ class HybridRetriever:
         0.667
         """
         query_terms = self._tokenize_query_terms(query)
-        keyword_terms = self._tokenize_query_terms(" ".join(chunk.keywords))
+        keyword_terms = self._doc_keyword_terms.get(chunk.chunk_id, frozenset())
         if not query_terms or not keyword_terms:
             return 0.0
         union = query_terms | keyword_terms
