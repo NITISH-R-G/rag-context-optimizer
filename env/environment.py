@@ -88,6 +88,7 @@ class RagContextOptimizerEnv:
         self._workflow_stage: str = "triage"
         self._case_id = f"{self.task.name}-001"
         self._last_tuning: Any = None
+        self._total_tokens_used_cache: int = 0
 
     @staticmethod
     def _build_task(
@@ -128,6 +129,7 @@ class RagContextOptimizerEnv:
         self._plan_draft = ""
         self._workflow_stage = "triage"
         self._case_id = f"{self.task.name}-001"
+        self._total_tokens_used_cache = 0
 
         observation = self._build_observation()
         return StepResult(
@@ -384,7 +386,7 @@ class RagContextOptimizerEnv:
         return max(1, int(round(chunk.tokens * ratio)))
 
     def _total_tokens_used(self) -> int:
-        return sum(self._effective_chunk_tokens(chunk_id) for chunk_id in self._selected_chunks)
+        return self._total_tokens_used_cache
 
     def _effective_chunk_text(self, chunk_id: str) -> str:
         chunk = self._chunk_map().get(chunk_id)
@@ -521,6 +523,7 @@ class RagContextOptimizerEnv:
             self._last_action_feedback = "exceeded_budget"
             return -0.1, {"event": "exceeded_budget", "artifact_id": chunk_id}
         self._selected_chunks.append(chunk_id)
+        self._total_tokens_used_cache += self._effective_chunk_tokens(chunk_id)
         is_relevant, score = self._is_relevant(chunk_id)
         domain_bonus = 0.04 if len({self._chunk_map()[cid].domain for cid in self._selected_chunks if cid in self._chunk_map()}) > 1 else 0.0
         reward = (0.10 if self._is_required(chunk_id) else 0.03) + (0.05 if is_relevant else 0.0) + domain_bonus
@@ -531,6 +534,7 @@ class RagContextOptimizerEnv:
         if chunk_id not in self._selected_chunks:
             self._last_action_feedback = "artifact_not_prioritized"
             return 0.0, {"event": "artifact_not_prioritized", "artifact_id": chunk_id}
+        self._total_tokens_used_cache -= self._effective_chunk_tokens(chunk_id)
         self._selected_chunks.remove(chunk_id)
         is_required = self._is_required(chunk_id)
         reward = -0.06 if is_required else 0.03
@@ -545,7 +549,10 @@ class RagContextOptimizerEnv:
         if chunk_id not in self._selected_chunks:
             self._last_action_feedback = "artifact_not_prioritized"
             return -0.04, {"event": "artifact_not_prioritized", "artifact_id": chunk_id}
+        old_tokens = self._effective_chunk_tokens(chunk_id)
         self._compression_ratios[chunk_id] = compression_ratio
+        new_tokens = self._effective_chunk_tokens(chunk_id)
+        self._total_tokens_used_cache += (new_tokens - old_tokens)
         is_relevant, score = self._is_relevant(chunk_id)
         reward = 0.04 if is_relevant else 0.0
         if self._is_required(chunk_id) and compression_ratio < 0.45:
