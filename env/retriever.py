@@ -36,10 +36,11 @@ True
 
 from __future__ import annotations
 
+import functools
 import math
 import re
 from collections import Counter, defaultdict
-from typing import Iterable
+from typing import AbstractSet, Iterable
 
 from env.corpus import Chunk
 
@@ -95,10 +96,11 @@ class HybridRetriever:
         self.corpus = list(corpus)
         self._k1 = 1.5
         self._b = 0.75
-        self._doc_tokens: dict[str, list[str]] = {}
+        self._doc_tokens: dict[str, tuple[str, ...]] = {}
         self._doc_term_freqs: dict[str, Counter[str]] = {}
         self._doc_lengths: dict[str, int] = {}
         self._doc_freqs: dict[str, int] = defaultdict(int)
+        self._chunk_keyword_terms: dict[str, AbstractSet[str]] = {}
 
         total_length = 0
         for chunk in self.corpus:
@@ -112,25 +114,29 @@ class HybridRetriever:
             for term in term_freqs:
                 self._doc_freqs[term] += 1
 
+            self._chunk_keyword_terms[chunk.chunk_id] = self._tokenize_query_terms(" ".join(chunk.keywords))
+
         self._avg_doc_length = total_length / len(self.corpus) if self.corpus else 0.0
 
     @staticmethod
-    def _tokenize_for_bm25(text: str) -> list[str]:
+    @functools.lru_cache(maxsize=1024)
+    def _tokenize_for_bm25(text: str) -> tuple[str, ...]:
         stopwords = HybridRetriever._STOPWORDS
-        return [
+        return tuple(
             token
             for token in HybridRetriever._TOKEN_PATTERN.findall(text.lower())
             if token not in stopwords and len(token) > 1
-        ]
+        )
 
     @staticmethod
-    def _tokenize_query_terms(text: str) -> set[str]:
+    @functools.lru_cache(maxsize=1024)
+    def _tokenize_query_terms(text: str) -> AbstractSet[str]:
         stopwords = HybridRetriever._STOPWORDS
-        return {
+        return frozenset(
             token
             for token in HybridRetriever._TOKEN_PATTERN.findall(text.lower())
             if token not in stopwords and len(token) > 1
-        }
+        )
 
     @staticmethod
     def _normalize_score(value: float, maximum: float) -> float:
@@ -165,7 +171,8 @@ class HybridRetriever:
 
         return score
 
-    def _max_raw_bm25_for_query(self, query_terms: list[str]) -> float:
+    @functools.lru_cache(maxsize=1024)
+    def _max_raw_bm25_for_query(self, query_terms: tuple[str, ...]) -> float:
         if not self.corpus or not query_terms:
             return 0.0
         return max(self._raw_bm25(query_terms, chunk) for chunk in self.corpus)
@@ -196,7 +203,9 @@ class HybridRetriever:
         0.667
         """
         query_terms = self._tokenize_query_terms(query)
-        keyword_terms = self._tokenize_query_terms(" ".join(chunk.keywords))
+        keyword_terms = self._chunk_keyword_terms.get(
+            chunk.chunk_id, self._tokenize_query_terms(" ".join(chunk.keywords))
+        )
         if not query_terms or not keyword_terms:
             return 0.0
         union = query_terms | keyword_terms
