@@ -43,14 +43,7 @@ def do_step(payload: dict):
     st.session_state["payload"] = api_post("/step", payload)
 
 
-def main():
-    st.set_page_config(page_title="rag-context-optimizer", page_icon="R", layout="wide")
-    st.title("RAG Context Optimizer")
-    st.caption("Use any prompt, keep the token budget tight, and let the optimizer pick the best evidence per token.")
-
-    tasks = api_get("/tasks") or []
-    task_map = {task["name"]: task for task in tasks}
-
+def render_sidebar(task_map: dict):
     selected_task = st.sidebar.selectbox("Task preset", list(task_map)) if task_map else None
     if selected_task:
         task_meta = task_map[selected_task]
@@ -90,19 +83,14 @@ def main():
     if sidebar_cols[1].button("Refresh", use_container_width=True):
         st.rerun()
 
-    if "payload" not in st.session_state:
-        st.info("Add your prompt in the sidebar and press Start / Reset.")
-        st.stop()
-
-    payload = st.session_state["payload"]
-    observation = payload["observation"]
-
+def render_metrics(observation: dict):
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Task", observation["task_name"])
     col2.metric("Budget", observation["token_budget"])
     col3.metric("Used", observation["total_tokens_used"])
     col4.metric("Step", observation["step_number"])
 
+def render_query_and_feedback(payload: dict, observation: dict):
     st.subheader("Active Query")
     st.info(observation["query"])
 
@@ -113,6 +101,7 @@ def main():
         st.success(f"Final score: {payload.get('reward', 0):.4f}")
         st.json(payload["info"]["grader_breakdown"])
 
+def render_actions():
     action_cols = st.columns(3)
     if action_cols[0].button("Auto Optimize Step", use_container_width=True):
         suggestion = api_post("/optimize-step")
@@ -136,6 +125,7 @@ def main():
         )
         st.rerun()
 
+def render_chunks(observation: dict):
     st.subheader("Available Chunks")
     chunk_columns = st.columns(2)
     for index, chunk in enumerate(observation["available_chunks"]):
@@ -162,6 +152,28 @@ def main():
                 }
             )
             st.rerun()
+
+def main():
+    st.set_page_config(page_title="rag-context-optimizer", page_icon="R", layout="wide")
+    st.title("RAG Context Optimizer")
+    st.caption("Use any prompt, keep the token budget tight, and let the optimizer pick the best evidence per token.")
+
+    tasks = api_get("/tasks") or []
+    task_map = {task["name"]: task for task in tasks}
+
+    render_sidebar(task_map)
+
+    if "payload" not in st.session_state:
+        st.info("Add your prompt in the sidebar and press Start / Reset.")
+        st.stop()
+
+    payload = st.session_state["payload"]
+    observation = payload["observation"]
+
+    render_metrics(observation)
+    render_query_and_feedback(payload, observation)
+    render_actions()
+    render_chunks(observation)
 
     st.subheader("Observation")
     st.json(payload)
