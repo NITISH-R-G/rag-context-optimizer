@@ -7,16 +7,16 @@
 ```mermaid
 graph LR
     subgraph External Dependencies
-        E0["streamlit"]
-        E1["hashlib"]
-        E2["playwright"]
-        E3["torch"]
-        E4["fastapi"]
-        E5["functools"]
-        E6["asyncio"]
-        E7["http"]
-        E8["httpx"]
-        E9["collections"]
+        E0["fastapi"]
+        E1["threading"]
+        E2["socket"]
+        E3["uvicorn"]
+        E4["functools"]
+        E5["builtins"]
+        E6["http"]
+        E7["uuid"]
+        E8["subprocess"]
+        E9["random"]
     end
     subgraph Core System
         API["FastAPI App"]
@@ -82,33 +82,35 @@ graph TD
     click F24 "tests/test_api.py" "Go to source"
     F25["test_server_app.py"]
     click F25 "tests/test_server_app.py" "Go to source"
-    F26["test_llm_features.py"]
-    click F26 "tests/test_llm_features.py" "Go to source"
-    F27["test_inference_proxy.py"]
-    click F27 "tests/test_inference_proxy.py" "Go to source"
-    F28["test_inference.py"]
-    click F28 "tests/test_inference.py" "Go to source"
-    F29["test_streamlit_app.py"]
-    click F29 "tests/test_streamlit_app.py" "Go to source"
-    F30["test_environment_extra.py"]
-    click F30 "tests/test_environment_extra.py" "Go to source"
-    F31["test_prompt_optimizer.py"]
-    click F31 "tests/test_prompt_optimizer.py" "Go to source"
+    F26["test_corpus.py"]
+    click F26 "tests/test_corpus.py" "Go to source"
+    F27["test_llm_features.py"]
+    click F27 "tests/test_llm_features.py" "Go to source"
+    F28["test_inference_proxy.py"]
+    click F28 "tests/test_inference_proxy.py" "Go to source"
+    F29["test_inference.py"]
+    click F29 "tests/test_inference.py" "Go to source"
+    F30["test_streamlit_app.py"]
+    click F30 "tests/test_streamlit_app.py" "Go to source"
+    F31["test_environment_extra.py"]
+    click F31 "tests/test_environment_extra.py" "Go to source"
+    F32["test_prompt_optimizer.py"]
+    click F32 "tests/test_prompt_optimizer.py" "Go to source"
     F0 -->|imports| F5
     F2 -->|imports| F6
-    F4 -->|imports| F1
     F4 -->|imports| F5
+    F4 -->|imports| F1
     F5 -->|imports| F1
     F6 -->|imports| F1
-    F7 -->|imports| F1
     F7 -->|imports| F5
-    F8 -->|imports| F1
+    F7 -->|imports| F1
     F8 -->|imports| F5
-    F10 -->|imports| F1
+    F8 -->|imports| F1
     F10 -->|imports| F5
+    F10 -->|imports| F1
     F13 -->|imports| F5
-    F15 -->|imports| F1
     F15 -->|imports| F5
+    F15 -->|imports| F1
     F16 -->|imports| F0
     F18 -->|imports| F5
     F19 -->|imports| F4
@@ -118,11 +120,12 @@ graph TD
     F23 -->|imports| F5
     F24 -->|imports| F0
     F25 -->|imports| F16
-    F26 -->|imports| F0
-    F27 -->|imports| F6
-    F28 -->|imports| F4
-    F29 -->|imports| F1
-    F30 -->|imports| F5
+    F26 -->|imports| F5
+    F27 -->|imports| F0
+    F28 -->|imports| F6
+    F29 -->|imports| F4
+    F30 -->|imports| F1
     F31 -->|imports| F5
+    F32 -->|imports| F5
 ```
 
