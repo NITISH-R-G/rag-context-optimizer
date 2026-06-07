@@ -227,20 +227,24 @@ def _check_early_submit(
     selected_chunks: list[Any],
     suggested_citations: list[str]
 ) -> dict[str, Any] | None:
-    if len(selected) >= 2 or observation.step_number >= max(2, env.task.max_steps - 2):
-        chosen_phrases: list[str] = []
-        for chunk in selected_chunks[:3]:
-            if chunk.keywords:
-                chosen_phrases.append(f"[{chunk.chunk_id}] " + ", ".join(chunk.keywords[:2]))
-        answer = (
-            "Grounded answer based on selected evidence: " + "; ".join(chosen_phrases[:3])
-            if chosen_phrases
-            else "Grounded answer based on the currently selected evidence."
-        )
-        if suggested_citations:
-            answer = answer.rstrip(".") + " " + " ".join(f"[{chunk_id}]" for chunk_id in suggested_citations[:3]) + "."
-        return {"action_type": "submit_answer", "answer": answer}
-    return None
+    if len(selected) < 2 and observation.step_number < max(2, env.task.max_steps - 2):
+        return None
+
+    chosen_phrases: list[str] = []
+    for chunk in selected_chunks[:3]:
+        if chunk.keywords:
+            chosen_phrases.append(f"[{chunk.chunk_id}] " + ", ".join(chunk.keywords[:2]))
+
+    answer = (
+        "Grounded answer based on selected evidence: " + "; ".join(chosen_phrases[:3])
+        if chosen_phrases
+        else "Grounded answer based on the currently selected evidence."
+    )
+
+    if suggested_citations:
+        answer = answer.rstrip(".") + " " + " ".join(f"[{chunk_id}]" for chunk_id in suggested_citations[:3]) + "."
+
+    return {"action_type": "submit_answer", "answer": answer}
 
 
 def _check_prioritize_candidates(
