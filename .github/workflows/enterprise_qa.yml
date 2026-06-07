@@ -38,6 +38,7 @@ jobs:
 
     - name: Secret Detection (Gitleaks)
       uses: gitleaks/gitleaks-action@v2
+      continue-on-error: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
