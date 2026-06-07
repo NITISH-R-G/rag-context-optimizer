@@ -5,15 +5,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import json
 import pytest
 from pathlib import Path
-from typing import Generator
 from env.corpus import (
     load_corpus,
     get_chunk_by_id,
     get_chunks_by_domain,
     Chunk,
-    _CORPUS_CACHE,
-    _CORPUS_ID_MAP,
-    _CORPUS_CACHE_PATH,
 )
 
 @pytest.fixture(autouse=True)
