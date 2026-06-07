@@ -1,7 +1,14 @@
-import pytest
-from env.context_tuner import ContextTunedPlanner, DemoCase
-from env.corpus import Chunk
-import importlib
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from env.context_tuner import ContextTunedPlanner, DemoCase  # noqa: E402
+
+from env.corpus import Chunk  # noqa: E402
+
 
 # Helper to mock torch since it might not be fully available
 class MockTensor:

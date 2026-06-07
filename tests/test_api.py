@@ -10,7 +10,8 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import pytest  # noqa: E402
-from app import app, _is_bad_action_event, EpisodeStore  # noqa: E402
+from fastapi import HTTPException  # noqa: E402
+from app import app, _is_bad_action_event, EpisodeStore, _resolve_env  # noqa: E402
 
 
 client = TestClient(app)
@@ -88,6 +89,12 @@ def test_step_invalid_episode_id():
     response = client.post("/step?episode_id=invalid_id", json={"action_type": "submit_report", "answer": "test"})
     assert response.status_code == 404
     assert "Episode not found" in response.json()["detail"]
+
+def test_resolve_env_invalid_episode_id():
+    with pytest.raises(HTTPException) as exc_info:
+        _resolve_env("invalid_episode_id")
+    assert exc_info.value.status_code == 404
+    assert "Episode not found. Call /reset first." in exc_info.value.detail
 
 def test_is_bad_action_event():
     assert _is_bad_action_event(None) is False
