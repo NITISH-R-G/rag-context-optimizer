@@ -76,7 +76,7 @@ class MockRetriever:
         return 0.5
 
 def test_optimize_with_torch_no_chunks():
-    tuner = ContextTunedPlanner(MockRetriever(), [], [])
+    tuner = ContextTunedPlanner(MockRetriever(), [], []) # type: ignore
     result = tuner._optimize_with_torch("query", [], [])
     assert len(result) == 10 # 10 is the number of features in _context_init
 
@@ -85,14 +85,14 @@ def test_optimize_with_torch_with_chunks(monkeypatch):
     monkeypatch.setattr(ct, "torch", MockTorch())
     monkeypatch.setattr(ct, "F", MockF())
 
-    tuner = ct.ContextTunedPlanner(MockRetriever(), [], [])
+    tuner = ct.ContextTunedPlanner(MockRetriever(), [], []) # type: ignore
     tuner._train_steps = 1
 
     chunks = [
         Chunk(chunk_id="chunk1", domain="test", text="test text", tokens=10, keywords=["test"], relevance_tags=["tag"])
     ]
     demos = [
-        DemoCase(name="demo1", query="test query", positive_chunk_ids=["chunk1"], expected_citations=["chunk1"], preferred_domains=["test"])
+        DemoCase(name="demo1", query="test query", positive_chunk_ids=("chunk1",), expected_citations=("chunk1",), preferred_domains=("test",))
     ]
 
     result = tuner._optimize_with_torch("test query", chunks, demos)
