@@ -1,5 +1,12 @@
+import sys
+from pathlib import Path
 import json
-from inference import _fallback_plan, _fallback_action, _build_user_prompt
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from inference import _fallback_plan, _fallback_action, _build_user_prompt  # noqa: E402
 
 def test_fallback_plan():
     assert "Verify outage evidence" in _fallback_plan({"task_name": "refund_triage_easy"})
