@@ -1,6 +1,5 @@
-import pytest
 import json
-from inference import _fallback_plan, _fallback_action, _build_user_prompt, _keyword_overlap
+from inference import _fallback_plan, _fallback_action, _build_user_prompt
 
 def test_fallback_plan():
     assert "Verify outage evidence" in _fallback_plan({"task_name": "refund_triage_easy"})
