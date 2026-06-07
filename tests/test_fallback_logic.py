@@ -196,8 +196,6 @@ def test_check_fallback_prioritize_none():
     res = _check_fallback_prioritize([chunk1], set(["c1"]), set(), score_map, 50)
     assert res is None
 
-# import pytest
-
 @pytest.mark.anyio
 async def test_suggest_action_llm_fallback():
     from app import _suggest_action
