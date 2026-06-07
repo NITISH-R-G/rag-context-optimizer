@@ -2,7 +2,6 @@ import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import pytest  # noqa: E402
 from env.graders import _normalize_chunk_id  # noqa: E402
 
 def test_normalize_chunk_id():
