@@ -10,7 +10,9 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import pytest  # noqa: E402
-from app import app, _is_bad_action_event, EpisodeStore  # noqa: E402
+from fastapi import HTTPException  # noqa: E402
+
+from app import app, _is_bad_action_event, EpisodeStore, _resolve_env  # noqa: E402
 
 
 client = TestClient(app)
@@ -253,6 +255,13 @@ def test_optimize_step_endpoint():
     response = client.post(f"/optimize-step?episode_id={episode_id}")
     assert response.status_code == 200
     assert "action_type" in response.json()
+
+def test_resolve_env_keyerror():
+    with pytest.raises(HTTPException) as exc_info:
+        _resolve_env("non_existent_id")
+    assert exc_info.value.status_code == 404
+    assert "Episode not found" in exc_info.value.detail
+
 
 def test_optimize_prompt_endpoint():
     from unittest.mock import patch
