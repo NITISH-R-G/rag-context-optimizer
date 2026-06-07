@@ -7,16 +7,16 @@
 ```mermaid
 graph LR
     subgraph External Dependencies
-        E0["random"]
-        E1["math"]
-        E2["functools"]
-        E3["signal"]
-        E4["builtins"]
-        E5["socket"]
-        E6["uuid"]
-        E7["__future__"]
-        E8["torch"]
-        E9["httpx"]
+        E0["playwright"]
+        E1["signal"]
+        E2["uvicorn"]
+        E3["subprocess"]
+        E4["socket"]
+        E5["builtins"]
+        E6["collections"]
+        E7["streamlit"]
+        E8["__future__"]
+        E9["uuid"]
     end
     subgraph Core System
         API["FastAPI App"]
@@ -98,14 +98,14 @@ graph TD
     click F32 "tests/test_prompt_optimizer.py" "Go to source"
     F0 -->|imports| F5
     F2 -->|imports| F6
-    F4 -->|imports| F5
     F4 -->|imports| F1
+    F4 -->|imports| F5
     F5 -->|imports| F1
     F6 -->|imports| F1
-    F7 -->|imports| F5
     F7 -->|imports| F1
-    F8 -->|imports| F5
+    F7 -->|imports| F5
     F8 -->|imports| F1
+    F8 -->|imports| F5
     F10 -->|imports| F5
     F10 -->|imports| F1
     F13 -->|imports| F5
