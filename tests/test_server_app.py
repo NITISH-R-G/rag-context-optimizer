@@ -11,12 +11,17 @@ from server.app import main  # noqa: E402
 
 @patch("uvicorn.run")
 def test_server_main_default_args(mock_run):
-    with patch.object(sys, 'argv', ['app.py']):
+    with patch.object(sys, "argv", ["app.py"]):
         main()
-        mock_run.assert_called_once_with("server.app:app", host="0.0.0.0", port=8000, reload=False)
+        mock_run.assert_called_once_with(
+            "server.app:app", host="0.0.0.0", port=8000, reload=False
+        )
+
 
 @patch("uvicorn.run")
 def test_server_main_with_args(mock_run):
-    with patch.object(sys, 'argv', ['app.py', '--host', '127.0.0.1', '--port', '9000']):
+    with patch.object(sys, "argv", ["app.py", "--host", "127.0.0.1", "--port", "9000"]):
         main()
-        mock_run.assert_called_once_with("server.app:app", host="127.0.0.1", port=9000, reload=False)
+        mock_run.assert_called_once_with(
+            "server.app:app", host="127.0.0.1", port=9000, reload=False
+        )
