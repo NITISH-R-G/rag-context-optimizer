@@ -113,6 +113,7 @@ class HybridRetriever:
                 self._doc_freqs[term] += 1
 
         self._avg_doc_length = total_length / len(self.corpus) if self.corpus else 0.0
+        self._max_score_cache: dict[tuple[str, ...], float] = {}
 
     @staticmethod
     def _tokenize_for_bm25(text: str) -> list[str]:
@@ -168,7 +169,12 @@ class HybridRetriever:
     def _max_raw_bm25_for_query(self, query_terms: list[str]) -> float:
         if not self.corpus or not query_terms:
             return 0.0
-        return max(self._raw_bm25(query_terms, chunk) for chunk in self.corpus)
+        query_tuple = tuple(query_terms)
+        if query_tuple in self._max_score_cache:
+            return self._max_score_cache[query_tuple]
+        max_score = max(self._raw_bm25(query_terms, chunk) for chunk in self.corpus)
+        self._max_score_cache[query_tuple] = max_score
+        return max_score
 
     def bm25_score(self, query: str, chunk: Chunk) -> float:
         """
