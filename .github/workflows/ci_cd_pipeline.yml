@@ -38,7 +38,7 @@ jobs:
 
     - name: Dependency audit
       run: |
-        safety check --full-report || true
+        safety check || true
 
     - name: Run tests
       run: |
