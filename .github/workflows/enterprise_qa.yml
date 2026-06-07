@@ -84,7 +84,7 @@ jobs:
       id: bandit
       continue-on-error: true
       run: |
-        bandit -r . -ll -ii -f json -o reports/bandit.json
+        bandit -c .bandit.yaml -r . -ll -ii -f json -o reports/bandit.json
 
     - name: Dependency Security Audit (Pip-Audit)
       id: pipaudit
