@@ -7,16 +7,16 @@
 ```mermaid
 graph LR
     subgraph External Dependencies
-        E0["hashlib"]
-        E1["time"]
-        E2["streamlit"]
-        E3["builtins"]
-        E4["httpx"]
-        E5["uvicorn"]
-        E6["pydantic"]
-        E7["collections"]
-        E8["http"]
-        E9["asyncio"]
+        E0["collections"]
+        E1["asyncio"]
+        E2["random"]
+        E3["openai"]
+        E4["uvicorn"]
+        E5["argparse"]
+        E6["signal"]
+        E7["threading"]
+        E8["fastapi"]
+        E9["__future__"]
     end
     subgraph Core System
         API["FastAPI App"]
@@ -66,51 +66,57 @@ graph TD
     click F16 "server/app.py" "Go to source"
     F17["__init__.py"]
     click F17 "server/__init__.py" "Go to source"
-    F18["test_fallback_logic.py"]
-    click F18 "tests/test_fallback_logic.py" "Go to source"
-    F19["test_environment.py"]
-    click F19 "tests/test_environment.py" "Go to source"
-    F20["test_api.py"]
-    click F20 "tests/test_api.py" "Go to source"
-    F21["test_server_app.py"]
-    click F21 "tests/test_server_app.py" "Go to source"
-    F22["test_llm_features.py"]
-    click F22 "tests/test_llm_features.py" "Go to source"
-    F23["test_inference_proxy.py"]
-    click F23 "tests/test_inference_proxy.py" "Go to source"
-    F24["test_inference.py"]
-    click F24 "tests/test_inference.py" "Go to source"
-    F25["test_streamlit_app.py"]
-    click F25 "tests/test_streamlit_app.py" "Go to source"
-    F26["test_environment_extra.py"]
-    click F26 "tests/test_environment_extra.py" "Go to source"
-    F27["test_prompt_optimizer.py"]
-    click F27 "tests/test_prompt_optimizer.py" "Go to source"
+    F18["test_inference_coverage.py"]
+    click F18 "tests/test_inference_coverage.py" "Go to source"
+    F19["test_fallback_logic.py"]
+    click F19 "tests/test_fallback_logic.py" "Go to source"
+    F20["test_environment.py"]
+    click F20 "tests/test_environment.py" "Go to source"
+    F21["test_context_tuner_coverage.py"]
+    click F21 "tests/test_context_tuner_coverage.py" "Go to source"
+    F22["test_api.py"]
+    click F22 "tests/test_api.py" "Go to source"
+    F23["test_server_app.py"]
+    click F23 "tests/test_server_app.py" "Go to source"
+    F24["test_llm_features.py"]
+    click F24 "tests/test_llm_features.py" "Go to source"
+    F25["test_inference_proxy.py"]
+    click F25 "tests/test_inference_proxy.py" "Go to source"
+    F26["test_inference.py"]
+    click F26 "tests/test_inference.py" "Go to source"
+    F27["test_streamlit_app.py"]
+    click F27 "tests/test_streamlit_app.py" "Go to source"
+    F28["test_environment_extra.py"]
+    click F28 "tests/test_environment_extra.py" "Go to source"
+    F29["test_prompt_optimizer.py"]
+    click F29 "tests/test_prompt_optimizer.py" "Go to source"
     F0 -->|imports| F5
     F2 -->|imports| F6
-    F4 -->|imports| F5
     F4 -->|imports| F1
+    F4 -->|imports| F5
     F5 -->|imports| F1
     F6 -->|imports| F1
-    F7 -->|imports| F5
     F7 -->|imports| F1
-    F8 -->|imports| F5
+    F7 -->|imports| F5
     F8 -->|imports| F1
-    F10 -->|imports| F5
+    F8 -->|imports| F5
     F10 -->|imports| F1
+    F10 -->|imports| F5
     F13 -->|imports| F5
     F15 -->|imports| F5
     F15 -->|imports| F1
     F16 -->|imports| F0
-    F18 -->|imports| F0
-    F19 -->|imports| F5
-    F20 -->|imports| F0
-    F21 -->|imports| F16
+    F18 -->|imports| F4
+    F19 -->|imports| F0
+    F20 -->|imports| F5
+    F21 -->|imports| F5
     F22 -->|imports| F0
-    F23 -->|imports| F6
-    F24 -->|imports| F4
-    F25 -->|imports| F1
-    F26 -->|imports| F5
-    F27 -->|imports| F5
+    F23 -->|imports| F16
+    F24 -->|imports| F0
+    F25 -->|imports| F6
+    F26 -->|imports| F4
+    F27 -->|imports| F1
+    F28 -->|imports| F5
+    F29 -->|imports| F5
 ```
 
