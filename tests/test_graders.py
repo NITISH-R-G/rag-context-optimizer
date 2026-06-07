@@ -1,4 +1,3 @@
-import pytest
 from env.graders import _normalize_chunk_id
 
 def test_normalize_chunk_id():
