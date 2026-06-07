@@ -10,10 +10,19 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import pytest  # noqa: E402
-from app import app, _is_bad_action_event, EpisodeStore  # noqa: E402
+from fastapi import HTTPException # noqa: E402
+from app import app, _is_bad_action_event, EpisodeStore, _resolve_env  # noqa: E402
 
 
 client = TestClient(app)
+
+
+def test_resolve_env_keyerror():
+    with pytest.raises(HTTPException) as exc_info:
+        _resolve_env("non_existent_episode_id")
+
+    assert exc_info.value.status_code == 404
+    assert exc_info.value.detail == "Episode not found. Call /reset first."
 
 
 def test_reset_accepts_empty_body():
