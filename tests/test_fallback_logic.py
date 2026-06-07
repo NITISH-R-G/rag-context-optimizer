@@ -18,16 +18,19 @@ from app import (  # noqa: E402
     _suggest_action_fallback,
 )
 
+
 class MockChunk:
     def __init__(self, chunk_id, tokens, keywords=None):
         self.chunk_id = chunk_id
         self.tokens = tokens
         self.keywords = keywords or []
 
+
 class MockScore:
     def __init__(self, final_score, compression_ratio=0.5):
         self.final_score = final_score
         self.compression_ratio = compression_ratio
+
 
 def test_check_resolution_plan():
     env = MagicMock()
@@ -50,6 +53,7 @@ def test_check_resolution_plan():
     assert res["action_type"] == "set_resolution_plan"
     assert "keyword1, keyword2, keyword3" in res["plan"]
 
+
 def test_check_compression():
     observation = MagicMock()
     observation.total_tokens_used = 700
@@ -70,6 +74,7 @@ def test_check_compression():
     chunk_light = MockChunk("c2", 50)
     assert _check_compression(observation, [chunk_light], score_map) is None
 
+
 def test_check_early_submit():
     env = MagicMock()
     env.task.max_steps = 10
@@ -87,15 +92,19 @@ def test_check_early_submit():
     assert "[c1] key1, key2" in res["answer"]
     assert "[c1]." in res["answer"]
 
+
 def test_check_prioritize_candidates():
     chunk1 = MockChunk("c1", 100)
     chunk2 = MockChunk("c2", 500)
 
     # Should prioritize c1 as it fits
-    res = _check_prioritize_candidates([chunk1, chunk2], set(["c1", "c2"]), set(), ["c1", "c2"], 200)
+    res = _check_prioritize_candidates(
+        [chunk1, chunk2], set(["c1", "c2"]), set(), ["c1", "c2"], 200
+    )
     assert res is not None
     assert res["action_type"] == "prioritize_artifact"
     assert res["artifact_id"] == "c1"
+
 
 def test_check_inspect_candidates():
     chunk1 = MockChunk("c1", 100)
@@ -108,16 +117,20 @@ def test_check_inspect_candidates():
     assert res["action_type"] == "inspect_artifact"
     assert res["artifact_id"] == "c2"
 
+
 def test_check_fallback_prioritize():
     chunk1 = MockChunk("c1", 100)
     chunk2 = MockChunk("c2", 200)
     score_map = {"c1": MockScore(0.5), "c2": MockScore(0.8)}
 
     # Sort logic prioritizes smallest score/tokens ratio. c1 gets prioritized since -0.005 < -0.004.
-    res = _check_fallback_prioritize([chunk1, chunk2], set(["c1", "c2"]), set(), score_map, 300)
+    res = _check_fallback_prioritize(
+        [chunk1, chunk2], set(["c1", "c2"]), set(), score_map, 300
+    )
     assert res is not None
     assert res["action_type"] == "prioritize_artifact"
     assert res["artifact_id"] == "c1"
+
 
 def test_get_final_fallback_action():
     # Has selected chunks
@@ -134,6 +147,7 @@ def test_get_final_fallback_action():
     res3 = _get_final_fallback_action([], set(), [])
     assert res3["action_type"] == "submit_answer"
     assert "No usable evidence" in res3["answer"]
+
 
 def test_suggest_action_fallback():
     env = MagicMock()
@@ -164,6 +178,7 @@ def test_suggest_action_fallback():
     # With 2 reviewed and no plan draft, it should hit resolution plan first
     assert res["action_type"] == "set_resolution_plan"
 
+
 def test_check_early_submit_none():
     env = MagicMock()
     env.task.max_steps = 10
@@ -176,11 +191,13 @@ def test_check_early_submit_none():
     res = _check_early_submit(env, observation, selected, [chunk1], ["c1"])
     assert res is None
 
+
 def test_check_prioritize_candidates_none():
     chunk1 = MockChunk("c1", 100)
     # Not enough budget
     res = _check_prioritize_candidates([chunk1], set(["c1"]), set(), ["c1"], 50)
     assert res is None
+
 
 def test_check_inspect_candidates_none():
     # Everything is already reviewed
@@ -189,6 +206,7 @@ def test_check_inspect_candidates_none():
     res = _check_inspect_candidates([chunk1], set(["c1"]), score_map)
     assert res is None
 
+
 def test_check_fallback_prioritize_none():
     chunk1 = MockChunk("c1", 100)
     score_map = {"c1": MockScore(0.5)}
@@ -196,7 +214,9 @@ def test_check_fallback_prioritize_none():
     res = _check_fallback_prioritize([chunk1], set(["c1"]), set(), score_map, 50)
     assert res is None
 
+
 # import pytest
+
 
 @pytest.mark.anyio
 async def test_suggest_action_llm_fallback():
@@ -211,7 +231,7 @@ async def test_suggest_action_llm_fallback():
         total_tokens_used=0,
         step_number=1,
         plan_draft=None,
-        available_artifacts=[]
+        available_artifacts=[],
     )
     env.task.max_steps = 10
     tuning = MagicMock()
@@ -223,13 +243,16 @@ async def test_suggest_action_llm_fallback():
     env.state = AsyncMock(return_value={})
 
     # Test that exception in suggest_action_with_llm falls back
-    with patch('app.llm_configured', return_value=True), \
-         patch('app.suggest_action_with_llm', side_effect=Exception("LLM failed")):
+    with (
+        patch("app.llm_configured", return_value=True),
+        patch("app.suggest_action_with_llm", side_effect=Exception("LLM failed")),
+    ):
         res = await _suggest_action(env)
         # Should fallback to _get_final_fallback_action which returns submit_answer for empty state
         assert res is not None
         assert res["action_type"] == "submit_answer"
         assert "No usable evidence" in res["answer"]
+
 
 def test_suggest_action_fallback_full_branch():
     env = MagicMock()
