@@ -40,45 +40,10 @@ _DOMAIN_FILTER_MAP = {
 }
 
 _STOPWORDS = {
-    "a",
-    "an",
-    "and",
-    "are",
-    "as",
-    "at",
-    "be",
-    "by",
-    "for",
-    "from",
-    "how",
-    "if",
-    "in",
-    "into",
-    "is",
-    "it",
-    "its",
-    "of",
-    "on",
-    "or",
-    "that",
-    "the",
-    "their",
-    "them",
-    "there",
-    "these",
-    "this",
-    "to",
-    "was",
-    "were",
-    "what",
-    "when",
-    "where",
-    "which",
-    "while",
-    "with",
-    "without",
-    "you",
-    "your",
+    "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "how", "if", "in",
+    "into", "is", "it", "its", "of", "on", "or", "that", "the", "their", "them", "there",
+    "these", "this", "to", "was", "were", "what", "when", "where", "which", "while", "with",
+    "without", "you", "your",
 }
 
 
@@ -133,9 +98,7 @@ class ContextTuningResult:
 class ContextTunedPlanner:
     """Warm-start a retrieval policy from demonstrations and optimize context weights."""
 
-    def __init__(
-        self, retriever: HybridRetriever, corpus: list[Chunk], tasks: list[Task]
-    ):
+    def __init__(self, retriever: HybridRetriever, corpus: list[Chunk], tasks: list[Task]):
         self.retriever = retriever
         self.corpus = list(corpus)
         self._chunk_map = {chunk.chunk_id: chunk for chunk in self.corpus}
@@ -144,12 +107,7 @@ class ContextTunedPlanner:
         for chunk in self.corpus:
             token_efficiency = 1.0 - min(chunk.tokens, 700) / 700.0
             domain_flags = _DOMAIN_TO_FLAGS.get(chunk.domain, (0.0, 0.0, 0.0))
-            self._chunk_static_features[chunk.chunk_id] = (
-                token_efficiency,
-                domain_flags[0],
-                domain_flags[1],
-                domain_flags[2],
-            )
+            self._chunk_static_features[chunk.chunk_id] = (token_efficiency, domain_flags[0], domain_flags[1], domain_flags[2])
 
         self._demo_cases = self._build_demo_cases(tasks)
         self._token_dropout = 0.14
@@ -173,29 +131,19 @@ class ContextTunedPlanner:
             ],
         }
         for task in tasks:
-            normalized_domain = _DOMAIN_FILTER_MAP.get(
-                task.domain_filter or "", task.domain_filter or ""
-            )
+            normalized_domain = _DOMAIN_FILTER_MAP.get(task.domain_filter or "", task.domain_filter or "")
             preferred_domains = (
-                (normalized_domain,)
-                if normalized_domain
-                else tuple(
-                    sorted(
-                        {
-                            self._chunk_map[chunk_id].domain
-                            for chunk_id in task.required_artifact_ids
-                            if chunk_id in self._chunk_map
-                        }
-                    )
-                )
+                (normalized_domain,) if normalized_domain else tuple(sorted({
+                    self._chunk_map[chunk_id].domain
+                    for chunk_id in task.required_artifact_ids
+                    if chunk_id in self._chunk_map
+                }))
             )
             base = DemoCase(
                 name=f"{task.name}_gold",
                 query=task.query,
                 positive_chunk_ids=tuple(task.required_artifact_ids),
-                expected_citations=tuple(
-                    task.expected_citation_ids or task.required_artifact_ids
-                ),
+                expected_citations=tuple(task.expected_citation_ids or task.required_artifact_ids),
                 preferred_domains=preferred_domains,
             )
             demo_cases.append(base)
@@ -205,9 +153,7 @@ class ContextTunedPlanner:
                         name=f"{task.name}_variant_{index}",
                         query=variant,
                         positive_chunk_ids=tuple(task.required_artifact_ids),
-                        expected_citations=tuple(
-                            task.expected_citation_ids or task.required_artifact_ids
-                        ),
+                        expected_citations=tuple(task.expected_citation_ids or task.required_artifact_ids),
                         preferred_domains=preferred_domains,
                     )
                 )
@@ -228,9 +174,7 @@ class ContextTunedPlanner:
             return self._demo_cases[: min(limit, len(self._demo_cases))]
         return chosen
 
-    def _citation_prior(
-        self, chunk_id: str, demos: list[DemoCase], weights: list[float]
-    ) -> float:
+    def _citation_prior(self, chunk_id: str, demos: list[DemoCase], weights: list[float]) -> float:
         if not demos:
             return 0.0
         matched = 0.0
@@ -240,9 +184,7 @@ class ContextTunedPlanner:
                 matched += weight
         return matched / total
 
-    def _domain_prior(
-        self, chunk: Chunk, demos: list[DemoCase], weights: list[float]
-    ) -> float:
+    def _domain_prior(self, chunk: Chunk, demos: list[DemoCase], weights: list[float]) -> float:
         if not demos:
             return 0.0
         matched = 0.0
@@ -257,9 +199,7 @@ class ContextTunedPlanner:
         chunk_terms = _tokenize(chunk.text) | _tokenize(" ".join(chunk.keywords))
         return _jaccard(query_terms, chunk_terms)
 
-    def _feature_vector(
-        self, query: str, chunk: Chunk, demos: list[DemoCase], weights: list[float]
-    ) -> list[float]:
+    def _feature_vector(self, query: str, chunk: Chunk, demos: list[DemoCase], weights: list[float]) -> list[float]:
         base = self.retriever.hybrid_score(query, chunk)
         bm25 = self.retriever.bm25_score(query, chunk)
         keyword = self.retriever.keyword_overlap_score(query, chunk)
@@ -268,12 +208,7 @@ class ContextTunedPlanner:
         if static_features is None:
             token_efficiency = 1.0 - min(chunk.tokens, 700) / 700.0
             domain_flags = _DOMAIN_TO_FLAGS.get(chunk.domain, (0.0, 0.0, 0.0))
-            static_features = (
-                token_efficiency,
-                domain_flags[0],
-                domain_flags[1],
-                domain_flags[2],
-            )
+            static_features = (token_efficiency, domain_flags[0], domain_flags[1], domain_flags[2])
 
         return [
             base,
@@ -288,9 +223,7 @@ class ContextTunedPlanner:
             self._domain_prior(chunk, demos, weights),
         ]
 
-    def _context_init(
-        self, query: str, chunks: list[Chunk], demos: list[DemoCase]
-    ) -> list[float]:
+    def _context_init(self, query: str, chunks: list[Chunk], demos: list[DemoCase]) -> list[float]:
         weights = [0.25 + self._demo_similarity(query, demo) for demo in demos]
         positive_acc = [0.0] * self._feature_count
         negative_acc = [0.0] * self._feature_count
@@ -301,32 +234,21 @@ class ContextTunedPlanner:
             for chunk in chunks:
                 features = self._feature_vector(demo.query, chunk, demos, weights)
                 if chunk.chunk_id in demo.positive_chunk_ids:
-                    positive_acc = [
-                        value + (demo_weight * feature)
-                        for value, feature in zip(positive_acc, features, strict=False)
-                    ]
+                    positive_acc = [value + (demo_weight * feature) for value, feature in zip(positive_acc, features, strict=False)]
                     positive_mass += demo_weight
                 else:
-                    negative_acc = [
-                        value + (demo_weight * feature)
-                        for value, feature in zip(negative_acc, features, strict=False)
-                    ]
+                    negative_acc = [value + (demo_weight * feature) for value, feature in zip(negative_acc, features, strict=False)]
                     negative_mass += demo_weight
 
         positive_mean = [value / max(positive_mass, 1e-6) for value in positive_acc]
         negative_mean = [value / max(negative_mass, 1e-6) for value in negative_acc]
-        return [
-            positive - negative
-            for positive, negative in zip(positive_mean, negative_mean, strict=False)
-        ]
+        return [positive - negative for positive, negative in zip(positive_mean, negative_mean, strict=False)]
 
     def _stable_seed(self, query: str) -> int:
         digest = hashlib.sha256(query.encode("utf-8")).hexdigest()[:8]
         return int(digest, 16)
 
-    def _optimize_with_torch(
-        self, query: str, chunks: list[Chunk], demos: list[DemoCase]
-    ) -> list[float]:
+    def _optimize_with_torch(self, query: str, chunks: list[Chunk], demos: list[DemoCase]) -> list[float]:
         init = self._context_init(query, chunks, demos)
         if torch is None or F is None or not chunks:
             return init
@@ -340,9 +262,7 @@ class ContextTunedPlanner:
             optimizer.zero_grad()
             total_loss = torch.tensor(0.0, dtype=torch.float32)
             for demo_index, demo in enumerate(demos):
-                masked_demos = [
-                    item for index, item in enumerate(demos) if index != demo_index
-                ]
+                masked_demos = [item for index, item in enumerate(demos) if index != demo_index]
                 if not masked_demos:
                     masked_demos = demos
                 masked_init = torch.tensor(
@@ -353,28 +273,17 @@ class ContextTunedPlanner:
                 drop_mask = drop_mask / max(1e-6, 1.0 - self._token_dropout)
                 effective_theta = (0.55 * theta + 0.45 * masked_init) * drop_mask
 
-                weights = [
-                    0.25 + self._demo_similarity(demo.query, item)
-                    for item in masked_demos
-                ]
+                weights = [0.25 + self._demo_similarity(demo.query, item) for item in masked_demos]
                 matrix = torch.tensor(
-                    [
-                        self._feature_vector(demo.query, chunk, masked_demos, weights)
-                        for chunk in chunks
-                    ],
+                    [self._feature_vector(demo.query, chunk, masked_demos, weights) for chunk in chunks],
                     dtype=torch.float32,
                 )
                 labels = torch.tensor(
-                    [
-                        1.0 if chunk.chunk_id in demo.positive_chunk_ids else 0.0
-                        for chunk in chunks
-                    ],
+                    [1.0 if chunk.chunk_id in demo.positive_chunk_ids else 0.0 for chunk in chunks],
                     dtype=torch.float32,
                 )
                 logits = matrix @ effective_theta
-                positive_weight = 1.0 + (
-                    labels.sum().item() / max(1.0, len(labels) - labels.sum().item())
-                )
+                positive_weight = 1.0 + (labels.sum().item() / max(1.0, len(labels) - labels.sum().item()))
                 total_loss = total_loss + F.binary_cross_entropy_with_logits(
                     logits,
                     labels,
@@ -391,17 +300,12 @@ class ContextTunedPlanner:
         demos = self._select_demo_cases(query)
         demo_weights = [0.25 + self._demo_similarity(query, demo) for demo in demos]
         theta_values = self._optimize_with_torch(query, chunks, demos)
-        mode = (
-            "context_tuned_pytorch" if torch is not None else "context_tuned_analytic"
-        )
+        mode = "context_tuned_pytorch" if torch is not None else "context_tuned_analytic"
 
         if torch is not None:
             theta_tensor = torch.tensor(theta_values, dtype=torch.float32)
             matrix_tensor = torch.tensor(
-                [
-                    self._feature_vector(query, chunk, demos, demo_weights)
-                    for chunk in chunks
-                ],
+                [self._feature_vector(query, chunk, demos, demo_weights) for chunk in chunks],
                 dtype=torch.float32,
             )
             tuned_values = torch.sigmoid(matrix_tensor @ theta_tensor).tolist()
@@ -409,10 +313,7 @@ class ContextTunedPlanner:
             tuned_values = []
             for chunk in chunks:
                 features = self._feature_vector(query, chunk, demos, demo_weights)
-                raw = sum(
-                    weight * feature
-                    for weight, feature in zip(theta_values, features, strict=False)
-                )
+                raw = sum(weight * feature for weight, feature in zip(theta_values, features, strict=False))
                 tuned_values.append(1.0 / (1.0 + math.exp(-raw)))
 
         tuned_scores: dict[str, TunedChunkScore] = {}
@@ -435,9 +336,7 @@ class ContextTunedPlanner:
             tuned_scores.values(),
             key=lambda item: (-item.final_score, -item.citation_prior, item.chunk_id),
         )
-        suggested_citations = [
-            item.chunk_id for item in ranked[:3] if item.final_score >= 0.35
-        ]
+        suggested_citations = [item.chunk_id for item in ranked[:3] if item.final_score >= 0.35]
         return ContextTuningResult(
             mode=mode,
             top_demo_cases=[demo.name for demo in demos],

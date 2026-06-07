@@ -17,28 +17,16 @@ class ChunkSummary(BaseModel):
                     "chunk_id": "support_003",
                     "domain": "Customer Support Operations",
                     "tokens": 132,
-                    "keywords": [
-                        "refund policy",
-                        "incident timeline",
-                        "billing ledger",
-                    ],
+                    "keywords": ["refund policy", "incident timeline", "billing ledger"],
                 }
             ]
         }
     )
 
-    chunk_id: str = Field(
-        ..., description="Unique artifact identifier exposed to the agent."
-    )
+    chunk_id: str = Field(..., description="Unique artifact identifier exposed to the agent.")
     domain: str = Field(..., description="High-level source domain for the artifact.")
-    tokens: int = Field(
-        ..., ge=1, description="Approximate token cost for including the artifact."
-    )
-    keywords: list[str] = Field(
-        ...,
-        min_length=1,
-        description="Important artifact hints available before inspection.",
-    )
+    tokens: int = Field(..., ge=1, description="Approximate token cost for including the artifact.")
+    keywords: list[str] = Field(..., min_length=1, description="Important artifact hints available before inspection.")
 
     @field_validator("chunk_id", "domain")
     @classmethod
@@ -73,19 +61,13 @@ class RagObservation(BaseModel):
                             "chunk_id": "support_003",
                             "domain": "Customer Support Operations",
                             "tokens": 132,
-                            "keywords": [
-                                "refund policy",
-                                "incident timeline",
-                                "billing ledger",
-                            ],
+                            "keywords": ["refund policy", "incident timeline", "billing ledger"],
                         }
                     ],
                     "reviewed_artifacts": [],
                     "prioritized_artifacts": [],
                     "plan_draft": None,
-                    "report_requirements": [
-                        "State whether the case should proceed to refund review."
-                    ],
+                    "report_requirements": ["State whether the case should proceed to refund review."],
                     "total_tokens_used": 0,
                     "token_budget": 850,
                     "step_number": 0,
@@ -99,15 +81,9 @@ class RagObservation(BaseModel):
         }
     )
 
-    case_id: str = Field(
-        ..., description="Unique identifier for the active simulated incident case."
-    )
-    case_summary: str = Field(
-        ..., description="Short real-world case summary presented to the agent."
-    )
-    objective: str = Field(
-        ..., description="The operational deliverable the agent must produce."
-    )
+    case_id: str = Field(..., description="Unique identifier for the active simulated incident case.")
+    case_summary: str = Field(..., description="Short real-world case summary presented to the agent.")
+    objective: str = Field(..., description="The operational deliverable the agent must produce.")
     workflow_stage: Literal["triage", "analysis", "resolution", "submitted"] = Field(
         ..., description="Current workflow stage in the incident operations process."
     )
@@ -140,23 +116,13 @@ class RagObservation(BaseModel):
         default_factory=dict,
         description="Normalized progress metrics for artifact coverage, planning, and workflow readiness.",
     )
-    total_tokens_used: int = Field(
-        ..., ge=0, description="Current token cost of the prioritized working set."
-    )
-    token_budget: int = Field(
-        ..., ge=1, description="Maximum allowed token budget for the current task."
-    )
-    step_number: int = Field(
-        ..., ge=0, description="Current step number in the episode."
-    )
+    total_tokens_used: int = Field(..., ge=0, description="Current token cost of the prioritized working set.")
+    token_budget: int = Field(..., ge=1, description="Maximum allowed token budget for the current task.")
+    step_number: int = Field(..., ge=0, description="Current step number in the episode.")
     task_name: str = Field(..., description="Active task identifier.")
-    last_action_feedback: Optional[str] = Field(
-        default=None, description="Outcome of the previous action."
-    )
+    last_action_feedback: Optional[str] = Field(default=None, description="Outcome of the previous action.")
 
-    query: str = Field(
-        ..., description="Compatibility mirror of objective for legacy clients."
-    )
+    query: str = Field(..., description="Compatibility mirror of objective for legacy clients.")
     available_chunks: list[ChunkSummary] = Field(
         default_factory=list,
         description="Compatibility mirror of available_artifacts for legacy clients.",
@@ -214,19 +180,9 @@ class RagAction(BaseModel):
         json_schema_extra={
             "examples": [
                 {"action_type": "inspect_artifact", "artifact_id": "support_003"},
-                {
-                    "action_type": "summarize_artifact",
-                    "artifact_id": "support_003",
-                    "compression_ratio": 0.55,
-                },
-                {
-                    "action_type": "set_resolution_plan",
-                    "plan": "Verify outage evidence and route manual exceptions to finance review.",
-                },
-                {
-                    "action_type": "submit_report",
-                    "answer": "Proceed to refund review only after outage and billing evidence are confirmed. [support_001] [support_003]",
-                },
+                {"action_type": "summarize_artifact", "artifact_id": "support_003", "compression_ratio": 0.55},
+                {"action_type": "set_resolution_plan", "plan": "Verify outage evidence and route manual exceptions to finance review."},
+                {"action_type": "submit_report", "answer": "Proceed to refund review only after outage and billing evidence are confirmed. [support_001] [support_003]"},
             ]
         }
     )
@@ -242,19 +198,11 @@ class RagAction(BaseModel):
         "compress_chunk",
         "submit_answer",
     ] = Field(..., description="The environment action the agent wants to perform.")
-    artifact_id: Optional[str] = Field(
-        default=None, description="Target artifact id for artifact actions."
-    )
-    chunk_id: Optional[str] = Field(
-        default=None, description="Legacy alias for artifact_id."
-    )
+    artifact_id: Optional[str] = Field(default=None, description="Target artifact id for artifact actions.")
+    chunk_id: Optional[str] = Field(default=None, description="Legacy alias for artifact_id.")
     compression_ratio: Optional[float] = Field(default=None, ge=0.3, le=0.9)
-    plan: Optional[str] = Field(
-        default=None, description="Draft of the current operational resolution plan."
-    )
-    answer: Optional[str] = Field(
-        default=None, description="Final report or resolution memo to submit."
-    )
+    plan: Optional[str] = Field(default=None, description="Draft of the current operational resolution plan.")
+    answer: Optional[str] = Field(default=None, description="Final report or resolution memo to submit.")
 
     @field_validator("artifact_id", "chunk_id", "plan", "answer")
     @classmethod
@@ -267,21 +215,12 @@ class RagAction(BaseModel):
     @model_validator(mode="after")
     def validate_action_semantics(self) -> "RagAction":
         normalized_artifact_id = self.artifact_id or self.chunk_id
-        if self.action_type in {
-            "inspect_artifact",
-            "prioritize_artifact",
-            "select_chunk",
-            "deselect_chunk",
-        }:
+        if self.action_type in {"inspect_artifact", "prioritize_artifact", "select_chunk", "deselect_chunk"}:
             if normalized_artifact_id is None:
-                raise ValueError(
-                    "artifact_id or chunk_id is required for artifact selection actions."
-                )
+                raise ValueError("artifact_id or chunk_id is required for artifact selection actions.")
         elif self.action_type in {"summarize_artifact", "compress_chunk"}:
             if normalized_artifact_id is None:
-                raise ValueError(
-                    "artifact_id or chunk_id is required for summarize actions."
-                )
+                raise ValueError("artifact_id or chunk_id is required for summarize actions.")
             if self.compression_ratio is None:
                 raise ValueError("compression_ratio is required for summarize actions.")
         elif self.action_type == "set_resolution_plan":

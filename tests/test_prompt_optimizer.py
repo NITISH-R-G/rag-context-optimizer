@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from env.prompt_optimizer import (  # noqa: E402
+from env.prompt_optimizer import ( # noqa: E402
     _tokenize,
     _content_terms,
     _clean_output_text,
@@ -27,7 +27,7 @@ from env.prompt_optimizer import (  # noqa: E402
     _rewrite_prompt_fallback,
     optimize_prompt,
 )
-from env.environment import RagContextOptimizerEnv  # noqa: E402
+from env.environment import RagContextOptimizerEnv # noqa: E402
 
 
 def test_tokenize():
@@ -52,7 +52,7 @@ def test_clean_output_text():
 def test_compact_text():
     text = "word " * 50
     compacted = _compact_text(text, max_words=10)
-    assert len(compacted.split()) <= 11  # 10 words + maybe ellipsis
+    assert len(compacted.split()) <= 11 # 10 words + maybe ellipsis
     assert compacted.endswith("...")
 
 
@@ -65,7 +65,7 @@ def test_approx_tokens():
 def test_truncate_to_word_boundary():
     text = "This is a very long string that needs truncation."
     truncated = _truncate_to_word_boundary(text, 15)
-    assert len(truncated) <= 15 + 3  # +3 for ...
+    assert len(truncated) <= 15 + 3 # +3 for ...
     assert truncated.endswith("...")
     truncated_no_ellipsis = _truncate_to_word_boundary(text, 15, add_ellipsis=False)
     assert len(truncated_no_ellipsis) <= 15
@@ -75,13 +75,13 @@ def test_truncate_to_word_boundary():
 def test_trim_sentence():
     sentence = "This is a sentence with many terms in it."
     trimmed = _trim_sentence(sentence, max_terms=3)
-    assert len(trimmed.split()) <= 4  # words + ...
+    assert len(trimmed.split()) <= 4 # words + ...
 
 
 def test_rewrite_prompt_text():
     prompt = "Can you please tell me what the policy is for a refund?"
     rewritten = _rewrite_prompt_text(prompt, target_tokens=5)
-    assert _approx_tokens(rewritten) <= 15  # roughly
+    assert _approx_tokens(rewritten) <= 15 # roughly
 
 
 def test_lightweight_short_prompt_rewrite():
@@ -117,9 +117,7 @@ def test_target_ratio():
 def test_fit_citations_into_prompt():
     prompt = "This is a test prompt."
     citations = ["doc1", "doc2"]
-    result, ready, notes = _fit_citations_into_prompt(
-        prompt, citations, 10, 5, prompt, "balanced"
-    )
+    result, ready, notes = _fit_citations_into_prompt(prompt, citations, 10, 5, prompt, "balanced")
     assert isinstance(result, str)
     assert isinstance(ready, bool)
 
@@ -127,7 +125,7 @@ def test_fit_citations_into_prompt():
 @pytest.mark.asyncio
 async def test_rank_and_select_chunks():
     env = RagContextOptimizerEnv("refund_triage_easy")
-    await env.reset()  # mock env state roughly
+    await env.reset() # mock env state roughly
 
     class DummyTuning:
         tuned_scores = {}
@@ -156,23 +154,11 @@ def test_rewrite_prompt_fallback():
 @pytest.mark.asyncio
 async def test_optimize_prompt():
     res1 = await optimize_prompt("What is the refund policy?", mode="balanced")
-    assert (
-        "optimized_prompt" in res1.model_dump()
-        if hasattr(res1, "model_dump")
-        else hasattr(res1, "optimized_prompt")
-    )
+    assert "optimized_prompt" in res1.model_dump() if hasattr(res1, "model_dump") else hasattr(res1, "optimized_prompt")
     res2 = await optimize_prompt("What is the refund policy?", mode="grounded")
-    assert (
-        "optimized_prompt" in res2.model_dump()
-        if hasattr(res2, "model_dump")
-        else hasattr(res2, "optimized_prompt")
-    )
+    assert "optimized_prompt" in res2.model_dump() if hasattr(res2, "model_dump") else hasattr(res2, "optimized_prompt")
     res3 = await optimize_prompt("What is the refund policy?", mode="aggressive")
-    assert (
-        "optimized_prompt" in res3.model_dump()
-        if hasattr(res3, "model_dump")
-        else hasattr(res3, "optimized_prompt")
-    )
+    assert "optimized_prompt" in res3.model_dump() if hasattr(res3, "model_dump") else hasattr(res3, "optimized_prompt")
 
 
 @pytest.mark.asyncio
@@ -182,24 +168,17 @@ async def test_extract_distilled_points_with_preserve_short():
     points = _extract_distilled_points(env, "balanced", 50, preserve_short_prompt=True)
     assert points == []
 
-
 def test_fit_citations_into_prompt_aggressive():
     prompt = "This is a prompt."
     citations = ["doc1", "doc2"]
-    result, ready, notes = _fit_citations_into_prompt(
-        prompt, citations, 10, 5, prompt, "aggressive"
-    )
+    result, ready, notes = _fit_citations_into_prompt(prompt, citations, 10, 5, prompt, "aggressive")
     assert isinstance(result, str)
-
 
 def test_fit_citations_into_prompt_grounded():
     prompt = "This is a prompt."
     citations = ["doc1", "doc2"]
-    result, ready, notes = _fit_citations_into_prompt(
-        prompt, citations, 10, 5, prompt, "grounded"
-    )
+    result, ready, notes = _fit_citations_into_prompt(prompt, citations, 10, 5, prompt, "grounded")
     assert "doc1" in result or notes is not None
-
 
 def test_rewrite_prompt_fallback_long():
     long_prompt = "A " * 50
@@ -207,7 +186,6 @@ def test_rewrite_prompt_fallback_long():
         long_prompt, 50, 10, "balanced", False, [("doc1", "note")], ["doc1"]
     )
     assert "doc1" in result
-
 
 def test_rewrite_prompt_fallback_preserve_short():
     short_prompt = "Short prompt."

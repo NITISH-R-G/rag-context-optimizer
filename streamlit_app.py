@@ -3,15 +3,12 @@ import streamlit as st
 
 
 try:
-    API_URL = (
-        st.secrets.get("API_URL", "http://localhost:7860")
-        if hasattr(st, "secrets")
-        else "http://localhost:7860"
-    )
+    API_URL = st.secrets.get("API_URL", "http://localhost:7860") if hasattr(st, "secrets") else "http://localhost:7860"
 except FileNotFoundError:
     API_URL = "http://localhost:7860"
 except Exception:
     API_URL = "http://localhost:7860"
+
 
 
 def api_get(path: str):
@@ -49,16 +46,12 @@ def do_step(payload: dict):
 def main():
     st.set_page_config(page_title="rag-context-optimizer", page_icon="R", layout="wide")
     st.title("RAG Context Optimizer")
-    st.caption(
-        "Use any prompt, keep the token budget tight, and let the optimizer pick the best evidence per token."
-    )
+    st.caption("Use any prompt, keep the token budget tight, and let the optimizer pick the best evidence per token.")
 
     tasks = api_get("/tasks") or []
     task_map = {task["name"]: task for task in tasks}
 
-    selected_task = (
-        st.sidebar.selectbox("Task preset", list(task_map)) if task_map else None
-    )
+    selected_task = st.sidebar.selectbox("Task preset", list(task_map)) if task_map else None
     if selected_task:
         task_meta = task_map[selected_task]
     else:
@@ -91,12 +84,7 @@ def main():
         if not custom_query.strip():
             st.sidebar.error("Enter a custom prompt first.")
         else:
-            start_episode(
-                str(selected_task or ""),
-                custom_query.strip(),
-                int(token_budget),
-                int(max_steps),
-            )
+            start_episode(str(selected_task or ""), custom_query.strip(), int(token_budget), int(max_steps))
             st.rerun()
 
     if sidebar_cols[1].button("Refresh", use_container_width=True):
@@ -134,10 +122,7 @@ def main():
         for _ in range(20):
             suggestion = api_post("/optimize-step")
             do_step(suggestion)
-            if (
-                suggestion["action_type"] == "submit_answer"
-                or st.session_state["payload"]["done"]
-            ):
+            if suggestion["action_type"] == "submit_answer" or st.session_state["payload"]["done"]:
                 break
         st.rerun()
 
@@ -146,8 +131,7 @@ def main():
         do_step(
             {
                 "action_type": "submit_answer",
-                "answer": manual_answer.strip()
-                or "Concise answer synthesized from the selected evidence.",
+                "answer": manual_answer.strip() or "Concise answer synthesized from the selected evidence.",
             }
         )
         st.rerun()
@@ -162,26 +146,14 @@ def main():
         container.write(", ".join(chunk["keywords"]))
         c1, c2 = container.columns(2)
         if selected:
-            if c1.button(
-                "Deselect",
-                key=f"deselect-{chunk['chunk_id']}",
-                use_container_width=True,
-            ):
-                do_step(
-                    {"action_type": "deselect_chunk", "chunk_id": chunk["chunk_id"]}
-                )
-                st.rerun()
+          if c1.button("Deselect", key=f"deselect-{chunk['chunk_id']}", use_container_width=True):
+              do_step({"action_type": "deselect_chunk", "chunk_id": chunk["chunk_id"]})
+              st.rerun()
         else:
-            if c1.button(
-                "Select", key=f"select-{chunk['chunk_id']}", use_container_width=True
-            ):
-                do_step({"action_type": "select_chunk", "chunk_id": chunk["chunk_id"]})
-                st.rerun()
-        if c2.button(
-            "Compress 50%",
-            key=f"compress-{chunk['chunk_id']}",
-            use_container_width=True,
-        ):
+          if c1.button("Select", key=f"select-{chunk['chunk_id']}", use_container_width=True):
+              do_step({"action_type": "select_chunk", "chunk_id": chunk["chunk_id"]})
+              st.rerun()
+        if c2.button("Compress 50%", key=f"compress-{chunk['chunk_id']}", use_container_width=True):
             do_step(
                 {
                     "action_type": "compress_chunk",
@@ -197,6 +169,5 @@ def main():
     st.subheader("State")
     st.json(api_get("/state"))
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

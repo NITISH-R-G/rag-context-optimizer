@@ -90,9 +90,7 @@ async def judge_answer(
         "answer_quality": max(0.0, min(1.0, float(payload.get("answer_quality", 0.0)))),
         "groundedness": max(0.0, min(1.0, float(payload.get("groundedness", 0.0)))),
         "coverage": max(0.0, min(1.0, float(payload.get("coverage", 0.0)))),
-        "citation_support": max(
-            0.0, min(1.0, float(payload.get("citation_support", 0.0)))
-        ),
+        "citation_support": max(0.0, min(1.0, float(payload.get("citation_support", 0.0)))),
         "notes": str(payload.get("notes", "")).strip(),
     }
 
