@@ -138,4 +138,3 @@ def test_optimize_prompt_uses_llm(monkeypatch):
         assert body["stats"]["optimized_prompt_tokens"] == 24
         assert any("PROMPT_COMPRESSOR" in request["system"] for request in requests_seen)
         assert any("TOKEN_ESTIMATOR" in request["system"] for request in requests_seen)
-
