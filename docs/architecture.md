@@ -7,16 +7,16 @@
 ```mermaid
 graph LR
     subgraph External Dependencies
-        E0["httpx"]
-        E1["random"]
-        E2["streamlit"]
-        E3["asyncio"]
-        E4["__future__"]
-        E5["collections"]
-        E6["torch"]
-        E7["pydantic"]
-        E8["signal"]
-        E9["uvicorn"]
+        E0["torch"]
+        E1["time"]
+        E2["playwright"]
+        E3["pytest"]
+        E4["uuid"]
+        E5["socket"]
+        E6["hashlib"]
+        E7["uvicorn"]
+        E8["streamlit"]
+        E9["random"]
     end
     subgraph Core System
         API["FastAPI App"]
@@ -70,28 +70,30 @@ graph TD
     click F18 "tests/test_graders.py" "Go to source"
     F19["test_inference_coverage.py"]
     click F19 "tests/test_inference_coverage.py" "Go to source"
-    F20["test_fallback_logic.py"]
-    click F20 "tests/test_fallback_logic.py" "Go to source"
-    F21["test_environment.py"]
-    click F21 "tests/test_environment.py" "Go to source"
-    F22["test_context_tuner_coverage.py"]
-    click F22 "tests/test_context_tuner_coverage.py" "Go to source"
-    F23["test_api.py"]
-    click F23 "tests/test_api.py" "Go to source"
-    F24["test_server_app.py"]
-    click F24 "tests/test_server_app.py" "Go to source"
-    F25["test_llm_features.py"]
-    click F25 "tests/test_llm_features.py" "Go to source"
-    F26["test_inference_proxy.py"]
-    click F26 "tests/test_inference_proxy.py" "Go to source"
-    F27["test_inference.py"]
-    click F27 "tests/test_inference.py" "Go to source"
-    F28["test_streamlit_app.py"]
-    click F28 "tests/test_streamlit_app.py" "Go to source"
-    F29["test_environment_extra.py"]
-    click F29 "tests/test_environment_extra.py" "Go to source"
-    F30["test_prompt_optimizer.py"]
-    click F30 "tests/test_prompt_optimizer.py" "Go to source"
+    F20["test_llm_runtime.py"]
+    click F20 "tests/test_llm_runtime.py" "Go to source"
+    F21["test_fallback_logic.py"]
+    click F21 "tests/test_fallback_logic.py" "Go to source"
+    F22["test_environment.py"]
+    click F22 "tests/test_environment.py" "Go to source"
+    F23["test_context_tuner_coverage.py"]
+    click F23 "tests/test_context_tuner_coverage.py" "Go to source"
+    F24["test_api.py"]
+    click F24 "tests/test_api.py" "Go to source"
+    F25["test_server_app.py"]
+    click F25 "tests/test_server_app.py" "Go to source"
+    F26["test_llm_features.py"]
+    click F26 "tests/test_llm_features.py" "Go to source"
+    F27["test_inference_proxy.py"]
+    click F27 "tests/test_inference_proxy.py" "Go to source"
+    F28["test_inference.py"]
+    click F28 "tests/test_inference.py" "Go to source"
+    F29["test_streamlit_app.py"]
+    click F29 "tests/test_streamlit_app.py" "Go to source"
+    F30["test_environment_extra.py"]
+    click F30 "tests/test_environment_extra.py" "Go to source"
+    F31["test_prompt_optimizer.py"]
+    click F31 "tests/test_prompt_optimizer.py" "Go to source"
     F0 -->|imports| F5
     F2 -->|imports| F6
     F4 -->|imports| F1
@@ -110,16 +112,17 @@ graph TD
     F16 -->|imports| F0
     F18 -->|imports| F5
     F19 -->|imports| F4
-    F20 -->|imports| F0
-    F21 -->|imports| F5
+    F20 -->|imports| F5
+    F21 -->|imports| F0
     F22 -->|imports| F5
-    F23 -->|imports| F0
-    F24 -->|imports| F16
-    F25 -->|imports| F0
-    F26 -->|imports| F6
-    F27 -->|imports| F4
-    F28 -->|imports| F1
-    F29 -->|imports| F5
+    F23 -->|imports| F5
+    F24 -->|imports| F0
+    F25 -->|imports| F16
+    F26 -->|imports| F0
+    F27 -->|imports| F6
+    F28 -->|imports| F4
+    F29 -->|imports| F1
     F30 -->|imports| F5
+    F31 -->|imports| F5
 ```
 
