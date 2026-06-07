@@ -96,7 +96,7 @@ jobs:
       id: safety
       continue-on-error: true
       run: |
-        safety check --full-report --output json > reports/safety.json
+        safety check --output json > reports/safety.json
 
     - name: Test Coverage
       continue-on-error: true
