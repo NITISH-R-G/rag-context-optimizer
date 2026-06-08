@@ -465,4 +465,4 @@ async def optimize_prompt_endpoint(payload: OptimizePromptRequest):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=False)  # nosonar
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=False)  # NOSONAR
