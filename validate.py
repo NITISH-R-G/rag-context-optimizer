@@ -180,6 +180,8 @@ def run_inference_script(base_url: str) -> bool:
             text=True,
             timeout=120,
             env=env,
+            shell=False,
+            check=True,
         )
         stdout = process.stdout or ""
         has_start = "[START]" in stdout
@@ -197,7 +199,7 @@ def main() -> int:
     port = find_free_port()
     base_url = f"http://127.0.0.1:{port}"
     command = [sys.executable, "-m", "uvicorn", "app:app", "--host", "127.0.0.1", "--port", str(port)]
-    process = subprocess.Popen(command, cwd=PROJECT_ROOT)
+    process = subprocess.Popen(command, cwd=PROJECT_ROOT, shell=False)
 
     try:
         if not wait_for_server(base_url):
