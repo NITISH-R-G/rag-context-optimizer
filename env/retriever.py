@@ -123,9 +123,10 @@ class HybridRetriever:
     @functools.lru_cache(maxsize=1024)
     def _tokenize_for_bm25(text: str) -> tuple[str, ...]:
         stopwords = HybridRetriever._STOPWORDS
+        token_pattern = HybridRetriever._TOKEN_PATTERN
         return tuple(
             token
-            for token in HybridRetriever._TOKEN_PATTERN.findall(text.lower())
+            for token in token_pattern.findall(text.lower())
             if token not in stopwords and len(token) > 1
         )
 
@@ -133,9 +134,10 @@ class HybridRetriever:
     @functools.lru_cache(maxsize=1024)
     def _tokenize_query_terms(text: str) -> AbstractSet[str]:
         stopwords = HybridRetriever._STOPWORDS
+        token_pattern = HybridRetriever._TOKEN_PATTERN
         return frozenset(
             token
-            for token in HybridRetriever._TOKEN_PATTERN.findall(text.lower())
+            for token in token_pattern.findall(text.lower())
             if token not in stopwords and len(token) > 1
         )
 
@@ -172,7 +174,6 @@ class HybridRetriever:
 
         return score
 
-    @functools.lru_cache(maxsize=1024)
     def _max_raw_bm25_for_query(self, query_terms: tuple[str, ...]) -> float:
         if not self.corpus or not query_terms:
             return 0.0
