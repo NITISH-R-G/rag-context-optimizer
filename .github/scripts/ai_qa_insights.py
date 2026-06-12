@@ -116,7 +116,7 @@ def post_pr_comment(markdown_report):
                 f.write(markdown_report)
 
             # Use gh cli to comment
-            subprocess.run(["gh", "pr", "comment", pr_number, "-F", "temp_report.md"], check=True)
+            subprocess.run(["/usr/bin/env", "gh", "pr", "comment", pr_number, "-F", "temp_report.md"], check=True, shell=False)
             os.remove("temp_report.md")
         except Exception as e:
             logging.error(f"Error posting PR comment: {e}")
