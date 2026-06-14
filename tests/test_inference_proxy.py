@@ -119,7 +119,8 @@ def test_inference_uses_proxy_api_key():
             env=env,
             capture_output=True,
             text=True,
-            timeout=60, check=True,
+            timeout=60,
+            check=True,
         )
         assert result.returncode == 0
         assert requests_seen
