@@ -2,7 +2,6 @@ import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-import httpx
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
