@@ -21,8 +21,12 @@ def test_api_get_error(mock_get, mock_error):
 @patch("streamlit_app.httpx.post")
 def test_api_post(mock_post):
     class MockResponse:
-        def json(self): return {"success": True}
-        def raise_for_status(self): pass
+        def json(self):
+            return {"success": True}
+
+        def raise_for_status(self):
+            pass
+
     mock_post.return_value = MockResponse()
     result = streamlit_app.api_post("/test", {"a": 1})
     assert result == {"success": True}
