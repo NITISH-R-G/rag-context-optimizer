@@ -10,6 +10,9 @@ permissions:
   contents: write
   pull-requests: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   auto-maintain:
     runs-on: ubuntu-latest
@@ -37,6 +40,7 @@ jobs:
 
     - name: AI Documentation Agent
       env:
+        FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: python .github/scripts/ai_docs_agent.py
 
