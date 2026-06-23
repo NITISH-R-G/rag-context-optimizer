@@ -2,16 +2,16 @@
   "files": {
     "app.py": {
       "imports": [
-        "fastapi",
         "contextlib",
-        "env",
-        "uuid",
         "pathlib",
-        "uvicorn",
-        "dataclasses",
         "os",
+        "uuid",
+        "env",
+        "uvicorn",
+        "typing",
+        "dataclasses",
         "pydantic",
-        "typing"
+        "fastapi"
       ],
       "endpoints": [],
       "classes": [
@@ -28,8 +28,8 @@
     },
     "streamlit_app.py": {
       "imports": [
-        "httpx",
-        "streamlit"
+        "streamlit",
+        "httpx"
       ],
       "endpoints": [],
       "classes": [],
@@ -59,16 +59,16 @@
     },
     "inference.py": {
       "imports": [
-        "sys",
-        "env",
         "httpx",
-        "json",
         "os",
-        "pydantic",
-        "re",
+        "env",
+        "sys",
+        "asyncio",
         "openai",
         "typing",
-        "asyncio"
+        "re",
+        "json",
+        "pydantic"
       ],
       "endpoints": [],
       "classes": [],
@@ -78,27 +78,27 @@
       ],
       "env_vars": [
         "RAG_ENV_TASK",
-        "HF_TOKEN",
-        "RAG_ENV_URL",
-        "API_KEY",
-        "MODEL_NAME",
         "API_BASE_URL",
-        "ALLOW_BASELINE_FALLBACK"
+        "ALLOW_BASELINE_FALLBACK",
+        "RAG_ENV_URL",
+        "MODEL_NAME",
+        "API_KEY",
+        "HF_TOKEN"
       ]
     },
     "validate.py": {
       "imports": [
-        "signal",
-        "http",
-        "sys",
-        "time",
-        "pathlib",
-        "threading",
         "httpx",
-        "json",
+        "pathlib",
+        "http",
         "os",
+        "signal",
+        "sys",
+        "threading",
         "socket",
-        "subprocess"
+        "time",
+        "subprocess",
+        "json"
       ],
       "endpoints": [],
       "classes": [
@@ -128,10 +128,10 @@
     },
     "server/app.py": {
       "imports": [
-        "argparse",
-        "sys",
         "pathlib",
         "uvicorn",
+        "sys",
+        "argparse",
         "app"
       ],
       "endpoints": [],
@@ -143,16 +143,16 @@
     },
     "tests/test_api.py": {
       "imports": [
-        "fastapi",
+        "builtins",
+        "pathlib",
+        "os",
         "sys",
         "unittest",
         "pytest",
-        "pathlib",
-        "os",
         "app",
         "dataclasses",
         "pydantic",
-        "builtins"
+        "fastapi"
       ],
       "endpoints": [],
       "classes": [
@@ -188,9 +188,9 @@
     "tests/test_server_app.py": {
       "imports": [
         "sys",
-        "server",
         "unittest",
-        "pathlib"
+        "pathlib",
+        "server"
       ],
       "endpoints": [],
       "classes": [],
@@ -202,10 +202,10 @@
     },
     "tests/test_fallback_logic.py": {
       "imports": [
+        "pathlib",
         "sys",
         "unittest",
         "pytest",
-        "pathlib",
         "app"
       ],
       "endpoints": [],
@@ -232,10 +232,10 @@
     },
     "tests/test_environment.py": {
       "imports": [
-        "random",
-        "env",
-        "sys",
         "pathlib",
+        "env",
+        "random",
+        "sys",
         "asyncio"
       ],
       "endpoints": [],
@@ -257,15 +257,15 @@
     },
     "tests/test_llm_features.py": {
       "imports": [
-        "fastapi",
         "contextlib",
-        "http",
-        "sys",
         "pathlib",
+        "http",
         "threading",
-        "json",
+        "sys",
         "app",
-        "socket"
+        "socket",
+        "json",
+        "fastapi"
       ],
       "endpoints": [],
       "classes": [
@@ -282,11 +282,11 @@
     },
     "tests/test_prompt_optimizer.py": {
       "imports": [
+        "pathlib",
+        "__future__",
         "env",
         "sys",
-        "pytest",
-        "pathlib",
-        "__future__"
+        "pytest"
       ],
       "endpoints": [],
       "classes": [
@@ -317,17 +317,17 @@
     },
     "tests/test_inference_proxy.py": {
       "imports": [
-        "http",
-        "sys",
-        "time",
-        "pathlib",
-        "threading",
-        "__future__",
         "httpx",
-        "json",
+        "pathlib",
+        "http",
         "os",
+        "__future__",
+        "sys",
+        "threading",
         "socket",
-        "subprocess"
+        "time",
+        "subprocess",
+        "json"
       ],
       "endpoints": [],
       "classes": [
@@ -381,8 +381,8 @@
     "tests/test_graders.py": {
       "imports": [
         "sys",
-        "pathlib",
-        "env"
+        "env",
+        "pathlib"
       ],
       "endpoints": [],
       "classes": [],
@@ -404,11 +404,11 @@
     },
     "tests/test_llm_runtime.py": {
       "imports": [
-        "sys",
-        "env",
-        "pytest",
         "pathlib",
         "__future__",
+        "env",
+        "sys",
+        "pytest",
         "json"
       ],
       "endpoints": [],
@@ -443,8 +443,8 @@
     "tests/test_inference.py": {
       "imports": [
         "sys",
-        "inference",
-        "pathlib"
+        "pathlib",
+        "inference"
       ],
       "endpoints": [],
       "classes": [],
@@ -479,14 +479,14 @@
     },
     "env/llm_runtime.py": {
       "imports": [
-        "__future__",
-        "json",
-        "os",
         "dataclasses",
-        "re",
+        "os",
+        "__future__",
+        "asyncio",
         "openai",
         "typing",
-        "asyncio"
+        "re",
+        "json"
       ],
       "endpoints": [],
       "classes": [
@@ -499,21 +499,21 @@
       ],
       "env_vars": [
         "MODEL_NAME",
-        "API_KEY",
         "HF_TOKEN",
-        "API_BASE_URL"
+        "API_BASE_URL",
+        "API_KEY"
       ]
     },
     "env/context_tuner.py": {
       "imports": [
-        "env",
+        "math",
         "hashlib",
         "__future__",
-        "math",
-        "dataclasses",
-        "re",
+        "torch",
+        "env",
         "typing",
-        "torch"
+        "dataclasses",
+        "re"
       ],
       "endpoints": [],
       "classes": [
@@ -564,13 +564,13 @@
     },
     "env/environment.py": {
       "imports": [
-        "env",
         "pathlib",
-        "__future__",
         "os",
+        "__future__",
+        "env",
+        "typing",
         "dataclasses",
-        "re",
-        "typing"
+        "re"
       ],
       "endpoints": [],
       "classes": [
@@ -579,9 +579,9 @@
       ],
       "functions": [],
       "env_vars": [
-        "RAG_CORPUS_PATH",
+        "RAG_CORPUS_FAMILY",
         "ENABLE_PROJECT_CORPUS",
-        "RAG_CORPUS_FAMILY"
+        "RAG_CORPUS_PATH"
       ]
     },
     "env/models.py": {
@@ -614,11 +614,11 @@
     "env/corpus.py": {
       "imports": [
         "pathlib",
-        "__future__",
-        "json",
         "os",
-        "pydantic",
-        "typing"
+        "__future__",
+        "typing",
+        "json",
+        "pydantic"
       ],
       "endpoints": [],
       "classes": [
@@ -632,19 +632,19 @@
         "get_chunk_by_id"
       ],
       "env_vars": [
-        "RAG_CORPUS_PATH",
-        "RAG_CORPUS_FAMILY"
+        "RAG_CORPUS_FAMILY",
+        "RAG_CORPUS_PATH"
       ]
     },
     "env/retriever.py": {
       "imports": [
-        "collections",
-        "env",
-        "__future__",
         "math",
         "functools",
-        "re",
-        "typing"
+        "__future__",
+        "env",
+        "collections",
+        "typing",
+        "re"
       ],
       "endpoints": [],
       "classes": [
@@ -661,11 +661,11 @@
     },
     "env/prompt_optimizer.py": {
       "imports": [
-        "env",
-        "__future__",
         "dataclasses",
-        "re",
-        "typing"
+        "__future__",
+        "env",
+        "typing",
+        "re"
       ],
       "endpoints": [],
       "classes": [
@@ -689,58 +689,58 @@
     }
   },
   "frameworks": [
+    "Pydantic",
     "FastAPI",
-    "Streamlit",
-    "Pydantic"
+    "Streamlit"
   ],
   "external_deps": [
-    "random",
+    "builtins",
     "functools",
-    "pydantic",
+    "uuid",
+    "uvicorn",
+    "playwright",
+    "collections",
+    "threading",
+    "asyncio",
+    "pytest",
+    "fastapi",
+    "__future__",
+    "random",
+    "signal",
+    "argparse",
+    "unittest",
     "socket",
     "subprocess",
-    "playwright",
-    "fastapi",
-    "threading",
-    "__future__",
-    "torch",
-    "builtins",
-    "openai",
-    "collections",
-    "streamlit",
-    "pytest",
-    "uuid",
-    "hashlib",
-    "uvicorn",
     "math",
-    "time",
-    "asyncio",
-    "argparse",
-    "signal",
+    "httpx",
     "http",
-    "unittest",
-    "httpx"
+    "hashlib",
+    "torch",
+    "openai",
+    "streamlit",
+    "time",
+    "pydantic"
   ],
   "internal_imports": [
-    "server",
+    "streamlit_app",
     "env",
     "inference",
-    "streamlit_app",
+    "server",
     "app"
   ],
   "api_endpoints": [],
   "env_vars": [
-    "RAG_CORPUS_PATH",
-    "RAG_CORPUS_FAMILY",
     "RAG_ENV_TASK",
-    "HF_TOKEN",
     "ENABLE_PROJECT_CORPUS",
-    "API_KEY",
-    "RAG_ENV_URL",
     "DEBUG_LOG_REQUESTS",
-    "MODEL_NAME",
     "API_BASE_URL",
-    "ALLOW_BASELINE_FALLBACK"
+    "ALLOW_BASELINE_FALLBACK",
+    "RAG_ENV_URL",
+    "MODEL_NAME",
+    "API_KEY",
+    "RAG_CORPUS_FAMILY",
+    "HF_TOKEN",
+    "RAG_CORPUS_PATH"
   ],
   "metadata": {
     "dependencies": [
