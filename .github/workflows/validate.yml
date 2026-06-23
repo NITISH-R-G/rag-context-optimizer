@@ -28,4 +28,4 @@ jobs:
         run: openenv validate
 
       - name: Run Pytest
-        run: pytest
+        run: python -m pytest tests/

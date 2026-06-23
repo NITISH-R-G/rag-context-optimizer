@@ -103,7 +103,7 @@ jobs:
     - name: Test Coverage
       continue-on-error: true
       run: |
-        pytest tests/ --cov=. > reports/coverage.txt || true
+        python -m pytest --cov=. tests/ > reports/coverage.txt || true
 
     - name: Generate AI Quality Insights
       if: always()

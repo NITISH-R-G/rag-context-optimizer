@@ -34,7 +34,7 @@ jobs:
         run: mypy .
 
       - name: Run Pytest
-        run: pytest tests/
+        run: python -m pytest tests/
 
       - name: Run OpenEnv Validation
         run: |
