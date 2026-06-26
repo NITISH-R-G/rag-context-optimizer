@@ -53,3 +53,6 @@ disallow_untyped_defs = false
 exclude = [
     "^tests/"
 ]
+[tool.vulture]
+exclude = ["tests/", "*test*"]
+paths = ["."]
