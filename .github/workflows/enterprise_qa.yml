@@ -19,11 +19,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      env:
+        ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
       with:
         fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v5
+      env:
+        ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
       with:
         python-version: "3.11"
         cache: "pip"
@@ -42,6 +46,7 @@ jobs:
       uses: gitleaks/gitleaks-action@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
     - name: License Compliance
       run: |
@@ -117,6 +122,8 @@ jobs:
     - name: Upload Reports as Artifacts
       if: always()
       uses: actions/upload-artifact@v4
+      env:
+        ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
       with:
         name: qa-reports
         path: reports/
