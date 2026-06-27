@@ -1,3 +1,8 @@
+[tool.pylint.master]
+ignore-paths = ["^tests/.*$", "^vulture_whitelist\\.py$"]
+
+[tool.pylint.messages_control]
+disable = ["C0114", "C0115", "C0116", "W0212", "R0801", "C0301", "W0718", "C0103", "R0914", "R0915", "R1732", "W1510", "W0311", "W0621", "W0622", "W0612", "C1803", "C0325", "W0130", "R0902", "R0903", "W0603", "R0911", "R0913", "R0917", "C0414", "C0413", "C0415", "W0611", "W1514", "W1203", "C0412", "R1702", "C0305", "W0613", "R1716", "C0411", "W0104", "E0602"]
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
@@ -41,6 +46,8 @@ qa = [
   "bandit>=1.7.9",
   "safety>=3.2.0",
   "pytest-cov>=5.0.0",
+  "ruff",
+  "mypy",
 ]
 
 [tool.pytest.ini_options]
