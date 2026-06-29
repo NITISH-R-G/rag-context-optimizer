@@ -40,6 +40,14 @@ jobs:
       run: |
         safety check || true
 
+    - name: Dead Code Detection (Vulture)
+      run: |
+        vulture . vulture_whitelist.py || true
+
+    - name: Lint with Pylint
+      run: |
+        pylint . || true
+
     - name: Run tests
       run: |
         pytest tests/ || true

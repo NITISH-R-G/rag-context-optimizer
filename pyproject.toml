@@ -53,3 +53,21 @@ disallow_untyped_defs = false
 exclude = [
     "^tests/"
 ]
+
+[tool.pylint.master]
+ignore-paths = ["^tests/.*$"]
+
+[tool.pylint.messages_control]
+disable = [
+    "C0114", # missing-module-docstring
+    "C0115", # missing-class-docstring
+    "C0116", # missing-function-docstring
+    "W0212", # protected-access
+    "W0612", # unused-variable
+    "C0301", # line-too-long
+    "C0413", # wrong-import-position
+    "C0411", # wrong-import-order
+    "R0801", # duplicate-code
+    "C1803", # use-implicit-booleaness-not-comparison
+    "R0903", # too-few-public-methods
+]
