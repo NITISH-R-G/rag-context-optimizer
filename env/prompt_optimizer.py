@@ -473,9 +473,8 @@ def _extract_distilled_points(
         best = _summarize_chunk_for_output(chunk, env._effective_chunk_text(chunk_id))
         if best and all(existing != best for _cid, existing in distilled_points):
             distilled_points.append((chunk_id, best))
-        if len(distilled_points) >= (
-            3 if mode == "grounded" else (2 if input_tokens < 80 else 3)
-        ):
+        limit = 3 if mode == "grounded" or input_tokens >= 80 else 2
+        if len(distilled_points) >= limit:
             break
     return distilled_points
 
@@ -493,15 +492,14 @@ def _rewrite_prompt_fallback(
     short_prompt_rewrite = (
         _lightweight_short_prompt_rewrite(clean_prompt) if preserve_short_prompt else ""
     )
-    lines: list[str] = [
-        short_prompt_rewrite
-        if preserve_short_prompt and short_prompt_rewrite
-        else (
-            clean_prompt
-            if preserve_short_prompt
-            else (rewritten if rewritten else clean_prompt)
-        )
-    ]
+    if preserve_short_prompt and short_prompt_rewrite:
+        first_line = short_prompt_rewrite
+    elif preserve_short_prompt:
+        first_line = clean_prompt
+    else:
+        first_line = rewritten if rewritten else clean_prompt
+
+    lines: list[str] = [first_line]
     if distilled_points and (mode == "grounded" or input_tokens >= 80):
         lines.append("")
         lines.append("Context:")
