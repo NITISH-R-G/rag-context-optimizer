@@ -117,9 +117,9 @@ def test_target_ratio():
 def test_fit_citations_into_prompt():
     prompt = "This is a test prompt."
     citations = ["doc1", "doc2"]
-    result, ready, notes = _fit_citations_into_prompt(prompt, citations, 10, 5, prompt, "balanced")
+    result, _ready, _notes = _fit_citations_into_prompt(prompt, citations, 10, 5, prompt, "balanced")
     assert isinstance(result, str)
-    assert isinstance(ready, bool)
+    assert isinstance(_ready, bool)
 
 
 @pytest.mark.asyncio
@@ -145,7 +145,7 @@ async def test_extract_distilled_points():
 
 
 def test_rewrite_prompt_fallback():
-    result, ready, notes = _rewrite_prompt_fallback(
+    result, _ready, _notes = _rewrite_prompt_fallback(
         "test prompt", 10, 5, "balanced", False, [], ["doc1"]
     )
     assert isinstance(result, str)
@@ -166,30 +166,30 @@ async def test_extract_distilled_points_with_preserve_short():
     env = RagContextOptimizerEnv("refund_triage_easy")
     await env.reset()
     points = _extract_distilled_points(env, "balanced", 50, preserve_short_prompt=True)
-    assert points == []
+    assert not points
 
 def test_fit_citations_into_prompt_aggressive():
     prompt = "This is a prompt."
     citations = ["doc1", "doc2"]
-    result, ready, notes = _fit_citations_into_prompt(prompt, citations, 10, 5, prompt, "aggressive")
+    result, _ready, _notes = _fit_citations_into_prompt(prompt, citations, 10, 5, prompt, "aggressive")
     assert isinstance(result, str)
 
 def test_fit_citations_into_prompt_grounded():
     prompt = "This is a prompt."
     citations = ["doc1", "doc2"]
-    result, ready, notes = _fit_citations_into_prompt(prompt, citations, 10, 5, prompt, "grounded")
+    result, _ready, _notes = _fit_citations_into_prompt(prompt, citations, 10, 5, prompt, "grounded")
     assert "doc1" in result or notes is not None
 
 def test_rewrite_prompt_fallback_long():
     long_prompt = "A " * 50
-    result, ready, notes = _rewrite_prompt_fallback(
+    result, _ready, _notes = _rewrite_prompt_fallback(
         long_prompt, 50, 10, "balanced", False, [("doc1", "note")], ["doc1"]
     )
     assert "doc1" in result
 
 def test_rewrite_prompt_fallback_preserve_short():
     short_prompt = "Short prompt."
-    result, ready, notes = _rewrite_prompt_fallback(
+    result, _ready, _notes = _rewrite_prompt_fallback(
         short_prompt, 2, 2, "balanced", True, [], ["doc1"]
     )
     assert len(result) > 0
