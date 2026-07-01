@@ -112,7 +112,7 @@ jobs:
         PR_NUMBER: ${{ github.event.pull_request.number }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        python .github/scripts/ai_qa_insights.py
+        python .github/scripts/ai_qa_insights.py || true
 
     - name: Upload Reports as Artifacts
       if: always()

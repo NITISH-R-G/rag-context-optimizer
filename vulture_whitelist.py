@@ -1,4 +1,3 @@
-# ruff: noqa: F821
 home_page
 reset_endpoint
 step_endpoint
