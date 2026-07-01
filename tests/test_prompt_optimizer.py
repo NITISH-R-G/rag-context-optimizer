@@ -178,7 +178,7 @@ def test_fit_citations_into_prompt_grounded():
     prompt = "This is a prompt."
     citations = ["doc1", "doc2"]
     result, _ready, _notes = _fit_citations_into_prompt(prompt, citations, 10, 5, prompt, "grounded")
-    assert "doc1" in result or notes is not None
+    assert "doc1" in result or _notes is not None
 
 def test_rewrite_prompt_fallback_long():
     long_prompt = "A " * 50
