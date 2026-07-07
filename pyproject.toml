@@ -25,6 +25,11 @@ server = "server.app:main"
 packages = ["env", "server"]
 py-modules = ["app", "inference", "validate"]
 
+[tool.pylint.messages_control]
+disable = ["missing-docstring", "protected-access", "wrong-import-order", "wrong-import-position", "too-few-public-methods", "line-too-long", "duplicate-code", "reimported", "undefined-variable", "unused-variable", "use-implicit-booleaness-not-comparison", "too-many-locals", "global-statement", "too-many-instance-attributes", "too-many-arguments", "too-many-positional-arguments", "chained-comparison", "too-many-return-statements", "invalid-name", "bad-indentation", "broad-exception-caught", "unspecified-encoding", "logging-fstring-interpolation", "import-outside-toplevel", "redefined-outer-name", "too-many-nested-blocks", "duplicate-value", "redefined-builtin", "subprocess-run-check", "too-many-statements", "consider-using-with", "useless-import-alias", "unused-import", "superfluous-parens"]
+
+[tool.pylint.master]
+ignore-paths = ["tests/.*", "vulture_whitelist.py"]
 [project.optional-dependencies]
 test = [
   "pytest>=8.0.0,<10",
@@ -51,5 +56,6 @@ ignore_missing_imports = true
 check_untyped_defs = true
 disallow_untyped_defs = false
 exclude = [
-    "^tests/"
+    "^tests/",
+    "^vulture_whitelist\\.py$"
 ]

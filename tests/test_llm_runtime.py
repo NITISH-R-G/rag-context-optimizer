@@ -1,7 +1,9 @@
+"""Test LLM runtime utilities."""
 from __future__ import annotations
 
 import json
 import pytest
+from env.llm_runtime import _extract_json_object
 import sys
 from pathlib import Path
 
