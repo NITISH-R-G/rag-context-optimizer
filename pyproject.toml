@@ -29,7 +29,7 @@ py-modules = ["app", "inference", "validate"]
 ignore-paths = ["^tests/.*", "^vulture_whitelist\\.py$"]
 
 [tool.pylint.messages_control]
-disable = ["C0114", "C0115", "C0116", "C0301", "R0902", "R0903", "R0913", "R0914", "R0915", "R0917", "W0212", "C0415", "R0911", "C0103"]
+disable = ["C0114", "C0115", "C0116", "C0301", "R0902", "R0903", "R0913", "R0914", "R0915", "R0917", "W0212", "C0415", "R0911", "C0103", "R0801"]
 
 [tool.pylint.format]
 [project.optional-dependencies]

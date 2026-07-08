@@ -12,6 +12,7 @@ def get_api_url() -> str:
     except Exception:
         return "http://localhost:7860"
 
+
 API_URL = get_api_url()
 
 
