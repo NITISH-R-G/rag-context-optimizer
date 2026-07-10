@@ -30,7 +30,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install pip==26.1.2
+        python -m pip install --upgrade pip
         pip install -e ".[test]"
         pip install -e ".[qa]"
         pip install openai openenv-core
@@ -45,7 +45,7 @@ jobs:
 
     - name: License Compliance
       run: |
-        pip-licenses --format=json > reports/pip-licenses.json || true
+        pip-licenses --format=json > reports/pip-licenses.json
 
     - name: Generate SBOM
       uses: anchore/sbom-action@v0
@@ -56,54 +56,45 @@ jobs:
 
     - name: Lint and Format Code (Ruff)
       id: ruff
-      continue-on-error: true
       run: |
         ruff check . > reports/ruff.txt
         ruff format --check . >> reports/ruff.txt
 
     - name: Type Checking (Mypy)
       id: mypy
-      continue-on-error: true
       run: |
         mypy . > reports/mypy.txt
 
     - name: Dead Code Detection (Vulture)
-      continue-on-error: true
       run: |
-        vulture . > reports/vulture.txt || true
+        vulture . > reports/vulture.txt
 
     - name: Duplicate Code and Style (Pylint)
-      continue-on-error: true
       run: |
-        pylint . > reports/pylint.txt || true
+        pylint . > reports/pylint.txt
 
     - name: Complexity Analysis (Radon)
-      continue-on-error: true
       run: |
-        radon cc -j . > reports/radon.json || true
+        radon cc -j . > reports/radon.json
 
     - name: Security Scanning (Bandit)
       id: bandit
-      continue-on-error: true
       run: |
         bandit -r . -ll -ii -f json -o reports/bandit.json
 
     - name: Dependency Security Audit (Pip-Audit)
       id: pipaudit
-      continue-on-error: true
       run: |
         pip-audit -f json > reports/pip-audit.json
 
     - name: Dependency Security Scan (Safety)
       id: safety
-      continue-on-error: true
       run: |
         safety check --output json > reports/safety.json
 
     - name: Test Coverage
-      continue-on-error: true
       run: |
-        pytest tests/ --cov=. > reports/coverage.txt || true
+        pytest tests/ --cov=. > reports/coverage.txt
 
     - name: Generate AI Quality Insights
       if: always()
