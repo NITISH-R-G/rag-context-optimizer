@@ -6,17 +6,19 @@ from env.models import RagObservation
 from env.tasks import Task
 from env.llm_runtime import JsonCallResult
 
+
 @pytest.fixture
 def mock_call_json():
-    with patch('env.llm_services.call_json', new_callable=AsyncMock) as mock:
+    with patch("env.llm_services.call_json", new_callable=AsyncMock) as mock:
         yield mock
+
 
 @pytest.mark.asyncio
 async def test_suggest_action(mock_call_json):
     mock_call_json.return_value = JsonCallResult(
         data={"action_type": "submit_answer", "answer": "test"},
         prompt_tokens=10,
-        completion_tokens=10
+        completion_tokens=10,
     )
 
     obs = RagObservation(
@@ -43,14 +45,12 @@ async def test_suggest_action(mock_call_json):
     )
 
     result = await suggest_action(
-        obs,
-        selected_chunk_details=[],
-        suggested_citations=[],
-        top_demo_cases=[]
+        obs, selected_chunk_details=[], suggested_citations=[], top_demo_cases=[]
     )
 
     assert result == {"action_type": "submit_answer", "answer": "test"}
     mock_call_json.assert_called_once()
+
 
 @pytest.mark.asyncio
 async def test_judge_answer(mock_call_json):
@@ -60,10 +60,10 @@ async def test_judge_answer(mock_call_json):
             "groundedness": 0.9,
             "coverage": 1.0,
             "citation_support": 0.5,
-            "notes": "Good"
+            "notes": "Good",
         },
         prompt_tokens=10,
-        completion_tokens=10
+        completion_tokens=10,
     )
 
     task = Task(
@@ -81,21 +81,19 @@ async def test_judge_answer(mock_call_json):
         required_plan_keywords=[],
         required_report_keywords=[],
         report_requirements=[],
-        domain_filter=None
+        domain_filter=None,
     )
 
     result = await judge_answer(
-        task=task,
-        answer="answer",
-        selected_chunks=[],
-        required_chunks=[]
+        task=task, answer="answer", selected_chunks=[], required_chunks=[]
     )
 
-    assert result["answer_quality"] == 0.8
-    assert result["groundedness"] == 0.9
-    assert result["coverage"] == 1.0
-    assert result["citation_support"] == 0.5
+    assert result["answer_quality"] == pytest.approx(0.8)
+    assert result["groundedness"] == pytest.approx(0.9)
+    assert result["coverage"] == pytest.approx(1.0)
+    assert result["citation_support"] == pytest.approx(0.5)
     assert result["notes"] == "Good"
+
 
 @pytest.mark.asyncio
 async def test_rewrite_prompt(mock_call_json):
@@ -104,10 +102,10 @@ async def test_rewrite_prompt(mock_call_json):
             "optimized_prompt": "opt",
             "estimated_tokens": 50,
             "citation_ready": True,
-            "citation_guidance": "guide"
+            "citation_guidance": "guide",
         },
         prompt_tokens=10,
-        completion_tokens=10
+        completion_tokens=10,
     )
 
     result = await rewrite_prompt(
@@ -115,7 +113,7 @@ async def test_rewrite_prompt(mock_call_json):
         mode="test",
         target_tokens=100,
         evidence_notes=[],
-        citation_ids=[]
+        citation_ids=[],
     )
 
     assert result["optimized_prompt"] == "opt"
