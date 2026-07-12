@@ -171,8 +171,8 @@ def run_inference_script(base_url: str) -> bool:
         env["RAG_ENV_URL"] = base_url
         env.pop("ALLOW_BASELINE_FALLBACK", None)
         env["API_BASE_URL"] = f"http://127.0.0.1:{proxy_port}/v1"
-        env["API_KEY"] = "offline-validation-token"
-        env["HF_TOKEN"] = "legacy-should-not-win"
+        env["API_KEY"] = "offline-validation-token"  # nosec B105
+        env["HF_TOKEN"] = "legacy-should-not-win"  # nosec B105
         process = subprocess.run(
             [sys.executable, "inference.py"],
             cwd=PROJECT_ROOT,
