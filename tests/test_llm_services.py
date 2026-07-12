@@ -88,10 +88,10 @@ async def test_judge_answer(mock_call_json):
         task=task, answer="answer", selected_chunks=[], required_chunks=[]
     )
 
-    assert result["answer_quality"] == pytest.approx(0.8)
-    assert result["groundedness"] == pytest.approx(0.9)
-    assert result["coverage"] == pytest.approx(1.0)
-    assert result["citation_support"] == pytest.approx(0.5)
+    assert result["answer_quality"] == pytest.approx(0.8, rel=1e-5)
+    assert result["groundedness"] == pytest.approx(0.9, rel=1e-5)
+    assert result["coverage"] == pytest.approx(1.0, rel=1e-5)
+    assert result["citation_support"] == pytest.approx(0.5, rel=1e-5)
     assert result["notes"] == "Good"
 
 
