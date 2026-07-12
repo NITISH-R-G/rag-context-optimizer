@@ -7,15 +7,15 @@
 ```mermaid
 graph LR
     subgraph External Dependencies
-        E0["uuid"]
-        E1["threading"]
-        E2["unittest"]
-        E3["torch"]
-        E4["hashlib"]
-        E5["uvicorn"]
-        E6["httpx"]
-        E7["pydantic"]
-        E8["asyncio"]
+        E0["fastapi"]
+        E1["playwright"]
+        E2["pytest"]
+        E3["streamlit"]
+        E4["threading"]
+        E5["builtins"]
+        E6["hashlib"]
+        E7["uuid"]
+        E8["subprocess"]
         E9["socket"]
     end
     subgraph Core System
@@ -97,8 +97,8 @@ graph TD
     F32["tasks.py"]
     click F32 "env/tasks.py" "Go to source"
     F0 -->|imports| F10
-    F3 -->|imports| F10
     F3 -->|imports| F1
+    F3 -->|imports| F10
     F4 -->|imports| F17
     F6 -->|imports| F0
     F7 -->|imports| F0
@@ -125,7 +125,7 @@ graph TD
     F27 -->|imports| F1
     F30 -->|imports| F10
     F30 -->|imports| F1
-    F31 -->|imports| F10
     F31 -->|imports| F1
+    F31 -->|imports| F10
 ```
 
