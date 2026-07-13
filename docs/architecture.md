@@ -7,16 +7,16 @@
 ```mermaid
 graph LR
     subgraph External Dependencies
-        E0["fastapi"]
-        E1["playwright"]
-        E2["pytest"]
-        E3["streamlit"]
-        E4["threading"]
-        E5["builtins"]
-        E6["hashlib"]
-        E7["uuid"]
-        E8["subprocess"]
-        E9["socket"]
+        E0["pydantic"]
+        E1["streamlit"]
+        E2["random"]
+        E3["functools"]
+        E4["builtins"]
+        E5["__future__"]
+        E6["httpx"]
+        E7["hashlib"]
+        E8["openai"]
+        E9["time"]
     end
     subgraph Core System
         API["FastAPI App"]
@@ -97,8 +97,8 @@ graph TD
     F32["tasks.py"]
     click F32 "env/tasks.py" "Go to source"
     F0 -->|imports| F10
-    F3 -->|imports| F1
     F3 -->|imports| F10
+    F3 -->|imports| F1
     F4 -->|imports| F17
     F6 -->|imports| F0
     F7 -->|imports| F0
@@ -119,13 +119,13 @@ graph TD
     F23 -->|imports| F10
     F23 -->|imports| F1
     F24 -->|imports| F10
-    F25 -->|imports| F1
     F25 -->|imports| F10
+    F25 -->|imports| F1
     F27 -->|imports| F10
     F27 -->|imports| F1
     F30 -->|imports| F10
     F30 -->|imports| F1
-    F31 -->|imports| F1
     F31 -->|imports| F10
+    F31 -->|imports| F1
 ```
 
