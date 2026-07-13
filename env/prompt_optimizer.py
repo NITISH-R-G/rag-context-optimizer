@@ -474,7 +474,7 @@ def _extract_distilled_points(
         if best and all(existing != best for _cid, existing in distilled_points):
             distilled_points.append((chunk_id, best))
         if len(distilled_points) >= (
-            3 if mode == "grounded" else (2 if input_tokens < 80 else 3)
+            3 if (mode == "grounded" or input_tokens >= 80) else 2
         ):
             break
     return distilled_points
