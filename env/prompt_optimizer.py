@@ -496,11 +496,7 @@ def _rewrite_prompt_fallback(
     lines: list[str] = [
         short_prompt_rewrite
         if preserve_short_prompt and short_prompt_rewrite
-        else (
-            clean_prompt
-            if preserve_short_prompt
-            else (rewritten if rewritten else clean_prompt)
-        )
+        else (clean_prompt if preserve_short_prompt else (rewritten or clean_prompt))
     ]
     if distilled_points and (mode == "grounded" or input_tokens >= 80):
         lines.append("")
