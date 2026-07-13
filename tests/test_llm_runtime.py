@@ -19,6 +19,7 @@ def test_extract_json_object_valid_json():
     assert result == {"key": "value", "number": 42}
 
 def test_extract_json_object_with_markdown():
+    """Test JSON wrapped in markdown, which triggers the JSONDecodeError fallback."""
     # Test JSON wrapped in markdown, which triggers the JSONDecodeError fallback
     markdown_json = '''
 Here is your JSON:
