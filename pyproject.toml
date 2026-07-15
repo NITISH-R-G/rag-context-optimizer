@@ -46,6 +46,8 @@ qa = [
   "bandit>=1.7.9",
   "safety>=3.2.0",
   "pytest-cov>=5.0.0",
+  "ruff",
+  "mypy",
 ]
 
 [tool.pytest.ini_options]
