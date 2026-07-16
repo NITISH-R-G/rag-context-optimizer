@@ -197,10 +197,13 @@ async def test_log_requests_middleware():
     original_print = builtins.print
     printed_messages = []
 
-    def mock_print(*args, **kwargs):
+    import sys
+    original_stdout_write = sys.stdout.write
+    def mock_stdout_write(*args, **kwargs):
         printed_messages.append(" ".join(map(str, args)))
+        original_stdout_write(*args, **kwargs)
 
-    builtins.print = mock_print
+    sys.stdout.write = mock_stdout_write
     try:
         await log_requests(MockRequest(), mock_call_next)
         assert len(printed_messages) == 0
@@ -212,7 +215,7 @@ async def test_log_requests_middleware():
         assert "[request] GET /test" in printed_messages[0]
         assert "[response] GET /test -> 200" in printed_messages[1]
     finally:
-        builtins.print = original_print
+        sys.stdout.write = original_stdout_write
         os.environ.pop("DEBUG_LOG_REQUESTS", None)
 
 

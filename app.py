@@ -5,6 +5,7 @@ FastAPI server exposing the rag-context-optimizer OpenEnv HTTP API.
 from contextlib import asynccontextmanager
 from dataclasses import asdict, is_dataclass
 import os
+import sys
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -106,10 +107,10 @@ UI_TEMPLATE_PATH = Path(__file__).resolve().parent / "server" / "templates" / "u
 async def log_requests(request: Request, call_next):
     should_log = _request_logging_enabled()
     if should_log:
-        print(f"[request] {request.method} {request.url.path}")
+        sys.stdout.write(f"[request] {request.method} {request.url.path}")
     response = await call_next(request)
     if should_log:
-        print(
+        sys.stdout.write(
             f"[response] {request.method} {request.url.path} -> {response.status_code}"
         )
     return response

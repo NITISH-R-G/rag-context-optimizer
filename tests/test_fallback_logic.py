@@ -3,6 +3,13 @@ from pathlib import Path
 from unittest.mock import MagicMock
 import pytest
 
+ACTION_INSPECT_ARTIFACT = "inspect_artifact"
+ACTION_PRIORITIZE_ARTIFACT = "prioritize_artifact"
+ACTION_SUMMARIZE_ARTIFACT = "summarize_artifact"
+ACTION_SET_RESOLUTION_PLAN = "set_resolution_plan"
+ACTION_SUBMIT_REPORT = "submit_report"
+
+
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -50,7 +57,7 @@ def test_check_resolution_plan():
     observation.plan_draft = None
     res = _check_resolution_plan(env, set(["a", "b"]), observation)
     assert res is not None
-    assert res["action_type"] == "set_resolution_plan"
+    assert res["action_type"] == ACTION_SET_RESOLUTION_PLAN
     assert "keyword1, keyword2, keyword3" in res["plan"]
 
 
@@ -102,7 +109,7 @@ def test_check_prioritize_candidates():
         [chunk1, chunk2], set(["c1", "c2"]), set(), ["c1", "c2"], 200
     )
     assert res is not None
-    assert res["action_type"] == "prioritize_artifact"
+    assert res["action_type"] == ACTION_PRIORITIZE_ARTIFACT
     assert res["artifact_id"] == "c1"
 
 
@@ -114,7 +121,7 @@ def test_check_inspect_candidates():
     # Sort logic prioritizes smallest score/tokens ratio. c2 gets prioritized since -0.016 < -0.009.
     res = _check_inspect_candidates([chunk1, chunk2], set(), score_map)
     assert res is not None
-    assert res["action_type"] == "inspect_artifact"
+    assert res["action_type"] == ACTION_INSPECT_ARTIFACT
     assert res["artifact_id"] == "c2"
 
 
@@ -128,7 +135,7 @@ def test_check_fallback_prioritize():
         [chunk1, chunk2], set(["c1", "c2"]), set(), score_map, 300
     )
     assert res is not None
-    assert res["action_type"] == "prioritize_artifact"
+    assert res["action_type"] == ACTION_PRIORITIZE_ARTIFACT
     assert res["artifact_id"] == "c1"
 
 
@@ -136,7 +143,7 @@ def test_get_final_fallback_action():
     # Has selected chunks
     chunk = MockChunk("c1", 100)
     res = _get_final_fallback_action([chunk], set(), [chunk])
-    assert res["action_type"] == "submit_report"
+    assert res["action_type"] == ACTION_SUBMIT_REPORT
 
     # No selected, available chunks left
     res2 = _get_final_fallback_action([chunk], set(), [])
@@ -176,7 +183,7 @@ def test_suggest_action_fallback():
     res = _suggest_action_fallback(env)
     assert res is not None
     # With 2 reviewed and no plan draft, it should hit resolution plan first
-    assert res["action_type"] == "set_resolution_plan"
+    assert res["action_type"] == ACTION_SET_RESOLUTION_PLAN
 
 
 def test_check_early_submit_none():
@@ -280,5 +287,5 @@ def test_suggest_action_fallback_full_branch():
     res = _suggest_action_fallback(env)
     assert res is not None
     # Hit the final fallback: submit_report with currently selected evidence
-    assert res["action_type"] == "submit_report"
+    assert res["action_type"] == ACTION_SUBMIT_REPORT
     assert "Optimized answer" in res["answer"]

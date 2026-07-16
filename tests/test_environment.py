@@ -7,7 +7,14 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from env.environment import RagContextOptimizerEnv  # noqa: E402
+from env.environment import RagContextOptimizerEnv
+
+ACTION_INSPECT_ARTIFACT = "inspect_artifact"
+ACTION_PRIORITIZE_ARTIFACT = "prioritize_artifact"
+ACTION_SUMMARIZE_ARTIFACT = "summarize_artifact"
+ACTION_SET_RESOLUTION_PLAN = "set_resolution_plan"
+ACTION_SUBMIT_REPORT = "submit_report"
+  # noqa: E402
 from env.models import RagAction  # noqa: E402
 from env.tasks import ALL_TASKS, TASK_EASY, TASK_HARD  # noqa: E402
 
@@ -79,12 +86,12 @@ def test_select_chunk_within_budget():
     chunk = _smallest_unselected_chunk(reset_result.observation)
 
     step_result = _run(
-        env.step(RagAction(action_type="inspect_artifact", artifact_id=chunk.chunk_id))
+        env.step(RagAction(action_type=ACTION_INSPECT_ARTIFACT, artifact_id=chunk.chunk_id))
     )
     assert chunk.chunk_id in step_result.observation.reviewed_artifacts
     prioritized_result = _run(
         env.step(
-            RagAction(action_type="prioritize_artifact", artifact_id=chunk.chunk_id)
+            RagAction(action_type=ACTION_PRIORITIZE_ARTIFACT, artifact_id=chunk.chunk_id)
         )
     )
     assert chunk.chunk_id in prioritized_result.observation.selected_chunks
@@ -104,13 +111,13 @@ def test_select_chunk_over_budget_penalized():
             break
         result = _run(
             env.step(
-                RagAction(action_type="inspect_artifact", artifact_id=largest.chunk_id)
+                RagAction(action_type=ACTION_INSPECT_ARTIFACT, artifact_id=largest.chunk_id)
             )
         )
         result = _run(
             env.step(
                 RagAction(
-                    action_type="prioritize_artifact", artifact_id=largest.chunk_id
+                    action_type=ACTION_PRIORITIZE_ARTIFACT, artifact_id=largest.chunk_id
                 )
             )
         )
@@ -119,14 +126,14 @@ def test_select_chunk_over_budget_penalized():
     overflow_result = _run(
         env.step(
             RagAction(
-                action_type="inspect_artifact", artifact_id=overflow_chunk.chunk_id
+                action_type=ACTION_INSPECT_ARTIFACT, artifact_id=overflow_chunk.chunk_id
             )
         )
     )
     overflow_result = _run(
         env.step(
             RagAction(
-                action_type="prioritize_artifact", artifact_id=overflow_chunk.chunk_id
+                action_type=ACTION_PRIORITIZE_ARTIFACT, artifact_id=overflow_chunk.chunk_id
             )
         )
     )
@@ -141,11 +148,11 @@ def test_compress_chunk_reduces_tokens():
     chunk = _smallest_unselected_chunk(reset_result.observation)
 
     selected_result = _run(
-        env.step(RagAction(action_type="inspect_artifact", artifact_id=chunk.chunk_id))
+        env.step(RagAction(action_type=ACTION_INSPECT_ARTIFACT, artifact_id=chunk.chunk_id))
     )
     selected_result = _run(
         env.step(
-            RagAction(action_type="prioritize_artifact", artifact_id=chunk.chunk_id)
+            RagAction(action_type=ACTION_PRIORITIZE_ARTIFACT, artifact_id=chunk.chunk_id)
         )
     )
     before_tokens = selected_result.observation.total_tokens_used
@@ -153,7 +160,7 @@ def test_compress_chunk_reduces_tokens():
     compressed_result = _run(
         env.step(
             RagAction(
-                action_type="summarize_artifact",
+                action_type=ACTION_SUMMARIZE_ARTIFACT,
                 artifact_id=chunk.chunk_id,
                 compression_ratio=0.5,
             )
@@ -169,15 +176,15 @@ def test_submit_answer_ends_episode():
     _ = _run(env.reset())
     for chunk_id in TASK_EASY.required_artifact_ids[:2]:
         _ = _run(
-            env.step(RagAction(action_type="inspect_artifact", artifact_id=chunk_id))
+            env.step(RagAction(action_type=ACTION_INSPECT_ARTIFACT, artifact_id=chunk_id))
         )
         _ = _run(
-            env.step(RagAction(action_type="prioritize_artifact", artifact_id=chunk_id))
+            env.step(RagAction(action_type=ACTION_PRIORITIZE_ARTIFACT, artifact_id=chunk_id))
         )
     _ = _run(
         env.step(
             RagAction(
-                action_type="set_resolution_plan",
+                action_type=ACTION_SET_RESOLUTION_PLAN,
                 plan="Verify outage evidence, confirm the billing ledger, and route manual exceptions to finance review.",
             )
         )
@@ -186,7 +193,7 @@ def test_submit_answer_ends_episode():
     final_result = _run(
         env.step(
             RagAction(
-                action_type="submit_report",
+                action_type=ACTION_SUBMIT_REPORT,
                 answer="Proceed to refund review only after outage evidence and the billing ledger are confirmed, then route exceptions to finance review. [support_001] [support_003]",
             )
         )
@@ -201,28 +208,28 @@ def test_grader_deterministic():
         result = _run(env.reset())
         result = _run(
             env.step(
-                RagAction(action_type="inspect_artifact", artifact_id="support_003")
+                RagAction(action_type=ACTION_INSPECT_ARTIFACT, artifact_id="support_003")
             )
         )
         result = _run(
             env.step(
-                RagAction(action_type="prioritize_artifact", artifact_id="support_003")
+                RagAction(action_type=ACTION_PRIORITIZE_ARTIFACT, artifact_id="support_003")
             )
         )
         result = _run(
             env.step(
-                RagAction(action_type="inspect_artifact", artifact_id="support_005")
+                RagAction(action_type=ACTION_INSPECT_ARTIFACT, artifact_id="support_005")
             )
         )
         result = _run(
             env.step(
-                RagAction(action_type="prioritize_artifact", artifact_id="support_005")
+                RagAction(action_type=ACTION_PRIORITIZE_ARTIFACT, artifact_id="support_005")
             )
         )
         result = _run(
             env.step(
                 RagAction(
-                    action_type="set_resolution_plan",
+                    action_type=ACTION_SET_RESOLUTION_PLAN,
                     plan="Verify outage evidence, confirm the billing ledger, and route manual exceptions to finance review.",
                 )
             )
@@ -230,7 +237,7 @@ def test_grader_deterministic():
         result = _run(
             env.step(
                 RagAction(
-                    action_type="submit_report",
+                    action_type=ACTION_SUBMIT_REPORT,
                     answer="Support should confirm the outage timeline, verify the charge in the billing ledger, and use the compensation matrix before finance review. [support_003] [support_005]",
                 )
             )
@@ -258,7 +265,7 @@ def test_bad_action_returns_error():
     _run(env.reset())
     res = _run(
         env.step(
-            RagAction(action_type="inspect_artifact", artifact_id="does_not_exist")
+            RagAction(action_type=ACTION_INSPECT_ARTIFACT, artifact_id="does_not_exist")
         )
     )
     assert res.reward <= 0
