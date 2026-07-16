@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 import socket
-import subprocess
+import subprocess  # nosec B404
 import sys
 import threading
 import time
@@ -77,7 +77,7 @@ def test_inference_uses_proxy_api_key():
     proxy_thread = threading.Thread(target=proxy_server.serve_forever, daemon=True)
     proxy_thread.start()
 
-    app_process = subprocess.Popen(
+    app_process = subprocess.Popen(  # nosec B603
         [
             str(PYTHON),
             "-m",
@@ -112,8 +112,8 @@ def test_inference_uses_proxy_api_key():
         env["RAG_ENV_TASK"] = "refund_triage_easy"
         env["API_BASE_URL"] = f"http://127.0.0.1:{proxy_port}/v1"
         env["API_KEY"] = "proxy-check-token"
-        env["HF_TOKEN"] = "legacy-should-not-win"
-        result = subprocess.run(
+        env["HF_TOKEN"] = "legacy-should-not-win"  # nosec B105
+        result = subprocess.run(  # nosec B603
             [str(PYTHON), "inference.py"],
             cwd=ROOT,
             env=env,
