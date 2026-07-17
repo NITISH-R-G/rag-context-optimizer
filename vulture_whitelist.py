@@ -47,13 +47,3 @@ return_value
 do_POST
 log_message
 format
-suggest_action
-stats
-grounding
-context_tuning
-selected_keywords
-optimization_mode
-description
-url
-prioritized_artifacts
-available_artifacts
