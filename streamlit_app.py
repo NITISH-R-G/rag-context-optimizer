@@ -7,7 +7,7 @@ def get_api_url():
         return st.secrets.get("API_URL", "http://localhost:7860") if hasattr(st, "secrets") else "http://localhost:7860"
     except FileNotFoundError:
         return "http://localhost:7860"
-    except Exception:
+    except KeyError:
         return "http://localhost:7860"
 
 
