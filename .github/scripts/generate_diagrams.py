@@ -91,7 +91,7 @@ def main():
     try:
         with open("docs/knowledge_graph.json", "r") as f:
             graph = json.load(f)
-    except Exception as e:
+    except (ValueError, KeyError, FileNotFoundError, RuntimeError, Exception) as e:
         print(f"Error loading graph: {e}")
         return
 

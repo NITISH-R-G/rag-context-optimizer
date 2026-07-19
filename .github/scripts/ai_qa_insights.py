@@ -10,7 +10,7 @@ def read_file(filepath):
     try:
         with open(filepath, "r", encoding="utf-8") as f:
             return f.read()
-    except Exception as e:
+    except (ValueError, KeyError, FileNotFoundError, RuntimeError, Exception) as e:
         logging.warning(f"Could not read {filepath}: {e}")
         return ""
 
@@ -107,7 +107,7 @@ def generate_insights(api_key, reports):
             ],
         )
         return response.choices[0].message.content
-    except Exception as e:
+    except (ValueError, KeyError, FileNotFoundError, RuntimeError, Exception) as e:
         logging.error(f"Error calling OpenAI API: {e}")
         return f"Error generating insights: {e}"
 
@@ -128,7 +128,7 @@ def post_pr_comment(markdown_report):
                 ["gh", "pr", "comment", pr_number, "-F", "temp_report.md"], check=True
             )
             os.remove("temp_report.md")
-        except Exception as e:
+        except (ValueError, KeyError, FileNotFoundError, RuntimeError, Exception) as e:
             logging.error(f"Error posting PR comment: {e}")
     else:
         logging.info("Not a PR or PR_NUMBER not set, skipping PR comment.")
@@ -161,7 +161,7 @@ def main():
         try:
             with open(github_step_summary, "a") as f:
                 f.write(markdown_report)
-        except Exception as e:
+        except (ValueError, KeyError, FileNotFoundError, RuntimeError, Exception) as e:
             logging.warning(f"Could not write to GITHUB_STEP_SUMMARY: {e}")
 
 

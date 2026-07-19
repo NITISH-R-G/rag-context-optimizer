@@ -10,7 +10,7 @@ def parse_python_file(filepath):
         with open(filepath, "r", encoding="utf-8") as f:
             source = f.read()
         return ast.parse(source), source
-    except Exception as e:
+    except (ValueError, KeyError, FileNotFoundError, RuntimeError, Exception) as e:
         print(f"Error parsing {filepath}: {e}")
         return None, None
 
@@ -87,7 +87,7 @@ def get_project_metadata():
                 deps_str = deps_match.group(1)
                 deps = re.findall(r'"([^"=><]+)[^"]*"', deps_str)
                 metadata["dependencies"] = deps
-    except Exception as e:
+    except (ValueError, KeyError, FileNotFoundError, RuntimeError, Exception) as e:
         print(f"Error reading pyproject.toml: {e}")
     return metadata
 
