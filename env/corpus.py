@@ -17,7 +17,9 @@ class Chunk(BaseModel):
     domain: str = Field(..., description="High-level corpus domain.")
     text: str = Field(..., description="Document chunk text.")
     tokens: int = Field(..., ge=1, description="Approximate token count for the chunk.")
-    keywords: list[str] = Field(..., min_length=1, description="Important keywords for retrieval.")
+    keywords: list[str] = Field(
+        ..., min_length=1, description="Important keywords for retrieval."
+    )
     relevance_tags: list[str] = Field(
         ...,
         min_length=1,
@@ -35,7 +37,9 @@ _CORPUS_FAMILY_FILES = {
 }
 
 
-def resolve_corpus_path(path: str | Path | None = None, family: str | None = None) -> Path:
+def resolve_corpus_path(
+    path: str | Path | None = None, family: str | None = None
+) -> Path:
     """Resolve the active corpus path, allowing environment overrides."""
     if path is not None:
         return Path(path)
