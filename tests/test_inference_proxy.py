@@ -104,7 +104,7 @@ def test_inference_uses_proxy_api_key():
                     == 200
                 ):
                     break
-            except (ConnectionError, RuntimeError, Exception):
+            except Exception:
                 time.sleep(0.5)
 
         env = os.environ.copy()
@@ -135,5 +135,5 @@ def test_inference_uses_proxy_api_key():
         app_process.terminate()
         try:
             app_process.wait(timeout=5)
-        except (ConnectionError, RuntimeError, Exception):
+        except Exception:
             app_process.kill()
