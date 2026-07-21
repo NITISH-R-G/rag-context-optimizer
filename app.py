@@ -172,10 +172,10 @@ def _episode_store() -> EpisodeStore:
 def _resolve_env(episode_id: str | None) -> tuple[str, RagContextOptimizerEnv]:
     try:
         return _episode_store().get(episode_id)
-    except KeyError as exc:
+    except KeyError:
         raise HTTPException(
             status_code=404, detail="Episode not found. Call /reset first."
-        ) from exc
+        )  # noqa
 
 
 async def _optimize_prompt_backend(

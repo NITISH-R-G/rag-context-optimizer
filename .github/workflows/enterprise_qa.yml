@@ -14,6 +14,9 @@ permissions:
   contents: read
   pull-requests: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   quality-assurance:
     runs-on: ubuntu-latest
@@ -41,7 +44,6 @@ jobs:
     - name: Secret Detection (Gitleaks)
       uses: gitleaks/gitleaks-action@v2
       env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: License Compliance
@@ -109,7 +111,6 @@ jobs:
     - name: Generate AI Quality Insights
       if: always()
       env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
