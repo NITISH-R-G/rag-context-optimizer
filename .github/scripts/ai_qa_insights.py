@@ -2,6 +2,8 @@ import os
 import logging
 import subprocess  # nosec B404
 # pylint: disable=duplicate-code
+# pylint: disable=broad-exception-caught
+
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
@@ -117,7 +119,7 @@ def post_pr_comment(markdown_report):
                 f.write(markdown_report)
 
             # Use gh cli to comment
-            subprocess.run(["/usr/bin/gh", "pr", "comment", pr_number, "-F", "temp_report.md"], check=True, shell=False)  # nosec B603 B607
+            subprocess.run(["gh", "pr", "comment", pr_number, "-F", "temp_report.md"], check=True)  # nosec B603 B607
   # nosec B607
 
             os.remove("temp_report.md")

@@ -1,3 +1,4 @@
+# ruff: noqa: F821
 home_page  # unused function (app.py:116)
 reset_endpoint  # unused function (app.py:391)
 step_endpoint  # unused function (app.py:409)
