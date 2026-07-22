@@ -55,7 +55,7 @@ exclude = [
     "vulture_whitelist.py"
 ]
 
-[tool.pylint.master]
+[tool.pylint.main]
 ignore-paths = ['^tests/.*', '^\.github/scripts/.*']
 
 [tool.ruff]
