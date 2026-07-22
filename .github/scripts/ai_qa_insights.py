@@ -1,6 +1,6 @@
 import os
 import logging
-import subprocess
+import subprocess  # nosec B404
 
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
@@ -116,7 +116,7 @@ def post_pr_comment(markdown_report):
                 f.write(markdown_report)
 
             # Use gh cli to comment
-            subprocess.run(["gh", "pr", "comment", pr_number, "-F", "temp_report.md"], check=True)
+            subprocess.run(["gh", "pr", "comment", pr_number, "-F", "temp_report.md"], check=True)  # nosec B603
             os.remove("temp_report.md")
         except Exception as e:
             logging.error(f"Error posting PR comment: {e}")

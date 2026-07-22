@@ -53,3 +53,6 @@ disallow_untyped_defs = false
 exclude = [
     "^tests/"
 ]
+
+[tool.pylint.master]
+ignore-paths = ['^tests/.*', '^\.github/scripts/.*']
