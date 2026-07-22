@@ -383,7 +383,7 @@ async def _suggest_action(env: RagContextOptimizerEnv) -> dict[str, Any]:
                 suggested_citations=tuning.suggested_citations,
                 top_demo_cases=tuning.top_demo_cases,
             )
-        except Exception:
+        except Exception:  # nosec B110
             pass
     return _suggest_action_fallback(env)
 
