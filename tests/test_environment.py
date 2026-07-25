@@ -1,7 +1,7 @@
-import asyncio
-import random
-import sys
-from pathlib import Path
+import asyncio  # noqa: E402
+import random  # noqa: E402
+import sys  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:

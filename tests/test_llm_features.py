@@ -1,10 +1,10 @@
-import json
-import socket
-import threading
-from contextlib import contextmanager
-from http.server import BaseHTTPRequestHandler, HTTPServer
-import sys
-from pathlib import Path
+import json  # noqa: E402
+import socket  # noqa: E402
+import threading  # noqa: E402
+from contextlib import contextmanager  # noqa: E402
+from http.server import BaseHTTPRequestHandler, HTTPServer  # noqa: E402
+import sys  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:

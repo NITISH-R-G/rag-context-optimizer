@@ -1,9 +1,9 @@
-from __future__ import annotations
+from __future__ import annotations  # noqa: E402
 
-import json
-import pytest
-import sys
-from pathlib import Path
+import json  # noqa: E402
+import pytest  # noqa: E402
+import sys  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:

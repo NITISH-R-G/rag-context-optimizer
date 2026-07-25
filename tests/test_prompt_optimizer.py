@@ -1,8 +1,8 @@
-from __future__ import annotations
+from __future__ import annotations  # noqa: E402
 
-import sys
-from pathlib import Path
-import pytest
+import sys  # noqa: E402
+from pathlib import Path  # noqa: E402
+import pytest  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -117,11 +117,11 @@ def test_target_ratio():
 def test_fit_citations_into_prompt():
     prompt = "This is a test prompt."
     citations = ["doc1", "doc2"]
-    result, ready, notes = _fit_citations_into_prompt(
+    result, _ready, _notes = _fit_citations_into_prompt(
         prompt, citations, 10, 5, prompt, "balanced"
     )
     assert isinstance(result, str)
-    assert isinstance(ready, bool)
+    assert isinstance(_ready, bool)
 
 
 @pytest.mark.asyncio
@@ -130,8 +130,8 @@ async def test_rank_and_select_chunks():
     await env.reset()  # mock env state roughly
 
     class DummyTuning:
-        tuned_scores = {}
-        suggested_citations = []
+        tuned_scores: dict = {}
+        suggested_citations: list = []
 
     tuning = DummyTuning()
     _rank_and_select_chunks(env, tuning, "test prompt", "balanced")
@@ -147,7 +147,7 @@ async def test_extract_distilled_points():
 
 
 def test_rewrite_prompt_fallback():
-    result, ready, notes = _rewrite_prompt_fallback(
+    result, _ready, _notes = _rewrite_prompt_fallback(
         "test prompt", 10, 5, "balanced", False, [], ["doc1"]
     )
     assert isinstance(result, str)
@@ -186,7 +186,7 @@ async def test_extract_distilled_points_with_preserve_short():
 def test_fit_citations_into_prompt_aggressive():
     prompt = "This is a prompt."
     citations = ["doc1", "doc2"]
-    result, ready, notes = _fit_citations_into_prompt(
+    result, _ready, _notes = _fit_citations_into_prompt(
         prompt, citations, 10, 5, prompt, "aggressive"
     )
     assert isinstance(result, str)
@@ -195,15 +195,15 @@ def test_fit_citations_into_prompt_aggressive():
 def test_fit_citations_into_prompt_grounded():
     prompt = "This is a prompt."
     citations = ["doc1", "doc2"]
-    result, ready, notes = _fit_citations_into_prompt(
+    result, _ready, _notes = _fit_citations_into_prompt(
         prompt, citations, 10, 5, prompt, "grounded"
     )
-    assert "doc1" in result or notes is not None
+    assert "doc1" in result or _notes is not None
 
 
 def test_rewrite_prompt_fallback_long():
     long_prompt = "A " * 50
-    result, ready, notes = _rewrite_prompt_fallback(
+    result, _ready, _notes = _rewrite_prompt_fallback(
         long_prompt, 50, 10, "balanced", False, [("doc1", "note")], ["doc1"]
     )
     assert "doc1" in result
@@ -211,7 +211,7 @@ def test_rewrite_prompt_fallback_long():
 
 def test_rewrite_prompt_fallback_preserve_short():
     short_prompt = "Short prompt."
-    result, ready, notes = _rewrite_prompt_fallback(
+    result, _ready, _notes = _rewrite_prompt_fallback(
         short_prompt, 2, 2, "balanced", True, [], ["doc1"]
     )
     assert len(result) > 0
