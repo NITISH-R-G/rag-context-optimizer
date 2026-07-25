@@ -1,5 +1,5 @@
-import json  # noqa: E402
-from inference import _fallback_plan, _fallback_action, _build_user_prompt  # noqa: E402
+import json
+from inference import _fallback_plan, _fallback_action, _build_user_prompt
 
 
 def test_fallback_plan():

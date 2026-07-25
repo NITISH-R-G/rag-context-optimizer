@@ -1,49 +1,51 @@
 # ruff: noqa: F821
-home_page
-reset_endpoint
-step_endpoint
-state_endpoint
-health_endpoint
-tasks_endpoint
-corpus_families_endpoint
-optimize_step_endpoint
-optimize_prompt_endpoint
-relevance_tags
-get_chunks_by_domain
-get_chunk_by_id
-judge_answer
-model_config
-validate_non_empty_text
-cls
-validate_keywords
-case_id
-progress_signals
-last_action_feedback
-validate_required_strings
-validate_ids
-validate_report_requirements
-validate_feedback
-validate_budget_and_aliases
-normalize_optional_strings
-validate_action_semantics
-RagReward
-answer_quality
-retrieval_precision
-penalty
-validate_total_bound
-get_ground_truth_relevant
-objective_type
-kwargs
-key
-side_effect
-other
-pos_weight
-lr
-cross_encoder_score
-embedding_similarity
-q1
-q2
-return_value
-do_POST
-log_message
-format
+# pylint: disable=undefined-variable
+# type: ignore
+home_page = None
+reset_endpoint = None
+step_endpoint = None
+state_endpoint = None
+health_endpoint = None
+tasks_endpoint = None
+corpus_families_endpoint = None
+optimize_step_endpoint = None
+optimize_prompt_endpoint = None
+relevance_tags = None
+get_chunks_by_domain = None
+get_chunk_by_id = None
+judge_answer = None
+model_config = None
+validate_non_empty_text = None
+cls = None
+validate_keywords = None
+case_id = None
+progress_signals = None
+last_action_feedback = None
+validate_required_strings = None
+validate_ids = None
+validate_report_requirements = None
+validate_feedback = None
+validate_budget_and_aliases = None
+normalize_optional_strings = None
+validate_action_semantics = None
+RagReward = None
+answer_quality = None
+retrieval_precision = None
+penalty = None
+validate_total_bound = None
+get_ground_truth_relevant = None
+objective_type = None
+kwargs = None
+key = None
+side_effect = None
+other = None
+pos_weight = None
+lr = None
+cross_encoder_score = None
+embedding_similarity = None
+q1 = None
+q2 = None
+return_value = None
+do_POST = None
+log_message = None
+format = None

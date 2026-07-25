@@ -1,5 +1,5 @@
-import pytest  # noqa: E402
-from env.environment import RagContextOptimizerEnv  # noqa: E402
+import pytest
+from env.environment import RagContextOptimizerEnv
 
 
 @pytest.mark.asyncio

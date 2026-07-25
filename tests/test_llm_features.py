@@ -1,18 +1,18 @@
-import json  # noqa: E402
-import socket  # noqa: E402
-import threading  # noqa: E402
-from contextlib import contextmanager  # noqa: E402
-from http.server import BaseHTTPRequestHandler, HTTPServer  # noqa: E402
-import sys  # noqa: E402
-from pathlib import Path  # noqa: E402
+import json
+import socket
+import threading
+from contextlib import contextmanager
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from fastapi.testclient import TestClient  # noqa: E402
+from fastapi.testclient import TestClient
 
-from app import app  # noqa: E402
+from app import app
 
 
 def _free_port() -> int:

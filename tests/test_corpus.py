@@ -1,4 +1,4 @@
-from env.corpus import list_corpus_families, _CORPUS_FAMILY_FILES  # noqa: E402
+from env.corpus import list_corpus_families, _CORPUS_FAMILY_FILES
 
 
 def test_list_corpus_families():

@@ -10,7 +10,7 @@ try:
     )
 except FileNotFoundError:
     API_URL = "http://localhost:7860"
-except Exception:
+except Exception:  # noqa: BLE001
     API_URL = "http://localhost:7860"
 
 
