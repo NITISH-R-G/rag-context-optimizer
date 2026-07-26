@@ -83,7 +83,7 @@ def main():
     try:
         with open("docs/knowledge_graph.json", "r") as f:
             graph = json.load(f)
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error loading graph: {e}")
         return
 

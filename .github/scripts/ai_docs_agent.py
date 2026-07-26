@@ -12,21 +12,21 @@ def get_repo_context() -> Dict[str, Any]:
     try:
         with open("docs/knowledge_graph.json", "r") as f:
             context['graph'] = json.load(f)
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
          logging.warning(f"Could not load knowledge graph: {e}")
          context['graph'] = {}
 
     try:
         with open("docs/architecture.md", "r") as f:
             context['architecture'] = f.read()
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
          logging.warning(f"Could not load architecture diagrams: {e}")
          context['architecture'] = ""
 
     try:
         with open("README.md", "r") as f:
             context['readme'] = f.read()
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
          logging.warning(f"Could not load README: {e}")
          context['readme'] = ""
 
@@ -82,7 +82,7 @@ def generate_documentation(api_key: str, context: Dict[str, Any]) -> Dict[str, s
         if content:
              return json.loads(content)
         return {}
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
         logging.error(f"Error calling OpenAI API: {e}")
         return {}
 
