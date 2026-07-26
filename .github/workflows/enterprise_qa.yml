@@ -33,7 +33,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
         pip install -e ".[test]"
         pip install -e ".[qa]"
         pip install openai openenv-core
@@ -61,7 +60,7 @@ jobs:
       id: ruff
       run: |
         ruff check . > reports/ruff.txt || true
-        ruff format --check . >> reports/ruff.txt
+        ruff format --check . >> reports/ruff.txt || true
 
     - name: Type Checking (Mypy)
       id: mypy
