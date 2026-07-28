@@ -1,38 +1,38 @@
-import os
 import json
 import logging
-from typing import Dict, Any
+import os
+from typing import Any
 
 # Configure simple logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
-def get_repo_context() -> Dict[str, Any]:
+def get_repo_context() -> dict[str, Any]:
     """Loads repository context from generated files."""
     context = {}
     try:
         with open("docs/knowledge_graph.json", "r") as f:
             context['graph'] = json.load(f)
-    except Exception as e:
-         logging.warning(f"Could not load knowledge graph: {e}")
+    except Exception as e:  # noqa: BLE001
+         logging.getLogger(__name__).warning(f"Could not load knowledge graph: {e}")
          context['graph'] = {}
 
     try:
         with open("docs/architecture.md", "r") as f:
             context['architecture'] = f.read()
-    except Exception as e:
-         logging.warning(f"Could not load architecture diagrams: {e}")
+    except Exception as e:  # noqa: BLE001
+         logging.getLogger(__name__).warning(f"Could not load architecture diagrams: {e}")
          context['architecture'] = ""
 
     try:
         with open("README.md", "r") as f:
             context['readme'] = f.read()
-    except Exception as e:
-         logging.warning(f"Could not load README: {e}")
+    except Exception as e:  # noqa: BLE001
+         logging.getLogger(__name__).warning(f"Could not load README: {e}")
          context['readme'] = ""
 
     return context
 
-def build_prompt(context: Dict[str, Any]) -> str:
+def build_prompt(context: dict[str, Any]) -> str:
     """Builds a prompt for the AI to update documentation."""
     graph = context.get('graph', {})
 
@@ -58,12 +58,12 @@ def build_prompt(context: Dict[str, Any]) -> str:
     """
     return prompt
 
-def generate_documentation(api_key: str, context: Dict[str, Any]) -> Dict[str, str]:
+def generate_documentation(api_key: str, context: dict[str, Any]) -> dict[str, str]:
     """Uses OpenAI API to generate new documentation."""
     try:
         from openai import OpenAI
     except ImportError:
-        logging.error("OpenAI package not installed.")
+        logging.getLogger(__name__).error("OpenAI package not installed.")
         return {}
 
     client = OpenAI(api_key=api_key)
@@ -82,8 +82,8 @@ def generate_documentation(api_key: str, context: Dict[str, Any]) -> Dict[str, s
         if content:
              return json.loads(content)
         return {}
-    except Exception as e:
-        logging.error(f"Error calling OpenAI API: {e}")
+    except Exception as e:  # noqa: BLE001
+        logging.getLogger(__name__).error(f"Error calling OpenAI API: {e}")
         return {}
 
 def main():
@@ -91,7 +91,7 @@ def main():
     context = get_repo_context()
 
     if not api_key:
-         logging.warning("No OPENAI_API_KEY found. AI Documentation generation skipped.")
+         logging.getLogger(__name__).warning("No OPENAI_API_KEY found. AI Documentation generation skipped.")
          # In a real run, this might fail or we could generate a deterministic basic template
          # For this environment, we'll write a placeholder if API key is absent
          docs = {
@@ -99,24 +99,24 @@ def main():
              "onboarding": "# Developer Onboarding\n\nReview the `docs/architecture.md` file to get started."
          }
     else:
-        logging.info("Calling OpenAI API to generate docs...")
+        logging.getLogger(__name__).info("Calling OpenAI API to generate docs...")
         docs = generate_documentation(api_key, context)
 
     # Write outputs
     if docs.get("readme"):
         with open("README.md", "w") as f:
             f.write(docs["readme"])
-        logging.info("Updated README.md")
+        logging.getLogger(__name__).info("Updated README.md")
 
     if docs.get("contributing"):
         with open("docs/contributing.md", "w") as f:
             f.write(docs["contributing"])
-        logging.info("Updated docs/contributing.md")
+        logging.getLogger(__name__).info("Updated docs/contributing.md")
 
     if docs.get("onboarding"):
         with open("docs/onboarding.md", "w") as f:
             f.write(docs["onboarding"])
-        logging.info("Updated docs/onboarding.md")
+        logging.getLogger(__name__).info("Updated docs/onboarding.md")
 
 if __name__ == "__main__":
     main()

@@ -159,7 +159,7 @@ def run_inference_script(base_url: str) -> bool:
             self.end_headers()
             self.wfile.write(encoded)
 
-        def log_message(self, format: str, *args):
+        def log_message(self, format_str: str, *args):
             return
 
     proxy_server = HTTPServer(("127.0.0.1", proxy_port), ProxyHandler)
@@ -172,8 +172,8 @@ def run_inference_script(base_url: str) -> bool:
         env.pop("ALLOW_BASELINE_FALLBACK", None)
         env["API_BASE_URL"] = f"http://127.0.0.1:{proxy_port}/v1"
         env["API_KEY"] = "offline-validation-token"
-        env["HF_TOKEN"] = "legacy-should-not-win"
-        process = subprocess.run(
+        env["HF_TOKEN"] = "legacy-should-not-win"  # nosec B105
+        process = subprocess.run(  # nosec B603
             [sys.executable, "inference.py"],
             cwd=PROJECT_ROOT,
             capture_output=True,
