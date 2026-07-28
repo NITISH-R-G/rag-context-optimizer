@@ -16,4 +16,5 @@ async def run():
         print("Done!")
         await browser.close()
 
+
 asyncio.run(run())
