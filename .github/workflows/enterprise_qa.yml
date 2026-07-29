@@ -1,4 +1,7 @@
 name: Enterprise QA and Security
+env:
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
 
 on:
   push:
