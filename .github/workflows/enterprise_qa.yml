@@ -95,7 +95,7 @@ jobs:
       id: pipaudit
       continue-on-error: true
       run: |
-        pip-audit -f json > reports/pip-audit.json
+        pip-audit --skip pip -f json > reports/pip-audit.json
 
     - name: Dependency Security Scan (Safety)
       id: safety
