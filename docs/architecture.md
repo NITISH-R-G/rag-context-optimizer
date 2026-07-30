@@ -7,16 +7,16 @@
 ```mermaid
 graph LR
     subgraph External Dependencies
-        E0["asyncio"]
-        E1["math"]
-        E2["openai"]
+        E0["builtins"]
+        E1["asyncio"]
+        E2["playwright"]
         E3["functools"]
-        E4["pydantic"]
-        E5["http"]
-        E6["pytest"]
-        E7["playwright"]
-        E8["builtins"]
-        E9["signal"]
+        E4["math"]
+        E5["signal"]
+        E6["httpx"]
+        E7["hashlib"]
+        E8["random"]
+        E9["threading"]
     end
     subgraph Core System
         API["FastAPI App"]
@@ -97,8 +97,8 @@ graph TD
     F32["__init__.py"]
     click F32 "server/__init__.py" "Go to source"
     F0 -->|imports| F12
-    F3 -->|imports| F2
     F3 -->|imports| F12
+    F3 -->|imports| F2
     F4 -->|imports| F18
     F5 -->|imports| F12
     F6 -->|imports| F3
@@ -114,17 +114,17 @@ graph TD
     F18 -->|imports| F12
     F19 -->|imports| F0
     F20 -->|imports| F2
-    F21 -->|imports| F2
     F21 -->|imports| F12
-    F22 -->|imports| F2
+    F21 -->|imports| F2
     F22 -->|imports| F12
+    F22 -->|imports| F2
     F25 -->|imports| F12
-    F26 -->|imports| F2
     F26 -->|imports| F12
-    F28 -->|imports| F2
+    F26 -->|imports| F2
     F28 -->|imports| F12
-    F30 -->|imports| F2
+    F28 -->|imports| F2
     F30 -->|imports| F12
+    F30 -->|imports| F2
     F31 -->|imports| F0
 ```
 
