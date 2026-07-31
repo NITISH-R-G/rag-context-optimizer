@@ -1,3 +1,5 @@
+from __future__ import annotations
+import typing
 """
 Deterministic hybrid retrieval utilities for rag-context-optimizer.
 
@@ -34,13 +36,13 @@ True
 True
 """
 
-from __future__ import annotations
 
 import functools
 import math
 import re
 from collections import Counter, defaultdict
-from typing import AbstractSet, Iterable
+from collections.abc import Iterable
+from typing import AbstractSet
 
 from env.corpus import Chunk
 
@@ -48,7 +50,7 @@ from env.corpus import Chunk
 class HybridRetriever:
     """Hybrid lexical retriever with deterministic BM25 and keyword overlap scoring."""
 
-    _STOPWORDS = {
+    _STOPWORDS: typing.ClassVar[set[str]] = {
         "a",
         "an",
         "and",
@@ -90,7 +92,7 @@ class HybridRetriever:
         "without",
         "your",
     }
-    _TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
+    _TOKEN_PATTERN: typing.ClassVar[re.Pattern] = re.compile(r"[a-z0-9]+")
 
     def __init__(self, corpus: list[Chunk]):
         self.corpus = list(corpus)
@@ -114,7 +116,9 @@ class HybridRetriever:
             for term in term_freqs:
                 self._doc_freqs[term] += 1
 
-            self._chunk_keyword_terms[chunk.chunk_id] = self._tokenize_query_terms(" ".join(chunk.keywords))
+            self._chunk_keyword_terms[chunk.chunk_id] = self._tokenize_query_terms(
+                " ".join(chunk.keywords)
+            )
 
         self._avg_doc_length = total_length / len(self.corpus) if self.corpus else 0.0
         self._max_score_cache: dict[tuple[str, ...], float] = {}

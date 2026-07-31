@@ -1,13 +1,12 @@
 """
 Corpus loading utilities for the rag-context-optimizer environment.
 """
-
 from __future__ import annotations
+
 
 import json
 import os
 from pathlib import Path
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -17,7 +16,9 @@ class Chunk(BaseModel):
     domain: str = Field(..., description="High-level corpus domain.")
     text: str = Field(..., description="Document chunk text.")
     tokens: int = Field(..., ge=1, description="Approximate token count for the chunk.")
-    keywords: list[str] = Field(..., min_length=1, description="Important keywords for retrieval.")
+    keywords: list[str] = Field(
+        ..., min_length=1, description="Important keywords for retrieval."
+    )
     relevance_tags: list[str] = Field(
         ...,
         min_length=1,
@@ -35,7 +36,9 @@ _CORPUS_FAMILY_FILES = {
 }
 
 
-def resolve_corpus_path(path: str | Path | None = None, family: str | None = None) -> Path:
+def resolve_corpus_path(
+    path: str | Path | None = None, family: str | None = None
+) -> Path:
     """Resolve the active corpus path, allowing environment overrides."""
     if path is not None:
         return Path(path)
@@ -76,6 +79,6 @@ def get_chunks_by_domain(domain: str) -> list[Chunk]:
     return [chunk for chunk in _CORPUS_CACHE if chunk.domain == domain]
 
 
-def get_chunk_by_id(chunk_id: str) -> Optional[Chunk]:
+def get_chunk_by_id(chunk_id: str) -> Chunk | None:
     """Return a single chunk by id if it exists in the loaded corpus."""
     return _CORPUS_ID_MAP.get(chunk_id)
