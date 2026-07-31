@@ -1,0 +1,19 @@
+All checks passed!
+Would reformat: .github/scripts/ai_docs_agent.py
+Would reformat: .github/scripts/ai_qa_insights.py
+Would reformat: .github/scripts/analyze_codebase.py
+Would reformat: .github/scripts/generate_diagrams.py
+Would reformat: frontend_test.py
+Would reformat: tests/test_api.py
+Would reformat: tests/test_context_tuner_coverage.py
+Would reformat: tests/test_environment.py
+Would reformat: tests/test_fallback_logic.py
+Would reformat: tests/test_graders.py
+Would reformat: tests/test_inference.py
+Would reformat: tests/test_inference_coverage.py
+Would reformat: tests/test_llm_features.py
+Would reformat: tests/test_llm_runtime.py
+Would reformat: tests/test_prompt_optimizer.py
+Would reformat: tests/test_server_app.py
+Would reformat: tests/test_streamlit_app.py
+17 files would be reformatted, 20 files already formatted
