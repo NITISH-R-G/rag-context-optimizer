@@ -8,6 +8,7 @@ if str(ROOT) not in sys.path:
 
 import streamlit_app  # noqa: E402
 
+
 @patch("streamlit_app.st.error")
 @patch("streamlit_app.httpx.get")
 def test_api_get_error(mock_get, mock_error):
