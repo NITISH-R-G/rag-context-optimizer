@@ -89,9 +89,9 @@ def generate_system_architecture(graph):
 
 def main():
     try:
-        with open("docs/knowledge_graph.json", "r") as f:
+        with open("docs/knowledge_graph.json", "r", encoding="utf-8") as f:
             graph = json.load(f)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"Error loading graph: {e}")
         return
 
@@ -112,7 +112,7 @@ def main():
         content.append(generate_api_flow(graph))
         content.append("\n")
 
-    with open("docs/architecture.md", "w") as f:
+    with open("docs/architecture.md", "w", encoding="utf-8") as f:
         f.write("\n".join(content))
 
     print("Generated diagrams to docs/architecture.md")

@@ -1,5 +1,7 @@
 import json
 import logging
+
+logger = logging.getLogger(__name__)
 import os
 from typing import Any
 
@@ -11,24 +13,24 @@ def get_repo_context() -> dict[str, Any]:
     """Loads repository context from generated files."""
     context = {}
     try:
-        with open("docs/knowledge_graph.json", "r") as f:
+        with open("docs/knowledge_graph.json", "r", encoding="utf-8") as f:
             context["graph"] = json.load(f)
-    except Exception as e:
-        logging.warning(f"Could not load knowledge graph: {e}")
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"Could not load knowledge graph: {e}")
         context["graph"] = {}
 
     try:
-        with open("docs/architecture.md", "r") as f:
+        with open("docs/architecture.md", "r", encoding="utf-8") as f:
             context["architecture"] = f.read()
-    except Exception as e:
-        logging.warning(f"Could not load architecture diagrams: {e}")
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"Could not load architecture diagrams: {e}")
         context["architecture"] = ""
 
     try:
-        with open("README.md", "r") as f:
+        with open("README.md", "r", encoding="utf-8") as f:
             context["readme"] = f.read()
-    except Exception as e:
-        logging.warning(f"Could not load README: {e}")
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"Could not load README: {e}")
         context["readme"] = ""
 
     return context
@@ -66,7 +68,7 @@ def generate_documentation(api_key: str, context: dict[str, Any]) -> dict[str, s
     try:
         from openai import OpenAI
     except ImportError:
-        logging.error("OpenAI package not installed.")
+        logger.error("OpenAI package not installed.")
         return {}
 
     client = OpenAI(api_key=api_key)
@@ -88,8 +90,8 @@ def generate_documentation(api_key: str, context: dict[str, Any]) -> dict[str, s
         if content:
             return json.loads(content)
         return {}
-    except Exception as e:
-        logging.error(f"Error calling OpenAI API: {e}")
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"Error calling OpenAI API: {e}")
         return {}
 
 
@@ -98,7 +100,7 @@ def main():
     context = get_repo_context()
 
     if not api_key:
-        logging.warning("No OPENAI_API_KEY found. AI Documentation generation skipped.")
+        logger.warning("No OPENAI_API_KEY found. AI Documentation generation skipped.")
         # In a real run, this might fail or we could generate a deterministic basic template
         # For this environment, we'll write a placeholder if API key is absent
         docs = {
@@ -106,24 +108,24 @@ def main():
             "onboarding": "# Developer Onboarding\n\nReview the `docs/architecture.md` file to get started.",
         }
     else:
-        logging.info("Calling OpenAI API to generate docs...")
+        logger.info("Calling OpenAI API to generate docs...")
         docs = generate_documentation(api_key, context)
 
     # Write outputs
     if docs.get("readme"):
-        with open("README.md", "w") as f:
+        with open("README.md", "w", encoding="utf-8") as f:
             f.write(docs["readme"])
-        logging.info("Updated README.md")
+        logger.info("Updated README.md")
 
     if docs.get("contributing"):
-        with open("docs/contributing.md", "w") as f:
+        with open("docs/contributing.md", "w", encoding="utf-8") as f:
             f.write(docs["contributing"])
-        logging.info("Updated docs/contributing.md")
+        logger.info("Updated docs/contributing.md")
 
     if docs.get("onboarding"):
-        with open("docs/onboarding.md", "w") as f:
+        with open("docs/onboarding.md", "w", encoding="utf-8") as f:
             f.write(docs["onboarding"])
-        logging.info("Updated docs/onboarding.md")
+        logger.info("Updated docs/onboarding.md")
 
 
 if __name__ == "__main__":

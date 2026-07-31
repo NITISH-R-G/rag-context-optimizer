@@ -1,5 +1,7 @@
 from __future__ import annotations
+
 import typing
+
 """
 Deterministic hybrid retrieval utilities for rag-context-optimizer.
 
@@ -42,7 +44,7 @@ import math
 import re
 from collections import Counter, defaultdict
 from collections.abc import Iterable
-from typing import AbstractSet
+from collections.abc import Set as AbstractSet
 
 from env.corpus import Chunk
 

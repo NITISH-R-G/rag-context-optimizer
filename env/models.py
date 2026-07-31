@@ -3,7 +3,6 @@ Typed Pydantic models for the incident operations OpenEnv environment.
 """
 from __future__ import annotations
 
-
 from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator

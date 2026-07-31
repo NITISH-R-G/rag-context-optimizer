@@ -10,7 +10,7 @@ def parse_python_file(filepath):
         with open(filepath, "r", encoding="utf-8") as f:
             source = f.read()
         return ast.parse(source), source
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"Error parsing {filepath}: {e}")
         return None, None
 
@@ -74,7 +74,7 @@ def get_project_metadata():
     """Reads pyproject.toml to extract project info and top-level dependencies."""
     metadata = {"dependencies": [], "name": "", "version": ""}
     try:
-        with open("pyproject.toml", "r") as f:
+        with open("pyproject.toml", "r", encoding="utf-8") as f:
             content = f.read()
             name_match = re.search(r'name\s*=\s*"([^"]+)"', content)
             if name_match:
@@ -85,7 +85,7 @@ def get_project_metadata():
                 deps_str = deps_match.group(1)
                 deps = re.findall(r'"([^"=><]+)[^"]*"', deps_str)
                 metadata["dependencies"] = deps
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"Error reading pyproject.toml: {e}")
     return metadata
 
@@ -180,6 +180,6 @@ def analyze_codebase(root_dir="."):
 if __name__ == "__main__":
     graph = analyze_codebase()
     os.makedirs("docs", exist_ok=True)
-    with open("docs/knowledge_graph.json", "w") as f:
+    with open("docs/knowledge_graph.json", "w", encoding="utf-8") as f:
         json.dump(graph, f, indent=2)
     print("Knowledge graph written to docs/knowledge_graph.json")

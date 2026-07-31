@@ -1,4 +1,6 @@
 import logging
+
+logger = logging.getLogger(__name__)
 import os
 import subprocess
 
@@ -10,8 +12,8 @@ def read_file(filepath):
     try:
         with open(filepath, "r", encoding="utf-8") as f:
             return f.read()
-    except Exception as e:
-        logging.warning(f"Could not read {filepath}: {e}")
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"Could not read {filepath}: {e}")
         return ""
 
 
@@ -89,7 +91,7 @@ def generate_insights(api_key, reports):
     try:
         from openai import OpenAI
     except ImportError:
-        logging.error("OpenAI package not installed.")
+        logger.error("OpenAI package not installed.")
         return "No OpenAI package installed. AI insights skipped."
 
     client = OpenAI(api_key=api_key)
@@ -107,8 +109,8 @@ def generate_insights(api_key, reports):
             ],
         )
         return response.choices[0].message.content
-    except Exception as e:
-        logging.error(f"Error calling OpenAI API: {e}")
+    except Exception as e:  # noqa: BLE001
+        logger.error(f"Error calling OpenAI API: {e}")
         return f"Error generating insights: {e}"
 
 
@@ -118,9 +120,9 @@ def post_pr_comment(markdown_report):
     pr_number = os.getenv("PR_NUMBER")
 
     if pr_number:
-        logging.info(f"Posting comment to PR {pr_number}")
+        logger.info(f"Posting comment to PR {pr_number}")
         try:
-            with open("temp_report.md", "w") as f:
+            with open("temp_report.md", "w", encoding="utf-8") as f:
                 f.write(markdown_report)
 
             # Use gh cli to comment
@@ -128,10 +130,10 @@ def post_pr_comment(markdown_report):
                 ["gh", "pr", "comment", pr_number, "-F", "temp_report.md"], check=True
             )
             os.remove("temp_report.md")
-        except Exception as e:
-            logging.error(f"Error posting PR comment: {e}")
+        except Exception as e:  # noqa: BLE001
+            logger.error(f"Error posting PR comment: {e}")
     else:
-        logging.info("Not a PR or PR_NUMBER not set, skipping PR comment.")
+        logger.info("Not a PR or PR_NUMBER not set, skipping PR comment.")
 
 
 def main():
@@ -139,18 +141,18 @@ def main():
     reports = load_reports()
 
     if not api_key:
-        logging.warning(
+        logger.warning(
             "No OPENAI_API_KEY found. Generating a basic AI insights template."
         )
         markdown_report = "# AI Quality Insights\n\nNo OpenAI API key provided. Skipping detailed analysis."
     else:
-        logging.info("Generating AI insights via OpenAI...")
+        logger.info("Generating AI insights via OpenAI...")
         markdown_report = generate_insights(api_key, reports)
 
     os.makedirs("reports", exist_ok=True)
-    with open("reports/ai_insights.md", "w") as f:
+    with open("reports/ai_insights.md", "w", encoding="utf-8") as f:
         f.write(markdown_report)
-    logging.info("Wrote AI insights to reports/ai_insights.md")
+    logger.info("Wrote AI insights to reports/ai_insights.md")
 
     # Post to PR if PR_NUMBER is available
     post_pr_comment(markdown_report)
@@ -159,10 +161,10 @@ def main():
     github_step_summary = os.getenv("GITHUB_STEP_SUMMARY")
     if github_step_summary:
         try:
-            with open(github_step_summary, "a") as f:
+            with open(github_step_summary, "a", encoding="utf-8") as f:
                 f.write(markdown_report)
-        except Exception as e:
-            logging.warning(f"Could not write to GITHUB_STEP_SUMMARY: {e}")
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Could not write to GITHUB_STEP_SUMMARY: {e}")
 
 
 if __name__ == "__main__":

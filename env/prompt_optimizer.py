@@ -6,7 +6,6 @@ so the FastAPI layer stays thinner and easier to review.
 """
 from __future__ import annotations
 
-
 import re
 from dataclasses import dataclass
 from typing import Any, Literal

@@ -3,7 +3,6 @@ Task definitions for the incident operations environment.
 """
 from __future__ import annotations
 
-
 from dataclasses import dataclass, field
 from typing import Literal
 

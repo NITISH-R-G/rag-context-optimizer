@@ -8,7 +8,6 @@ This module adapts the paper's core idea to this benchmark:
 """
 from __future__ import annotations
 
-
 import hashlib
 import math
 import re
