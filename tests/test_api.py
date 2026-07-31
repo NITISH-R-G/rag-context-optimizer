@@ -8,7 +8,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import pytest  # noqa: E402
-from fastapi import HTTPException # noqa: E402
+from fastapi import HTTPException  # noqa: E402
 from app import app, _is_bad_action_event, EpisodeStore, _resolve_env  # noqa: E402
 
 
@@ -34,7 +34,9 @@ def test_reset_accepts_empty_body():
 
 def test_episode_state_is_isolated():
     first_reset = client.post("/reset", json={"task_name": "refund_triage_easy"})
-    second_reset = client.post("/reset", json={"task_name": "cross_function_brief_medium"})
+    second_reset = client.post(
+        "/reset", json={"task_name": "cross_function_brief_medium"}
+    )
     assert first_reset.status_code == 200
     assert second_reset.status_code == 200
 
@@ -57,12 +59,14 @@ def test_episode_state_is_isolated():
     assert first_chunk in first_state.json()["reviewed_artifacts"]
     assert second_state.json()["reviewed_artifacts"] == []
 
+
 def test_health_endpoint():
     response = client.get("/health")
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "ok"
     assert "tasks" in body
+
 
 def test_tasks_endpoint():
     response = client.get("/tasks")
@@ -73,6 +77,7 @@ def test_tasks_endpoint():
         assert "name" in body[0]
         assert "difficulty" in body[0]
 
+
 def test_corpus_families_endpoint():
     response = client.get("/corpus-families")
     assert response.status_code == 200
@@ -80,8 +85,11 @@ def test_corpus_families_endpoint():
     assert "families" in body
     assert isinstance(body["families"], list)
 
+
 def test_optimize_prompt_empty():
-    response = client.post("/optimize-prompt", json={"prompt": "   ", "compression_mode": "balanced"})
+    response = client.post(
+        "/optimize-prompt", json={"prompt": "   ", "compression_mode": "balanced"}
+    )
     assert response.status_code == 400
     assert "empty" in response.json()["detail"].lower()
 
@@ -91,10 +99,15 @@ def test_reset_invalid_task():
     assert response.status_code == 400
     assert "Unknown task_name" in response.json()["detail"]
 
+
 def test_step_invalid_episode_id():
-    response = client.post("/step?episode_id=invalid_id", json={"action_type": "submit_report", "answer": "test"})
+    response = client.post(
+        "/step?episode_id=invalid_id",
+        json={"action_type": "submit_report", "answer": "test"},
+    )
     assert response.status_code == 404
     assert "Episode not found" in response.json()["detail"]
+
 
 def test_is_bad_action_event():
     assert _is_bad_action_event(None) is False
@@ -106,6 +119,7 @@ def test_is_bad_action_event():
     assert _is_bad_action_event("some_bad_action_error_suffix") is True
     assert _is_bad_action_event("prefix_not_implemented_suffix") is True
 
+
 @pytest.mark.anyio
 async def test_episode_store_eviction():
     store = EpisodeStore(max_episodes=2)
@@ -114,6 +128,7 @@ async def test_episode_store_eviction():
     class MockEnv:
         async def close(self):
             pass
+
     env1 = MockEnv()
     env2 = MockEnv()
     env3 = MockEnv()
@@ -130,12 +145,15 @@ async def test_episode_store_eviction():
     assert store.get(id2)[0] == id2
     assert store.get(id3)[0] == id3
 
+
 @pytest.mark.anyio
 async def test_episode_store_close_all():
     store = EpisodeStore(max_episodes=2)
+
     class MockEnv:
         def __init__(self):
             self.closed = False
+
         async def close(self):
             self.closed = True
 
@@ -152,27 +170,33 @@ async def test_episode_store_close_all():
     with pytest.raises(KeyError):
         store.get(id2)
 
+
 @pytest.mark.anyio
 async def test_log_requests_middleware():
     from app import log_requests
-    import os
 
     class MockRequest:
         def __init__(self):
             self.method = "GET"
+
             class URL:
                 path = "/test"
+
             self.url = URL()
 
     async def mock_call_next(request):
         class MockResponse:
             status_code = 200
+
         return MockResponse()
 
     # Test with logging disabled (default)
     import builtins
+    import os
+
     original_print = builtins.print
     printed_messages = []
+
     def mock_print(*args, **kwargs):
         printed_messages.append(" ".join(map(str, args)))
 
@@ -191,11 +215,13 @@ async def test_log_requests_middleware():
         builtins.print = original_print
         os.environ.pop("DEBUG_LOG_REQUESTS", None)
 
+
 def test_home_page():
     response = client.get("/")
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
     assert response.headers["Cache-Control"] == "no-store, max-age=0"
+
 
 def test_serialize_observation():
     from app import _serialize_observation
@@ -213,6 +239,7 @@ def test_serialize_observation():
     # Test pydantic model
     class MockModel(BaseModel):
         key: str
+
     obs_pydantic = MockModel(key="value")
     assert _serialize_observation(obs_pydantic) == {"key": "value"}
 
@@ -220,8 +247,10 @@ def test_serialize_observation():
     @dataclass
     class MockDataclass:
         key: str
+
     obs_dataclass = MockDataclass(key="value")
     assert _serialize_observation(obs_dataclass) == {"key": "value"}
+
 
 def test_step_endpoint_bad_action_event():
     # Setup episode
@@ -230,12 +259,17 @@ def test_step_endpoint_bad_action_event():
 
     # Send a good request first to verify the environment handles it
     chunk_id = reset_response.json()["observation"]["available_chunks"][0]["chunk_id"]
-    step_response = client.post(f"/step?episode_id={episode_id}", json={"action_type": "inspect_artifact", "artifact_id": chunk_id})
+    step_response = client.post(
+        f"/step?episode_id={episode_id}",
+        json={"action_type": "inspect_artifact", "artifact_id": chunk_id},
+    )
     assert step_response.status_code == 200
 
     # For a bad action event, we mock `env.step` to return an info dict with event="bad_action_error"
     from unittest.mock import patch
-    with patch('env.environment.RagContextOptimizerEnv.step') as mock_step:
+
+    with patch("env.environment.RagContextOptimizerEnv.step") as mock_step:
+
         class MockResult:
             def __init__(self):
                 self.info = {"event": "bad_action_error"}
@@ -248,9 +282,13 @@ def test_step_endpoint_bad_action_event():
 
         mock_step.side_effect = mock_step_coro
 
-        response = client.post(f"/step?episode_id={episode_id}", json={"action_type": "inspect_artifact", "artifact_id": "test"})
+        response = client.post(
+            f"/step?episode_id={episode_id}",
+            json={"action_type": "inspect_artifact", "artifact_id": "test"},
+        )
         assert response.status_code == 400
         assert "bad_action_error" in response.json()["detail"]
+
 
 def test_optimize_step_endpoint():
     # Setup episode
@@ -261,10 +299,12 @@ def test_optimize_step_endpoint():
     assert response.status_code == 200
     assert "action_type" in response.json()
 
+
 def test_optimize_prompt_endpoint():
     from unittest.mock import patch
 
-    with patch('app._optimize_prompt_backend') as mock_backend:
+    with patch("app._optimize_prompt_backend") as mock_backend:
+
         async def mock_optimize(*args, **kwargs):
             return {
                 "optimized_prompt": "optimized",
@@ -273,11 +313,15 @@ def test_optimize_prompt_endpoint():
                 "context_tuning": {},
                 "corpus_family": "test",
                 "selected_keywords": [],
-                "optimization_mode": "balanced"
+                "optimization_mode": "balanced",
             }
+
         mock_backend.side_effect = mock_optimize
 
-        response = client.post("/optimize-prompt", json={"prompt": "test prompt", "compression_mode": "balanced"})
+        response = client.post(
+            "/optimize-prompt",
+            json={"prompt": "test prompt", "compression_mode": "balanced"},
+        )
         assert response.status_code == 200
         data = response.json()
         assert data["optimized_prompt"] == "optimized"
