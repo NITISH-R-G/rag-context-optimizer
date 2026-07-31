@@ -187,13 +187,11 @@ class TaskGrader:
             else 0.0
         )
         token_efficiency = max(0.0, min(1.0, token_efficiency))
-        workflow_readiness = (
-            1.0
-            if workflow_stage in {"resolution", "submitted"} and plan_draft.strip()
-            else 0.25
-            if plan_draft.strip()
-            else 0.0
-        )
+        workflow_readiness = 0.0
+        if plan_draft.strip():
+            workflow_readiness = 0.25
+            if workflow_stage in {"resolution", "submitted"}:
+                workflow_readiness = 1.0
         unsupported_claim_rate = self._unsupported_claim_rate(answer, evidence_chunks)
         hallucination_penalty = min(1.0, unsupported_claim_rate)
 

@@ -405,16 +405,18 @@ def _rank_and_select_chunks(
         if score < 0.16:
             continue
         ranked_candidates.append((chunk, score, tuned))
-    ranked_candidates.sort(
-        key=lambda item: (
-            -(item[2].citation_prior if item[2] is not None else 0.0)
-            if mode == "grounded"
-            else 0.0,
+    def sort_key(item: tuple[Any, float, Any]) -> tuple[float, float, float, str]:
+        citation_val = 0.0
+        if mode == "grounded" and item[2] is not None:
+            citation_val = -item[2].citation_prior
+        return (
+            citation_val,
             -(item[1] / max(item[0].tokens, 1)),
             -item[1],
             item[0].chunk_id,
         )
-    )
+
+    ranked_candidates.sort(key=sort_key)
 
     selected_ids: list[str] = []
     token_cap = 420 if mode == "grounded" else 360
@@ -471,9 +473,10 @@ def _extract_distilled_points(
         best = _summarize_chunk_for_output(chunk, env._effective_chunk_text(chunk_id))
         if best and all(existing != best for _cid, existing in distilled_points):
             distilled_points.append((chunk_id, best))
-        if len(distilled_points) >= (
-            3 if mode == "grounded" else (2 if input_tokens < 80 else 3)
-        ):
+        max_points = 3
+        if mode != "grounded" and input_tokens < 80:
+            max_points = 2
+        if len(distilled_points) >= max_points:
             break
     return distilled_points
 
@@ -491,15 +494,12 @@ def _rewrite_prompt_fallback(
     short_prompt_rewrite = (
         _lightweight_short_prompt_rewrite(clean_prompt) if preserve_short_prompt else ""
     )
-    lines: list[str] = [
-        short_prompt_rewrite
-        if preserve_short_prompt and short_prompt_rewrite
-        else (
-            clean_prompt
-            if preserve_short_prompt
-            else (rewritten if rewritten else clean_prompt)
-        )
-    ]
+    first_line = clean_prompt
+    if preserve_short_prompt:
+        first_line = short_prompt_rewrite if short_prompt_rewrite else clean_prompt
+    else:
+        first_line = rewritten if rewritten else clean_prompt
+    lines: list[str] = [first_line]
     if distilled_points and (mode == "grounded" or input_tokens >= 80):
         lines.append("")
         lines.append("Context:")
