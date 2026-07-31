@@ -141,10 +141,10 @@ def _fallback_action(observation: dict[str, Any]) -> dict[str, Any]:
         observation.get("prioritized_artifacts")
         or observation.get("selected_chunks", [])
     )
-    available = list(
-        observation.get("available_artifacts")
-        or observation.get("available_chunks", [])
-    )
+    raw_available = observation.get("available_artifacts")
+    if not raw_available:
+        raw_available = observation.get("available_chunks", [])
+    available = list(raw_available)
     token_budget = observation["token_budget"]
     total_tokens_used = observation["total_tokens_used"]
     remaining_budget = token_budget - total_tokens_used
