@@ -48,7 +48,7 @@ def render_sidebar(task_map: dict):
     if selected_task:
         task_meta = task_map[selected_task]
     else:
-        task_meta = {"token_budget": 100, "max_steps": 10}
+        task_meta = {"token_budget": 100, "max_steps": 10}  # nosec B105
 
     default_query = st.session_state.get("custom_query", "")
     custom_query = st.sidebar.text_area(
