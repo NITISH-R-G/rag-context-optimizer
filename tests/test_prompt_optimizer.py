@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from env.prompt_optimizer import ( # noqa: E402
+from env.prompt_optimizer import (
     _tokenize,
     _content_terms,
     _clean_output_text,
@@ -28,7 +28,7 @@ from env.prompt_optimizer import ( # noqa: E402
     _rewrite_prompt_fallback,
     optimize_prompt,
 )
-from env.environment import RagContextOptimizerEnv # noqa: E402
+from env.environment import RagContextOptimizerEnv
 
 
 def test_tokenize():

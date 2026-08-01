@@ -61,3 +61,6 @@ exclude = [
 
 [tool.ruff]
 exclude = ["vulture_whitelist.py"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["E402"]
