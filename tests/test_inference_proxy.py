@@ -104,7 +104,7 @@ def test_inference_uses_proxy_api_key():
                     == 200
                 ):
                     break
-            except Exception:
+            except Exception:  # noqa: BLE001
                 time.sleep(0.5)
 
         env = os.environ.copy()
@@ -116,6 +116,7 @@ def test_inference_uses_proxy_api_key():
         result = subprocess.run(
             [str(PYTHON), "inference.py"],
             cwd=ROOT,
+            check=False,
             env=env,
             capture_output=True,
             text=True,
@@ -135,5 +136,5 @@ def test_inference_uses_proxy_api_key():
         app_process.terminate()
         try:
             app_process.wait(timeout=5)
-        except Exception:
+        except Exception:  # noqa: BLE001
             app_process.kill()
