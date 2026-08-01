@@ -44,6 +44,10 @@ qa = [
 ]
 
 [tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated:DeprecationWarning",
+    "ignore::DeprecationWarning"
+]
 testpaths = ["tests"]
 
 [tool.mypy]
@@ -51,5 +55,9 @@ ignore_missing_imports = true
 check_untyped_defs = true
 disallow_untyped_defs = false
 exclude = [
-    "^tests/"
+    "^tests/",
+    "vulture_whitelist.py"
 ]
+
+[tool.ruff]
+exclude = ["vulture_whitelist.py"]
