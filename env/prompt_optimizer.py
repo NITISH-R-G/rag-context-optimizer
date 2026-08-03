@@ -409,7 +409,7 @@ def _rank_and_select_chunks(
         ranked_candidates.append((chunk, score, tuned))
     ranked_candidates.sort(
         key=lambda item: (
-            -(item[2].citation_prior if item[2] is not None else 0.0)
+            (-(item[2].citation_prior if item[2] is not None else 0.0))
             if mode == "grounded"
             else 0.0,
             -(item[1] / max(item[0].tokens, 1)),
@@ -493,15 +493,13 @@ def _rewrite_prompt_fallback(
     short_prompt_rewrite = (
         _lightweight_short_prompt_rewrite(clean_prompt) if preserve_short_prompt else ""
     )
-    lines: list[str] = [
-        short_prompt_rewrite
-        if preserve_short_prompt and short_prompt_rewrite
-        else (
-            clean_prompt
-            if preserve_short_prompt
-            else (rewritten if rewritten else clean_prompt)
-        )
-    ]
+    lines: list[str] = []
+    if preserve_short_prompt and short_prompt_rewrite:
+        lines.append(short_prompt_rewrite)
+    elif preserve_short_prompt:
+        lines.append(clean_prompt)
+    else:
+        lines.append(rewritten if rewritten else clean_prompt)
     if distilled_points and (mode == "grounded" or input_tokens >= 80):
         lines.append("")
         lines.append("Context:")

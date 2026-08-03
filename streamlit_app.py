@@ -2,21 +2,18 @@ import httpx
 import streamlit as st
 
 
-try:
-    API_URL = (
-        st.secrets.get("API_URL", "http://localhost:7860")
-        if hasattr(st, "secrets")
-        else "http://localhost:7860"
-    )
-except FileNotFoundError:
-    API_URL = "http://localhost:7860"
-except Exception:
-    API_URL = "http://localhost:7860"
+def get_api_url() -> str:
+    try:
+        if hasattr(st, "secrets") and "API_URL" in st.secrets:
+            return st.secrets["API_URL"]
+        return "http://localhost:7860"
+    except (FileNotFoundError, Exception):
+        return "http://localhost:7860"
 
 
 def api_get(path: str):
     try:
-        response = httpx.get(f"{API_URL}{path}", timeout=20.0)
+        response = httpx.get(f"{get_api_url()}{path}", timeout=20.0)
         response.raise_for_status()
         return response.json()
     except Exception as e:
@@ -25,7 +22,7 @@ def api_get(path: str):
 
 
 def api_post(path: str, payload: dict | None = None):
-    response = httpx.post(f"{API_URL}{path}", json=payload or {}, timeout=20.0)
+    response = httpx.post(f"{get_api_url()}{path}", json=payload or {}, timeout=20.0)
     response.raise_for_status()
     return response.json()
 

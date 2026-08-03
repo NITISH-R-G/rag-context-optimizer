@@ -61,4 +61,5 @@ disable = [
     "C0114",
     "C0115",
     "C0116",
+    "C0415", # import-outside-toplevel
 ]
