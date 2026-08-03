@@ -16,8 +16,10 @@ def api_get(path: str):
         response = httpx.get(f"{get_api_url()}{path}", timeout=20.0)
         response.raise_for_status()
         return response.json()
-    except Exception as e:
+    except httpx.RequestError as e:
         st.error(f"API Error: {e}")
+    except httpx.HTTPStatusError as e:
+        st.error(f"HTTP Error: {e}")
         return None
 
 

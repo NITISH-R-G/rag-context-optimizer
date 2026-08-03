@@ -267,14 +267,10 @@ def main() -> int:
                 if chunk.get("chunk_id"):
                     first_chunk_id = chunk["chunk_id"]
                     break
-            step_payload = (
-                {"action_type": "inspect_artifact", "artifact_id": first_chunk_id}
-                if first_chunk_id
-                else {
-                    "action_type": "submit_report",
-                    "answer": "No chunk available for validation.",
-                }
-            )
+            if first_chunk_id:
+                step_payload = {"action_type": "inspect_artifact", "artifact_id": first_chunk_id}
+            else:
+                step_payload = {"action_type": "submit_report", "answer": "No chunk available for validation."}
             step = client.post(f"{base_url}/step", json=step_payload)
             step_ok = step.status_code == 200 and isinstance(
                 step.json().get("reward"), float
