@@ -10,35 +10,36 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
-        cache: "pip"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
 
-    - name: Install dependencies
-      run: |
-        pip install -e ".[test]"
-        pip install ruff mypy bandit safety openenv-core
+      - name: Install dependencies
+        run: |
+          pip install -e ".[test]"
+          pip install -e ".[qa]"
+          pip install ruff mypy bandit safety openenv-core
 
-    - name: Lint with Ruff
-      run: |
-        ruff check .
+      - name: Lint with Ruff
+        run: |
+          ruff check .
 
-    - name: Type checking with Mypy
-      run: |
-        mypy . || true
+      - name: Type checking with Mypy
+        run: |
+          mypy . || true
 
-    - name: Security scan with Bandit
-      run: |
-        bandit -r . -ll -ii -x tests/ || true
+      - name: Security scan with Bandit
+        run: |
+          bandit -r . -ll -ii -x tests/ || true
 
-    - name: Dependency audit
-      run: |
-        safety check || true
+      - name: Dependency audit
+        run: |
+          safety check || true
 
-    - name: Run tests
-      run: |
-        pytest tests/ || true
+      - name: Run tests
+        run: |
+          pytest tests/ || true
