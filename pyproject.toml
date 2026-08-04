@@ -25,6 +25,8 @@ server = "server.app:main"
 packages = ["env", "server"]
 py-modules = ["app", "inference", "validate"]
 
+[tool.ruff]
+exclude = ["vulture_whitelist.py"]
 [project.optional-dependencies]
 test = [
   "pytest>=8.0.0,<10",
@@ -45,11 +47,13 @@ qa = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning:fastapi.testclient"]
 
 [tool.mypy]
 ignore_missing_imports = true
 check_untyped_defs = true
 disallow_untyped_defs = false
 exclude = [
-    "^tests/"
+    "^tests/",
+    "vulture_whitelist.py"
 ]
