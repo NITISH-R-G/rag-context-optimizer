@@ -25,7 +25,6 @@ jobs:
         run: |
           pip install -e ".[test]"
           pip install -e ".[qa]"
-          pip install ruff mypy openenv-core
 
       - name: Run Ruff Linter
         run: ruff check .

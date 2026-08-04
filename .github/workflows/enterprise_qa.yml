@@ -2,9 +2,9 @@ name: Enterprise QA and Security
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: ["main", "master"]
   pull_request:
-    branches: [ "**" ]
+    branches: ["**"]
   release:
     types: [published]
   schedule:

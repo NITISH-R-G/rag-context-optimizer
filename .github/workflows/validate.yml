@@ -21,7 +21,6 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install -e ".[test]"
-          pip install openenv-core
 
       - name: Run OpenEnv validation
         run: openenv validate

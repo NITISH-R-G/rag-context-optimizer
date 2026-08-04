@@ -2,7 +2,7 @@ name: Autonomous Repository Maintenance
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: ["main", "master"]
   schedule:
     - cron: '0 0 * * *' # Daily scan
 
