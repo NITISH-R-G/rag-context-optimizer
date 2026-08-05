@@ -1,4 +1,4 @@
-
+# type: ignore
 home_page
 reset_endpoint
 step_endpoint
