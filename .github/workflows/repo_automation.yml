@@ -26,7 +26,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install openai
+        pip install openai openenv-core
 
     - name: Analyze Codebase
       run: python .github/scripts/analyze_codebase.py
