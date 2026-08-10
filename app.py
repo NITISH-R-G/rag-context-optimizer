@@ -383,7 +383,7 @@ async def _suggest_action(env: RagContextOptimizerEnv) -> dict[str, Any]:
                 suggested_citations=tuning.suggested_citations,
                 top_demo_cases=tuning.top_demo_cases,
             )
-        except Exception as _e:  # noqa: F841, BLE001 # pylint: disable=broad-exception-caught
+        except Exception:  # noqa: BLE001 # pylint: disable=broad-exception-caught
             pass
     return _suggest_action_fallback(env)
 

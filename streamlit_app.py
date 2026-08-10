@@ -7,7 +7,7 @@ def get_api_url() -> str:
         return st.secrets.get("API_URL", "http://localhost:7860") if hasattr(st, "secrets") else "http://localhost:7860"
     except FileNotFoundError:
         return "http://localhost:7860"
-    except Exception as _e:  # noqa: F841, BLE001 # pylint: disable=broad-exception-caught
+    except Exception:  # noqa: BLE001 # pylint: disable=broad-exception-caught
         return "http://localhost:7860"
 
 API_URL = get_api_url()
@@ -19,7 +19,7 @@ def api_get(path: str):
         response = httpx.get(f"{API_URL}{path}", timeout=20.0)
         response.raise_for_status()
         return response.json()
-    except Exception as _e:  # noqa: F841, BLE001 # pylint: disable=broad-exception-caught
+    except Exception as _e:  # noqa: BLE001 # pylint: disable=broad-exception-caught
         st.error(f"API Error: {_e}")
         return None
 

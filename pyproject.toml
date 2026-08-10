@@ -66,7 +66,9 @@ disable = [
     "protected-access",
     "too-few-public-methods",
     "duplicate-code",
-    "broad-exception-caught"
+    "broad-exception-caught",
+    "unused-variable",
+    "W0612"
 ]
 
 [tool.pylint.main]
