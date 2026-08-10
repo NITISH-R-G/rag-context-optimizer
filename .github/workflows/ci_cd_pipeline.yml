@@ -21,7 +21,8 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -e ".[test]"
-        pip install -e ".[qa]" openenv-core
+        pip install -e ".[qa]"
+        pip install openenv-core
 
     - name: Lint with Ruff
       run: |
