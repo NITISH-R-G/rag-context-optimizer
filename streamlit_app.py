@@ -4,7 +4,10 @@ import streamlit as st
 
 def get_api_url() -> str:
     try:
-        return st.secrets.get("API_URL", "http://localhost:7860") if hasattr(st, "secrets") else "http://localhost:7860"
+        if hasattr(st, "secrets"):
+            return st.secrets.get("API_URL", "http://localhost:7860")
+        else:
+            return "http://localhost:7860"
     except FileNotFoundError:
         return "http://localhost:7860"
     except Exception:  # noqa: BLE001 # pylint: disable=broad-exception-caught

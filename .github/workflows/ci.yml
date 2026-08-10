@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e ".[test]"
-          pip install ruff mypy openenv-core
+          pip install -e ".[qa]" openenv-core
 
       - name: Run Ruff Linter
         run: ruff check . || true
