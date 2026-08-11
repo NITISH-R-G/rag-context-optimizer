@@ -1,8 +1,8 @@
-env/
-venv/
+.uv-cache/
 __pycache__/
-*.pyc
-.pytest_cache/
-.ruff_cache/
-.mypy_cache/
-reports/
+*.py[cod]
+env_test/
+env_verify/
+*.egg-info/
+env_verify2/
+.coverage

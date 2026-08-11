@@ -11,6 +11,7 @@ from env.corpus import Chunk
 from env.retriever import HybridRetriever
 from env.tasks import Task
 
+
 _STOPWORDS = {
     "a", "an", "and", "are", "as", "at", "be", "because", "by", "for", "from", "how",
     "if", "in", "into", "is", "it", "its", "of", "on", "or", "that", "the", "their",

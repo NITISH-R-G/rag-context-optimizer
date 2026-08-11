@@ -1,5 +1,4 @@
 import pytest
-
 from env.environment import RagContextOptimizerEnv
 
 

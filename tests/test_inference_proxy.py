@@ -12,6 +12,7 @@ from pathlib import Path
 
 import httpx
 
+
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -103,8 +104,7 @@ def test_inference_uses_proxy_api_key():
                     == 200
                 ):
                     break
-            except Exception as _e: # noqa: BLE001
-                # pylint: disable=broad-exception-caught
+            except Exception:
                 time.sleep(0.5)
 
         env = os.environ.copy()
@@ -115,7 +115,7 @@ def test_inference_uses_proxy_api_key():
         env["HF_TOKEN"] = "legacy-should-not-win"
         result = subprocess.run(
             [str(PYTHON), "inference.py"],
-            cwd=ROOT, check=False,
+            cwd=ROOT,
             env=env,
             capture_output=True,
             text=True,
@@ -135,6 +135,5 @@ def test_inference_uses_proxy_api_key():
         app_process.terminate()
         try:
             app_process.wait(timeout=5)
-        except Exception as _e: # noqa: BLE001
-                # pylint: disable=broad-exception-caught
+        except Exception:
             app_process.kill()

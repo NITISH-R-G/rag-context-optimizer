@@ -1,24 +1,22 @@
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock
-
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app import (
+from app import (  # noqa: E402
+    _check_resolution_plan,
     _check_compression,
     _check_early_submit,
-    _check_fallback_prioritize,
-    _check_inspect_candidates,
     _check_prioritize_candidates,
-    _check_resolution_plan,
+    _check_inspect_candidates,
+    _check_fallback_prioritize,
     _get_final_fallback_action,
     _suggest_action_fallback,
 )
-
 
 class MockChunk:
     def __init__(self, chunk_id, tokens, keywords=None):
@@ -39,15 +37,15 @@ def test_check_resolution_plan():
     observation.plan_draft = None
 
     # Not enough reviewed
-    assert _check_resolution_plan(env, {"a"}, observation) is None
+    assert _check_resolution_plan(env, set(["a"]), observation) is None
 
     # Already drafted
     observation.plan_draft = "draft"
-    assert _check_resolution_plan(env, {"a", "b"}, observation) is None
+    assert _check_resolution_plan(env, set(["a", "b"]), observation) is None
 
     # Should draft
     observation.plan_draft = None
-    res = _check_resolution_plan(env, {"a", "b"}, observation)
+    res = _check_resolution_plan(env, set(["a", "b"]), observation)
     assert res is not None
     assert res["action_type"] == "set_resolution_plan"
     assert "keyword1, keyword2, keyword3" in res["plan"]
@@ -77,7 +75,7 @@ def test_check_early_submit():
     env.task.max_steps = 10
     observation = MagicMock()
     observation.step_number = 3
-    selected = {"c1", "c2"}
+    selected = set(["c1", "c2"])
 
     chunk1 = MockChunk("c1", 100, ["key1", "key2"])
     chunk2 = MockChunk("c2", 100, ["key3"])
@@ -94,7 +92,7 @@ def test_check_prioritize_candidates():
     chunk2 = MockChunk("c2", 500)
 
     # Should prioritize c1 as it fits
-    res = _check_prioritize_candidates([chunk1, chunk2], {"c1", "c2"}, set(), ["c1", "c2"], 200)
+    res = _check_prioritize_candidates([chunk1, chunk2], set(["c1", "c2"]), set(), ["c1", "c2"], 200)
     assert res is not None
     assert res["action_type"] == "prioritize_artifact"
     assert res["artifact_id"] == "c1"
@@ -116,7 +114,7 @@ def test_check_fallback_prioritize():
     score_map = {"c1": MockScore(0.5), "c2": MockScore(0.8)}
 
     # Sort logic prioritizes smallest score/tokens ratio. c1 gets prioritized since -0.005 < -0.004.
-    res = _check_fallback_prioritize([chunk1, chunk2], {"c1", "c2"}, set(), score_map, 300)
+    res = _check_fallback_prioritize([chunk1, chunk2], set(["c1", "c2"]), set(), score_map, 300)
     assert res is not None
     assert res["action_type"] == "prioritize_artifact"
     assert res["artifact_id"] == "c1"
@@ -172,7 +170,7 @@ def test_check_early_submit_none():
     observation = MagicMock()
     # Step number is too low and only 1 selected
     observation.step_number = 1
-    selected = {"c1"}
+    selected = set(["c1"])
     chunk1 = MockChunk("c1", 100, ["key1", "key2"])
 
     res = _check_early_submit(env, observation, selected, [chunk1], ["c1"])
@@ -181,28 +179,27 @@ def test_check_early_submit_none():
 def test_check_prioritize_candidates_none():
     chunk1 = MockChunk("c1", 100)
     # Not enough budget
-    res = _check_prioritize_candidates([chunk1], {"c1"}, set(), ["c1"], 50)
+    res = _check_prioritize_candidates([chunk1], set(["c1"]), set(), ["c1"], 50)
     assert res is None
 
 def test_check_inspect_candidates_none():
     # Everything is already reviewed
     chunk1 = MockChunk("c1", 100)
     score_map = {"c1": MockScore(0.9)}
-    res = _check_inspect_candidates([chunk1], {"c1"}, score_map)
+    res = _check_inspect_candidates([chunk1], set(["c1"]), score_map)
     assert res is None
 
 def test_check_fallback_prioritize_none():
     chunk1 = MockChunk("c1", 100)
     score_map = {"c1": MockScore(0.5)}
     # Token limit exceeded
-    res = _check_fallback_prioritize([chunk1], {"c1"}, set(), score_map, 50)
+    res = _check_fallback_prioritize([chunk1], set(["c1"]), set(), score_map, 50)
     assert res is None
 
 @pytest.mark.anyio
 async def test_suggest_action_llm_fallback():
-    from unittest.mock import AsyncMock, patch
-
     from app import _suggest_action
+    from unittest.mock import patch, AsyncMock
 
     env = MagicMock()
     env._build_observation.return_value = MagicMock(

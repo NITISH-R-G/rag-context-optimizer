@@ -1,35 +1,33 @@
 from __future__ import annotations
 
 import sys
-import typing
 from pathlib import Path
-
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from env.environment import RagContextOptimizerEnv
-from env.prompt_optimizer import (
-    _approx_tokens,
+from env.prompt_optimizer import ( # noqa: E402
+    _tokenize,
+    _content_terms,
     _clean_output_text,
     _compact_text,
-    _content_terms,
-    _extract_distilled_points,
-    _fit_citations_into_prompt,
-    _lightweight_short_prompt_rewrite,
-    _rank_and_select_chunks,
-    _rewrite_prompt_fallback,
+    _approx_tokens,
+    _truncate_to_word_boundary,
+    _trim_sentence,
     _rewrite_prompt_text,
+    _lightweight_short_prompt_rewrite,
     _sentence_rank,
     _summarize_chunk_for_output,
     _target_ratio,
-    _tokenize,
-    _trim_sentence,
-    _truncate_to_word_boundary,
+    _fit_citations_into_prompt,
+    _rank_and_select_chunks,
+    _extract_distilled_points,
+    _rewrite_prompt_fallback,
     optimize_prompt,
 )
+from env.environment import RagContextOptimizerEnv # noqa: E402
 
 
 def test_tokenize():
@@ -119,9 +117,9 @@ def test_target_ratio():
 def test_fit_citations_into_prompt():
     prompt = "This is a test prompt."
     citations = ["doc1", "doc2"]
-    result, _ready, _notes = _fit_citations_into_prompt(prompt, citations, 10, 5, prompt, "balanced")
+    result, ready, notes = _fit_citations_into_prompt(prompt, citations, 10, 5, prompt, "balanced")
     assert isinstance(result, str)
-    assert isinstance(_ready, bool)
+    assert isinstance(ready, bool)
 
 
 @pytest.mark.asyncio
@@ -130,8 +128,8 @@ async def test_rank_and_select_chunks():
     await env.reset() # mock env state roughly
 
     class DummyTuning:
-        tuned_scores: typing.ClassVar[dict] = {}
-        suggested_citations: typing.ClassVar[list] = []
+        tuned_scores = {}
+        suggested_citations = []
 
     tuning = DummyTuning()
     _rank_and_select_chunks(env, tuning, "test prompt", "balanced")
@@ -147,7 +145,7 @@ async def test_extract_distilled_points():
 
 
 def test_rewrite_prompt_fallback():
-    result, _ready, _notes = _rewrite_prompt_fallback(
+    result, ready, notes = _rewrite_prompt_fallback(
         "test prompt", 10, 5, "balanced", False, [], ["doc1"]
     )
     assert isinstance(result, str)
@@ -173,25 +171,25 @@ async def test_extract_distilled_points_with_preserve_short():
 def test_fit_citations_into_prompt_aggressive():
     prompt = "This is a prompt."
     citations = ["doc1", "doc2"]
-    result, _ready, _notes = _fit_citations_into_prompt(prompt, citations, 10, 5, prompt, "aggressive")
+    result, ready, notes = _fit_citations_into_prompt(prompt, citations, 10, 5, prompt, "aggressive")
     assert isinstance(result, str)
 
 def test_fit_citations_into_prompt_grounded():
     prompt = "This is a prompt."
     citations = ["doc1", "doc2"]
-    result, _ready, _notes = _fit_citations_into_prompt(prompt, citations, 10, 5, prompt, "grounded")
-    assert "doc1" in result or _notes is not None
+    result, ready, notes = _fit_citations_into_prompt(prompt, citations, 10, 5, prompt, "grounded")
+    assert "doc1" in result or notes is not None
 
 def test_rewrite_prompt_fallback_long():
     long_prompt = "A " * 50
-    result, _ready, _notes = _rewrite_prompt_fallback(
+    result, ready, notes = _rewrite_prompt_fallback(
         long_prompt, 50, 10, "balanced", False, [("doc1", "note")], ["doc1"]
     )
     assert "doc1" in result
 
 def test_rewrite_prompt_fallback_preserve_short():
     short_prompt = "Short prompt."
-    result, _ready, _notes = _rewrite_prompt_fallback(
+    result, ready, notes = _rewrite_prompt_fallback(
         short_prompt, 2, 2, "balanced", True, [], ["doc1"]
     )
     assert len(result) > 0

@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -75,6 +76,6 @@ def get_chunks_by_domain(domain: str) -> list[Chunk]:
     return [chunk for chunk in _CORPUS_CACHE if chunk.domain == domain]
 
 
-def get_chunk_by_id(chunk_id: str) -> Chunk | None:
+def get_chunk_by_id(chunk_id: str) -> Optional[Chunk]:
     """Return a single chunk by id if it exists in the loaded corpus."""
     return _CORPUS_ID_MAP.get(chunk_id)

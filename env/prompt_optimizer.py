@@ -15,6 +15,7 @@ from env.environment import RagContextOptimizerEnv
 from env.llm_runtime import estimate_tokens, llm_configured
 from env.llm_services import rewrite_prompt as rewrite_prompt_with_llm
 
+
 CompressionMode = Literal["balanced", "aggressive", "grounded"]
 
 _PROMPT_STOPWORDS = {
@@ -309,7 +310,7 @@ def _rank_and_select_chunks(
         selected_ids.append(best_chunk.chunk_id)
         env._selected_chunks.append(best_chunk.chunk_id)
 
-    for chunk_id in selected_ids:
+    for chunk_id in list(selected_ids):
         chunk = env._chunk_map().get(chunk_id) # type: ignore
         if chunk is None:
             continue

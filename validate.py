@@ -175,7 +175,7 @@ def run_inference_script(base_url: str) -> bool:
         env["HF_TOKEN"] = "legacy-should-not-win"
         process = subprocess.run(
             [sys.executable, "inference.py"],
-            cwd=PROJECT_ROOT, check=False,
+            cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
             timeout=120,

@@ -13,6 +13,7 @@ from typing import Any
 
 from openai import OpenAI
 
+
 DEFAULT_API_BASE_URL = "https://router.huggingface.co/v1"
 DEFAULT_MODEL_NAME = "Qwen/Qwen2.5-72B-Instruct"
 

@@ -8,9 +8,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from env.environment import RagContextOptimizerEnv
-from env.models import RagAction
-from env.tasks import ALL_TASKS, TASK_EASY, TASK_HARD
+from env.environment import RagContextOptimizerEnv  # noqa: E402
+from env.models import RagAction  # noqa: E402
+from env.tasks import ALL_TASKS, TASK_EASY, TASK_HARD  # noqa: E402
 
 
 def _run(coro):
