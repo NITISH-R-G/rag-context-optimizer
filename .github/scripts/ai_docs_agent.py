@@ -13,22 +13,22 @@ def get_repo_context() -> Dict[str, Any]:
         with open("docs/knowledge_graph.json", "r") as f:
             context['graph'] = json.load(f)
     except Exception as e:
-         logging.warning(f"Could not load knowledge graph: {e}")
-         context['graph'] = {}
+        logging.warning(f"Could not load knowledge graph: {e}")
+        context['graph'] = {}
 
     try:
         with open("docs/architecture.md", "r") as f:
             context['architecture'] = f.read()
     except Exception as e:
-         logging.warning(f"Could not load architecture diagrams: {e}")
-         context['architecture'] = ""
+        logging.warning(f"Could not load architecture diagrams: {e}")
+        context['architecture'] = ""
 
     try:
         with open("README.md", "r") as f:
             context['readme'] = f.read()
     except Exception as e:
-         logging.warning(f"Could not load README: {e}")
-         context['readme'] = ""
+        logging.warning(f"Could not load README: {e}")
+        context['readme'] = ""
 
     return context
 
@@ -80,7 +80,7 @@ def generate_documentation(api_key: str, context: Dict[str, Any]) -> Dict[str, s
         )
         content = response.choices[0].message.content
         if content:
-             return json.loads(content)
+            return json.loads(content)
         return {}
     except Exception as e:
         logging.error(f"Error calling OpenAI API: {e}")
@@ -91,13 +91,13 @@ def main():
     context = get_repo_context()
 
     if not api_key:
-         logging.warning("No OPENAI_API_KEY found. AI Documentation generation skipped.")
-         # In a real run, this might fail or we could generate a deterministic basic template
-         # For this environment, we'll write a placeholder if API key is absent
-         docs = {
-             "contributing": "# Contributing\n\nWelcome to the project! Please follow standard PR guidelines.",
-             "onboarding": "# Developer Onboarding\n\nReview the `docs/architecture.md` file to get started."
-         }
+        logging.warning("No OPENAI_API_KEY found. AI Documentation generation skipped.")
+        # In a real run, this might fail or we could generate a deterministic basic template
+        # For this environment, we'll write a placeholder if API key is absent
+        docs = {
+            "contributing": "# Contributing\n\nWelcome to the project! Please follow standard PR guidelines.",
+            "onboarding": "# Developer Onboarding\n\nReview the `docs/architecture.md` file to get started."
+        }
     else:
         logging.info("Calling OpenAI API to generate docs...")
         docs = generate_documentation(api_key, context)

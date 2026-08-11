@@ -65,16 +65,16 @@ def generate_system_architecture(graph):
 
     mermaid.append('    subgraph Core System')
     if "FastAPI" in graph.get("frameworks", []):
-         mermaid.append('        API["FastAPI App"]')
+        mermaid.append('        API["FastAPI App"]')
     else:
-         mermaid.append('        App["Main Application"]')
+        mermaid.append('        App["Main Application"]')
 
     if "Streamlit" in graph.get("frameworks", []):
-         mermaid.append('        UI["Streamlit Frontend"]')
+        mermaid.append('        UI["Streamlit Frontend"]')
     mermaid.append('    end')
 
     if "FastAPI" in graph.get("frameworks", []) and "Streamlit" in graph.get("frameworks", []):
-         mermaid.append('    UI -->|HTTP Requests| API')
+        mermaid.append('    UI -->|HTTP Requests| API')
 
     mermaid.append("```")
     return "\n".join(mermaid)
