@@ -1,6 +1,7 @@
 import json
 import os
 
+
 def generate_dependency_graph(graph):
     """Generates a Mermaid graph for internal modules and their imports."""
     mermaid = ["```mermaid", "graph TD"]
@@ -35,12 +36,15 @@ def generate_dependency_graph(graph):
     mermaid.append("```")
     return "\n".join(mermaid)
 
+
 def generate_api_flow(graph):
     """Generates a Mermaid flow diagram for API endpoints."""
     mermaid = ["```mermaid", "sequenceDiagram", "    participant Client"]
 
     # Check if we have app.py as server
-    has_server = "app.py" in [os.path.basename(f) for f in graph.get("files", {}).keys()]
+    has_server = "app.py" in [
+        os.path.basename(f) for f in graph.get("files", {})
+    ]
     if has_server:
         mermaid.append("    participant Server")
 
@@ -54,36 +58,40 @@ def generate_api_flow(graph):
     mermaid.append("```")
     return "\n".join(mermaid)
 
+
 def generate_system_architecture(graph):
     """Generates a high-level system architecture Mermaid diagram."""
     mermaid = ["```mermaid", "graph LR"]
 
-    mermaid.append('    subgraph External Dependencies')
-    for i, ext in enumerate(graph.get("external_deps", [])[:10]): # Limit to top 10
+    mermaid.append("    subgraph External Dependencies")
+    for i, ext in enumerate(graph.get("external_deps", [])[:10]):  # Limit to top 10
         mermaid.append(f'        E{i}["{ext}"]')
-    mermaid.append('    end')
+    mermaid.append("    end")
 
-    mermaid.append('    subgraph Core System')
+    mermaid.append("    subgraph Core System")
     if "FastAPI" in graph.get("frameworks", []):
-         mermaid.append('        API["FastAPI App"]')
+        mermaid.append('        API["FastAPI App"]')
     else:
-         mermaid.append('        App["Main Application"]')
+        mermaid.append('        App["Main Application"]')
 
     if "Streamlit" in graph.get("frameworks", []):
-         mermaid.append('        UI["Streamlit Frontend"]')
-    mermaid.append('    end')
+        mermaid.append('        UI["Streamlit Frontend"]')
+    mermaid.append("    end")
 
-    if "FastAPI" in graph.get("frameworks", []) and "Streamlit" in graph.get("frameworks", []):
-         mermaid.append('    UI -->|HTTP Requests| API')
+    if "FastAPI" in graph.get("frameworks", []) and "Streamlit" in graph.get(
+        "frameworks", []
+    ):
+        mermaid.append("    UI -->|HTTP Requests| API")
 
     mermaid.append("```")
     return "\n".join(mermaid)
 
+
 def main():
     try:
-        with open("docs/knowledge_graph.json", "r") as f:
+        with open("docs/knowledge_graph.json", "r", encoding="utf-8") as f:
             graph = json.load(f)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"Error loading graph: {e}")
         return
 
@@ -104,10 +112,11 @@ def main():
         content.append(generate_api_flow(graph))
         content.append("\n")
 
-    with open("docs/architecture.md", "w") as f:
+    with open("docs/architecture.md", "w", encoding="utf-8") as f:
         f.write("\n".join(content))
 
     print("Generated diagrams to docs/architecture.md")
+
 
 if __name__ == "__main__":
     main()
