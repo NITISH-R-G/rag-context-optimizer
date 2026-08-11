@@ -54,11 +54,16 @@ jobs:
         format: spdx-json
         output-file: reports/sbom.spdx.json
 
-    - name: Lint and Format Code (Ruff)
+    - name: Lint Code (Ruff)
       id: ruff
       continue-on-error: true
       run: |
         ruff check . > reports/ruff.txt
+
+    - name: Format Code (Ruff)
+      id: ruff_format
+      continue-on-error: true
+      run: |
         ruff format --check . >> reports/ruff.txt
 
     - name: Type Checking (Mypy)
