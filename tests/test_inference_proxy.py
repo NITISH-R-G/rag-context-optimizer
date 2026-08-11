@@ -115,7 +115,7 @@ def test_inference_uses_proxy_api_key():
         env["HF_TOKEN"] = "legacy-should-not-win"
         result = subprocess.run(
             [str(PYTHON), "inference.py"],
-            cwd=ROOT,
+            cwd=ROOT, check=False,
             env=env,
             capture_output=True,
             text=True,
