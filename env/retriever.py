@@ -114,7 +114,9 @@ class HybridRetriever:
             for term in term_freqs:
                 self._doc_freqs[term] += 1
 
-            self._chunk_keyword_terms[chunk.chunk_id] = self._tokenize_query_terms(" ".join(chunk.keywords))
+            self._chunk_keyword_terms[chunk.chunk_id] = self._tokenize_query_terms(
+                " ".join(chunk.keywords)
+            )
 
         self._avg_doc_length = total_length / len(self.corpus) if self.corpus else 0.0
         self._max_score_cache: dict[tuple[str, ...], float] = {}
