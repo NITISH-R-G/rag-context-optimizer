@@ -48,7 +48,11 @@ def wait_for_server(base_url: str, timeout: float = 20.0) -> bool:
 def greedy_action(observation: dict) -> dict:
     query_terms = set(observation["query"].lower().split())
     selected = set(observation.get("selected_chunks", []))
-    available = [chunk for chunk in observation["available_chunks"] if chunk["chunk_id"] not in selected]
+    available = [
+        chunk
+        for chunk in observation["available_chunks"]
+        if chunk["chunk_id"] not in selected
+    ]
 
     def overlap(chunk: dict) -> tuple[float, int, str]:
         keyword_terms = set(" ".join(chunk["keywords"]).lower().split())
@@ -61,12 +65,22 @@ def greedy_action(observation: dict) -> dict:
         or observation["total_tokens_used"] >= int(observation["token_budget"] * 0.7)
     ):
         if not observation.get("plan_draft"):
-            return {"action_type": "set_resolution_plan", "plan": "Verify evidence, protect customers, and publish only grounded actions."}
-        return {"action_type": "submit_report", "answer": "A concise grounded incident operations brief using the prioritized artifacts."}
+            return {
+                "action_type": "set_resolution_plan",
+                "plan": "Verify evidence, protect customers, and publish only grounded actions.",
+            }
+        return {
+            "action_type": "submit_report",
+            "answer": "A concise grounded incident operations brief using the prioritized artifacts.",
+        }
 
     if selected:
         heavy = sorted(
-            [chunk for chunk in available + observation["available_chunks"] if chunk["chunk_id"] in selected],
+            [
+                chunk
+                for chunk in available + observation["available_chunks"]
+                if chunk["chunk_id"] in selected
+            ],
             key=lambda chunk: (-chunk["tokens"], chunk["chunk_id"]),
         )
         if heavy and heavy[0]["tokens"] > max(120, observation["token_budget"] // 3):
@@ -79,10 +93,15 @@ def greedy_action(observation: dict) -> dict:
     for chunk in sorted(available, key=overlap):
         return {"action_type": "inspect_artifact", "artifact_id": chunk["chunk_id"]}
 
-    return {"action_type": "submit_report", "answer": "A concise grounded incident operations brief using the prioritized artifacts."}
+    return {
+        "action_type": "submit_report",
+        "answer": "A concise grounded incident operations brief using the prioritized artifacts.",
+    }
 
 
-def planner_action(client: httpx.Client, base_url: str, fallback_observation: dict) -> dict:
+def planner_action(
+    client: httpx.Client, base_url: str, fallback_observation: dict
+) -> dict:
     try:
         response = client.post(f"{base_url}/optimize-step")
         if response.status_code == 200:
@@ -172,8 +191,8 @@ def run_inference_script(base_url: str) -> bool:
         env.pop("ALLOW_BASELINE_FALLBACK", None)
         env["API_BASE_URL"] = f"http://127.0.0.1:{proxy_port}/v1"
         env["API_KEY"] = "offline-validation-token"
-        env["HF_TOKEN"] = "legacy-should-not-win"
-        process = subprocess.run(
+        env["HF_TOKEN"] = "legacy-should-not-win"  # nosec B105
+        process = subprocess.run(  # nosec B603
             [sys.executable, "inference.py"],
             cwd=PROJECT_ROOT,
             capture_output=True,
@@ -185,9 +204,21 @@ def run_inference_script(base_url: str) -> bool:
         has_start = "[START]" in stdout
         has_end = "[END]" in stdout
         end_has_score = " score=" in stdout
-        proxy_called = any(request["path"] == "/v1/chat/completions" for request in requests_seen)
-        auth_ok = any(request["authorization"] == "Bearer offline-validation-token" for request in requests_seen)
-        return process.returncode == 0 and has_start and has_end and end_has_score and proxy_called and auth_ok
+        proxy_called = any(
+            request["path"] == "/v1/chat/completions" for request in requests_seen
+        )
+        auth_ok = any(
+            request["authorization"] == "Bearer offline-validation-token"
+            for request in requests_seen
+        )
+        return (
+            process.returncode == 0
+            and has_start
+            and has_end
+            and end_has_score
+            and proxy_called
+            and auth_ok
+        )
     finally:
         proxy_server.shutdown()
         proxy_server.server_close()
@@ -196,8 +227,17 @@ def run_inference_script(base_url: str) -> bool:
 def main() -> int:
     port = find_free_port()
     base_url = f"http://127.0.0.1:{port}"
-    command = [sys.executable, "-m", "uvicorn", "app:app", "--host", "127.0.0.1", "--port", str(port)]
-    process = subprocess.Popen(command, cwd=PROJECT_ROOT)
+    command = [
+        sys.executable,
+        "-m",
+        "uvicorn",
+        "app:app",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        str(port),
+    ]
+    process = subprocess.Popen(command, cwd=PROJECT_ROOT)  # nosec B603
 
     try:
         if not wait_for_server(base_url):
@@ -208,11 +248,15 @@ def main() -> int:
         all_passed = True
         with httpx.Client(timeout=10.0) as client:
             health = client.get(f"{base_url}/health")
-            health_ok = health.status_code == 200 and health.json().get("status") == "ok"
+            health_ok = (
+                health.status_code == 200 and health.json().get("status") == "ok"
+            )
             print_check("GET /health", health_ok)
             all_passed &= health_ok
 
-            reset = client.post(f"{base_url}/reset", json={"task_name": "refund_triage_easy"})
+            reset = client.post(
+                f"{base_url}/reset", json={"task_name": "refund_triage_easy"}
+            )
             reset_ok = reset.status_code == 200 and "observation" in reset.json()
             print_check("POST /reset", reset_ok)
             all_passed &= reset_ok
@@ -223,12 +267,18 @@ def main() -> int:
                 if chunk.get("chunk_id"):
                     first_chunk_id = chunk["chunk_id"]
                     break
-            step_payload = {"action_type": "inspect_artifact", "artifact_id": first_chunk_id} if first_chunk_id else {
-                "action_type": "submit_report",
-                "answer": "No chunk available for validation.",
-            }
+            step_payload = (
+                {"action_type": "inspect_artifact", "artifact_id": first_chunk_id}
+                if first_chunk_id
+                else {
+                    "action_type": "submit_report",
+                    "answer": "No chunk available for validation.",
+                }
+            )
             step = client.post(f"{base_url}/step", json=step_payload)
-            step_ok = step.status_code == 200 and isinstance(step.json().get("reward"), float)
+            step_ok = step.status_code == 200 and isinstance(
+                step.json().get("reward"), float
+            )
             print_check("POST /step", step_ok)
             all_passed &= step_ok
 
@@ -245,7 +295,9 @@ def main() -> int:
                     "compression_mode": "grounded",
                 },
             )
-            optimize_body = optimize_prompt.json() if optimize_prompt.status_code == 200 else {}
+            optimize_body = (
+                optimize_prompt.json() if optimize_prompt.status_code == 200 else {}
+            )
             optimize_ok = (
                 optimize_prompt.status_code == 200
                 and "optimized_prompt" in optimize_body
