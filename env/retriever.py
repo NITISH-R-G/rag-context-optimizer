@@ -36,11 +36,12 @@ True
 
 from __future__ import annotations
 
-import functools
 import math
 import re
+import typing
 from collections import Counter, defaultdict
-from typing import AbstractSet, Iterable
+from collections.abc import Iterable
+from collections.abc import Set as AbstractSet
 
 from env.corpus import Chunk
 
@@ -48,7 +49,7 @@ from env.corpus import Chunk
 class HybridRetriever:
     """Hybrid lexical retriever with deterministic BM25 and keyword overlap scoring."""
 
-    _STOPWORDS = {
+    _STOPWORDS: typing.ClassVar[AbstractSet[str]] = {
         "a",
         "an",
         "and",
@@ -90,7 +91,7 @@ class HybridRetriever:
         "without",
         "your",
     }
-    _TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
+    _TOKEN_PATTERN: typing.ClassVar[re.Pattern] = re.compile(r"[a-z0-9]+")
 
     def __init__(self, corpus: list[Chunk]):
         self.corpus = list(corpus)
@@ -120,7 +121,7 @@ class HybridRetriever:
         self._max_score_cache: dict[tuple[str, ...], float] = {}
 
     @staticmethod
-    @functools.lru_cache(maxsize=1024)
+    # @functools.lru_cache(maxsize=1024) # Removed to prevent memory leaks as per B019
     def _tokenize_for_bm25(text: str) -> tuple[str, ...]:
         stopwords = HybridRetriever._STOPWORDS
         return tuple(
@@ -130,7 +131,7 @@ class HybridRetriever:
         )
 
     @staticmethod
-    @functools.lru_cache(maxsize=1024)
+    # @functools.lru_cache(maxsize=1024) # Removed to prevent memory leaks as per B019
     def _tokenize_query_terms(text: str) -> AbstractSet[str]:
         stopwords = HybridRetriever._STOPWORDS
         return frozenset(
@@ -172,7 +173,7 @@ class HybridRetriever:
 
         return score
 
-    @functools.lru_cache(maxsize=1024)
+    # @functools.lru_cache(maxsize=1024) # Removed to prevent memory leaks as per B019
     def _max_raw_bm25_for_query(self, query_terms: tuple[str, ...]) -> float:
         if not self.corpus or not query_terms:
             return 0.0

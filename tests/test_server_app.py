@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from server.app import main  # noqa: E402
+from server.app import main
 
 
 @patch("uvicorn.run")

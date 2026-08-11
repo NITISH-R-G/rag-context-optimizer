@@ -51,5 +51,55 @@ ignore_missing_imports = true
 check_untyped_defs = true
 disallow_untyped_defs = false
 exclude = [
+    "vulture_whitelist.py",
     "^tests/"
 ]
+
+
+[tool.ruff]
+exclude = [
+    "vulture_whitelist.py","vulture_whitelist.py"]
+
+
+[tool.pylint.messages_control]
+disable = [
+    "missing-module-docstring",
+    "missing-class-docstring",
+    "missing-function-docstring",
+    "import-outside-toplevel",
+    "protected-access",
+    "too-few-public-methods",
+    "line-too-long",
+    "wrong-import-position",
+    "use-implicit-booleaness-not-comparison",
+    "unused-argument",
+    "unused-variable",
+    "redefined-outer-name",
+    "invalid-name",
+    "broad-exception-caught",
+    "unspecified-encoding",
+    "logging-fstring-interpolation",
+    "too-many-locals",
+    "too-many-instance-attributes",
+    "too-many-arguments",
+    "too-many-branches",
+    "too-many-statements",
+    "too-many-return-statements",
+    "too-many-boolean-expressions",
+    "too-many-nested-blocks",
+    "duplicate-code",
+    "missing-timeout",
+    "undefined-variable",
+    "pointless-statement",
+    "superfluous-parens",
+    "global-statement",
+    "too-many-positional-arguments",
+    "chained-comparison",
+    "bad-indentation",
+    "redefined-builtin",
+    "consider-using-with"
+]
+
+
+[tool.pylint.main]
+ignore-paths = ["^tests/.*", "^\\.github/scripts/.*"]
