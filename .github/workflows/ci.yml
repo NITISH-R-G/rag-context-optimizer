@@ -23,7 +23,6 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -e ".[test]"
           pip install -e ".[test,qa]"
 
       - name: Run Ruff Linter
