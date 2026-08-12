@@ -173,8 +173,8 @@ def run_inference_script(base_url: str) -> bool:
         env["API_BASE_URL"] = f"http://127.0.0.1:{proxy_port}/v1"
         env["API_KEY"] = "offline-validation-token"
         env["HF_TOKEN"] = "legacy-should-not-win"
-        process = subprocess.run(
-            [sys.executable, "inference.py"],
+        process = subprocess.run([sys.executable, "inference.py"],
+            check=False,
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
