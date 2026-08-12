@@ -389,7 +389,7 @@ async def _suggest_action(env: RagContextOptimizerEnv) -> dict[str, Any]:
 
 
 @app.post("/reset")
-async def reset_endpoint(payload: ResetRequest | None = Body(default=None)):
+async def reset_endpoint(payload: ResetRequest | None = None):
     payload = payload or ResetRequest()
     if payload.task_name not in TASKS_BY_NAME:
         raise HTTPException(status_code=400, detail="Unknown task_name.")
