@@ -7,15 +7,15 @@
 ```mermaid
 graph LR
     subgraph External Dependencies
-        E0["http"]
-        E1["hashlib"]
-        E2["socket"]
-        E3["httpx"]
-        E4["openai"]
-        E5["functools"]
-        E6["torch"]
-        E7["pydantic"]
-        E8["signal"]
+        E0["threading"]
+        E1["uuid"]
+        E2["asyncio"]
+        E3["collections"]
+        E4["streamlit"]
+        E5["builtins"]
+        E6["unittest"]
+        E7["subprocess"]
+        E8["httpx"]
         E9["random"]
     end
     subgraph Core System
@@ -36,95 +36,95 @@ graph TD
     click F1 "frontend_test.py" "Go to source"
     F2["streamlit_app.py"]
     click F2 "streamlit_app.py" "Go to source"
-    F3["validate.py"]
-    click F3 "validate.py" "Go to source"
-    F4["inference.py"]
-    click F4 "inference.py" "Go to source"
-    F5["test_inference_coverage.py"]
-    click F5 "tests/test_inference_coverage.py" "Go to source"
-    F6["test_llm_runtime.py"]
-    click F6 "tests/test_llm_runtime.py" "Go to source"
-    F7["test_inference.py"]
-    click F7 "tests/test_inference.py" "Go to source"
-    F8["test_environment_extra.py"]
-    click F8 "tests/test_environment_extra.py" "Go to source"
-    F9["test_graders.py"]
-    click F9 "tests/test_graders.py" "Go to source"
-    F10["test_llm_features.py"]
-    click F10 "tests/test_llm_features.py" "Go to source"
-    F11["test_context_tuner_coverage.py"]
-    click F11 "tests/test_context_tuner_coverage.py" "Go to source"
-    F12["test_inference_proxy.py"]
-    click F12 "tests/test_inference_proxy.py" "Go to source"
-    F13["test_environment.py"]
-    click F13 "tests/test_environment.py" "Go to source"
-    F14["test_prompt_optimizer.py"]
-    click F14 "tests/test_prompt_optimizer.py" "Go to source"
+    F3["inference.py"]
+    click F3 "inference.py" "Go to source"
+    F4["validate.py"]
+    click F4 "validate.py" "Go to source"
+    F5["test_graders.py"]
+    click F5 "tests/test_graders.py" "Go to source"
+    F6["test_inference_coverage.py"]
+    click F6 "tests/test_inference_coverage.py" "Go to source"
+    F7["test_llm_features.py"]
+    click F7 "tests/test_llm_features.py" "Go to source"
+    F8["test_inference.py"]
+    click F8 "tests/test_inference.py" "Go to source"
+    F9["test_server_app.py"]
+    click F9 "tests/test_server_app.py" "Go to source"
+    F10["test_prompt_optimizer.py"]
+    click F10 "tests/test_prompt_optimizer.py" "Go to source"
+    F11["test_inference_proxy.py"]
+    click F11 "tests/test_inference_proxy.py" "Go to source"
+    F12["test_environment_extra.py"]
+    click F12 "tests/test_environment_extra.py" "Go to source"
+    F13["test_streamlit_app.py"]
+    click F13 "tests/test_streamlit_app.py" "Go to source"
+    F14["test_environment.py"]
+    click F14 "tests/test_environment.py" "Go to source"
     F15["test_corpus.py"]
     click F15 "tests/test_corpus.py" "Go to source"
-    F16["test_server_app.py"]
-    click F16 "tests/test_server_app.py" "Go to source"
+    F16["test_context_tuner_coverage.py"]
+    click F16 "tests/test_context_tuner_coverage.py" "Go to source"
     F17["test_api.py"]
     click F17 "tests/test_api.py" "Go to source"
-    F18["test_fallback_logic.py"]
-    click F18 "tests/test_fallback_logic.py" "Go to source"
-    F19["test_streamlit_app.py"]
-    click F19 "tests/test_streamlit_app.py" "Go to source"
-    F20["__init__.py"]
-    click F20 "env/__init__.py" "Go to source"
-    F21["context_tuner.py"]
-    click F21 "env/context_tuner.py" "Go to source"
-    F22["retriever.py"]
-    click F22 "env/retriever.py" "Go to source"
-    F23["models.py"]
-    click F23 "env/models.py" "Go to source"
-    F24["graders.py"]
-    click F24 "env/graders.py" "Go to source"
-    F25["environment.py"]
-    click F25 "env/environment.py" "Go to source"
-    F26["llm_runtime.py"]
-    click F26 "env/llm_runtime.py" "Go to source"
-    F27["prompt_optimizer.py"]
-    click F27 "env/prompt_optimizer.py" "Go to source"
-    F28["tasks.py"]
-    click F28 "env/tasks.py" "Go to source"
-    F29["corpus.py"]
-    click F29 "env/corpus.py" "Go to source"
-    F30["llm_services.py"]
-    click F30 "env/llm_services.py" "Go to source"
-    F31["__init__.py"]
-    click F31 "server/__init__.py" "Go to source"
-    F32["app.py"]
-    click F32 "server/app.py" "Go to source"
-    F0 -->|imports| F8
-    F3 -->|imports| F6
-    F4 -->|imports| F2
-    F4 -->|imports| F8
-    F5 -->|imports| F4
-    F6 -->|imports| F8
-    F7 -->|imports| F4
-    F9 -->|imports| F8
-    F10 -->|imports| F0
-    F11 -->|imports| F8
-    F12 -->|imports| F6
-    F13 -->|imports| F8
-    F14 -->|imports| F8
-    F15 -->|imports| F8
+    F18["test_llm_runtime.py"]
+    click F18 "tests/test_llm_runtime.py" "Go to source"
+    F19["test_fallback_logic.py"]
+    click F19 "tests/test_fallback_logic.py" "Go to source"
+    F20["llm_runtime.py"]
+    click F20 "env/llm_runtime.py" "Go to source"
+    F21["graders.py"]
+    click F21 "env/graders.py" "Go to source"
+    F22["context_tuner.py"]
+    click F22 "env/context_tuner.py" "Go to source"
+    F23["__init__.py"]
+    click F23 "env/__init__.py" "Go to source"
+    F24["corpus.py"]
+    click F24 "env/corpus.py" "Go to source"
+    F25["llm_services.py"]
+    click F25 "env/llm_services.py" "Go to source"
+    F26["prompt_optimizer.py"]
+    click F26 "env/prompt_optimizer.py" "Go to source"
+    F27["tasks.py"]
+    click F27 "env/tasks.py" "Go to source"
+    F28["environment.py"]
+    click F28 "env/environment.py" "Go to source"
+    F29["models.py"]
+    click F29 "env/models.py" "Go to source"
+    F30["retriever.py"]
+    click F30 "env/retriever.py" "Go to source"
+    F31["app.py"]
+    click F31 "server/app.py" "Go to source"
+    F32["__init__.py"]
+    click F32 "server/__init__.py" "Go to source"
+    F0 -->|imports| F12
+    F3 -->|imports| F2
+    F3 -->|imports| F12
+    F4 -->|imports| F18
+    F5 -->|imports| F12
+    F6 -->|imports| F3
+    F7 -->|imports| F0
+    F8 -->|imports| F3
+    F10 -->|imports| F12
+    F11 -->|imports| F18
+    F13 -->|imports| F2
+    F14 -->|imports| F12
+    F15 -->|imports| F12
+    F16 -->|imports| F12
     F17 -->|imports| F0
-    F18 -->|imports| F0
-    F19 -->|imports| F2
+    F18 -->|imports| F12
+    F19 -->|imports| F0
+    F20 -->|imports| F2
     F21 -->|imports| F2
-    F21 -->|imports| F8
+    F21 -->|imports| F12
     F22 -->|imports| F2
-    F22 -->|imports| F8
-    F24 -->|imports| F2
-    F24 -->|imports| F8
-    F25 -->|imports| F2
-    F25 -->|imports| F8
+    F22 -->|imports| F12
+    F25 -->|imports| F12
     F26 -->|imports| F2
-    F27 -->|imports| F2
-    F27 -->|imports| F8
-    F30 -->|imports| F8
-    F32 -->|imports| F0
+    F26 -->|imports| F12
+    F28 -->|imports| F2
+    F28 -->|imports| F12
+    F30 -->|imports| F2
+    F30 -->|imports| F12
+    F31 -->|imports| F0
 ```
 
