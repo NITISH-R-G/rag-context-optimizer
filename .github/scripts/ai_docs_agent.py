@@ -1,9 +1,9 @@
 import json
 import logging
-
-logger = logging.getLogger(__name__)
 import os
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 # Configure simple logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')

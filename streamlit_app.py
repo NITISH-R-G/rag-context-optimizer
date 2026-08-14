@@ -5,7 +5,7 @@ try:
     API_URL = st.secrets.get("API_URL", "http://localhost:7860") if hasattr(st, "secrets") else "http://localhost:7860"
 except FileNotFoundError:
     API_URL = "http://localhost:7860"
-except Exception as _e:  # noqa: BLE001  # noqa: BLE001, F841
+except Exception as _e:  # noqa: BLE001
     API_URL = "http://localhost:7860"
 
 
@@ -15,7 +15,7 @@ def api_get(path: str):
         response = httpx.get(f"{API_URL}{path}", timeout=20.0)
         response.raise_for_status()
         return response.json()
-    except Exception as e:  # noqa: BLE001  # noqa: BLE001
+    except Exception as e:  # noqa: BLE001
         st.error(f"API Error: {e}")
         return None
 
