@@ -26,7 +26,7 @@ jobs:
 
           pip install -e ".[test]"
           pip install -e ".[qa]"
-          pip install openenv-core
+          pip install openenv-core==0.3.0
 
       - name: Run Ruff Linter
         run: ruff check .
