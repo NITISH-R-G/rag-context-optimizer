@@ -174,7 +174,6 @@ class HybridRetriever:
 
         return score
 
-    @functools.lru_cache(maxsize=1024)
     def _max_raw_bm25_for_query(self, query_terms: tuple[str, ...]) -> float:
 
         if not self.corpus or not query_terms:

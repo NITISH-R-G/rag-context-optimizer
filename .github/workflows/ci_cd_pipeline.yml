@@ -22,7 +22,7 @@ jobs:
       run: |
 
         pip install -e ".[test]"
-        pip install ruff mypy bandit safety openenv-core
+        pip install -e ".[qa]" openenv-core
 
     - name: Lint with Ruff
       run: |
