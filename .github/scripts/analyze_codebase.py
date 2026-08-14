@@ -1,7 +1,8 @@
 import ast
-import os
 import json
+import os
 import re
+
 
 def parse_python_file(filepath):
     """Parses a Python file and extracts its AST, catching basic syntax errors."""
@@ -9,7 +10,7 @@ def parse_python_file(filepath):
         with open(filepath, 'r', encoding='utf-8') as f:
             source = f.read()
         return ast.parse(source), source
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  # noqa: BLE001
         print(f"Error parsing {filepath}: {e}")
         return None, None
 
@@ -20,9 +21,8 @@ def extract_dependencies(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
                 imports.append(alias.name.split('.')[0])
-        elif isinstance(node, ast.ImportFrom):
-            if node.module:
-                imports.append(node.module.split('.')[0])
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imports.append(node.module.split('.')[0])
     return list(set(imports))
 
 def extract_endpoints(tree):
@@ -31,8 +31,7 @@ def extract_endpoints(tree):
     for node in ast.walk(tree):
         if isinstance(node, ast.FunctionDef):
             for decorator in node.decorator_list:
-                if isinstance(decorator, ast.Call) and isinstance(decorator.func, ast.Attribute):
-                    if decorator.func.attr in ['get', 'post', 'put', 'delete', 'patch']:
+                if isinstance(decorator, ast.Call) and isinstance(decorator.func, ast.Attribute) and decorator.func.attr in ['get', 'post', 'put', 'delete', 'patch']:
                         path = ""
                         if decorator.args and isinstance(decorator.args[0], ast.Constant):
                             path = decorator.args[0].value
@@ -75,7 +74,7 @@ def get_project_metadata():
                  deps_str = deps_match.group(1)
                  deps = re.findall(r'"([^"=><]+)[^"]*"', deps_str)
                  metadata["dependencies"] = deps
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  # noqa: BLE001
          print(f"Error reading pyproject.toml: {e}")
     return metadata
 
@@ -94,9 +93,8 @@ def analyze_codebase(root_dir="."):
     graph["external_deps"].update(graph["metadata"]["dependencies"])
 
     for subdir, _, files in os.walk(root_dir):
-        if '.git' in subdir or '.github' in subdir or 'venv' in subdir or 'env' in subdir and 'env' != subdir[2:]:
-             if 'env' not in subdir: # Allow scanning the actual env package if any
-                 continue
+        if ('.git' in subdir or '.github' in subdir or 'venv' in subdir or 'env' in subdir and 'env' != subdir[2:]) and 'env' not in subdir:
+             continue
 
         for file in files:
             if file.endswith('.py'):
