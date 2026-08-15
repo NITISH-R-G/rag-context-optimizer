@@ -20,7 +20,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install -e ".[test,qa]"
+        python -m pip install -e ".[test,qa]"
 
     - name: Lint with Ruff
       run: |

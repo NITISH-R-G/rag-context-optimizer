@@ -30,8 +30,8 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install -e ".[test]"
-        pip install -e ".[qa]"
+        python -m pip install -e ".[test]"
+        python -m pip install -e ".[qa]"
 
     - name: Create Reports Directory
       run: mkdir -p reports
