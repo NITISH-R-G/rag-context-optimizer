@@ -32,7 +32,6 @@ jobs:
       run: |
         pip install -e ".[test]"
         pip install -e ".[qa]"
-        pip install openai openenv-core
 
     - name: Create Reports Directory
       run: mkdir -p reports
