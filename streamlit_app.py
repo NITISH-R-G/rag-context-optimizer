@@ -2,12 +2,17 @@ import httpx
 import streamlit as st
 
 
-try:
-    API_URL = st.secrets.get("API_URL", "http://localhost:7860") if hasattr(st, "secrets") else "http://localhost:7860"
-except FileNotFoundError:
-    API_URL = "http://localhost:7860"
-except Exception:
-    API_URL = "http://localhost:7860"
+
+def get_api_url() -> str:
+    try:
+        return st.secrets.get("API_URL", "http://localhost:7860") if hasattr(st, "secrets") else "http://localhost:7860"
+    except FileNotFoundError:
+        return "http://localhost:7860"
+    except Exception as _e:  # pylint: disable=broad-exception-caught
+        return "http://localhost:7860"
+
+API_URL = get_api_url()
+
 
 
 

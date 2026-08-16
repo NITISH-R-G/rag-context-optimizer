@@ -53,3 +53,12 @@ disallow_untyped_defs = false
 exclude = [
     "^tests/"
 ]
+
+[tool.ruff]
+exclude = ["vulture_whitelist.py"]
+
+[tool.pylint.messages_control]
+disable = ["missing-module-docstring", "missing-function-docstring", "broad-exception-caught", "line-too-long", "bad-indentation", "duplicate-code", "import-outside-toplevel", "protected-access", "too-few-public-methods"]
+
+[tool.pylint.main]
+ignore-paths = ["^tests/.*", "^\\.github/scripts/.*"]
