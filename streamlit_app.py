@@ -12,7 +12,7 @@ def get_api_url() -> str:
     except FileNotFoundError:
         return "http://localhost:7860"
     except Exception as _e:  # pylint: disable=broad-exception-caught
-        return "http://localhost:7860"
+        return "http://localhost:7860"  # noqa: BLE001
 
 
 API_URL = get_api_url()

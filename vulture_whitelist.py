@@ -1,4 +1,6 @@
-# vulture_whitelist.py
+# ruff: noqa: F821
+# type: ignore
+
 home_page
 reset_endpoint
 step_endpoint

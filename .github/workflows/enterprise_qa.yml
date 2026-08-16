@@ -91,13 +91,15 @@ jobs:
       id: pipaudit
       continue-on-error: true
       run: |
-        pip-audit -f json > reports/pip-audit.json || true
+        pip-audit -f json > reports/pip-audit.json
+        true
 
     - name: Dependency Security Scan (Safety)
       id: safety
       continue-on-error: true
       run: |
-        safety check --output json > reports/safety.json || true
+        safety check --output json > reports/safety.json
+        true
 
     - name: Test Coverage
       continue-on-error: true

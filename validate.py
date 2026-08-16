@@ -199,6 +199,7 @@ def run_inference_script(base_url: str) -> bool:
             text=True,
             timeout=120,
             env=env,
+            check=False,
         )
         stdout = process.stdout or ""
         has_start = "[START]" in stdout
