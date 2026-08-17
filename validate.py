@@ -2,7 +2,7 @@ import json
 import os
 import signal
 import socket
-import subprocess
+import subprocess  # nosec
 import sys
 import threading
 import time
@@ -173,8 +173,9 @@ def run_inference_script(base_url: str) -> bool:
         env["API_BASE_URL"] = f"http://127.0.0.1:{proxy_port}/v1"
         env["API_KEY"] = "offline-validation-token"
         env["HF_TOKEN"] = "legacy-should-not-win"
-        process = subprocess.run(
+        process = subprocess.run(  # nosec
             [sys.executable, "inference.py"],
+            check=False,
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
@@ -197,7 +198,7 @@ def main() -> int:
     port = find_free_port()
     base_url = f"http://127.0.0.1:{port}"
     command = [sys.executable, "-m", "uvicorn", "app:app", "--host", "127.0.0.1", "--port", str(port)]
-    process = subprocess.Popen(command, cwd=PROJECT_ROOT)
+    process = subprocess.Popen(command, cwd=PROJECT_ROOT)  # nosec
 
     try:
         if not wait_for_server(base_url):

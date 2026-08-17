@@ -53,3 +53,15 @@ disallow_untyped_defs = false
 exclude = [
     "^tests/"
 ]
+
+[tool.ruff]
+exclude = ["vulture_whitelist.py"]
+
+[tool.pylint.main]
+ignore-paths = ['^tests/.*', '^\.github/scripts/.*']
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["E402", "F401", "I001"]
+
+[tool.pylint.messages_control]
+disable = ["import-outside-toplevel", "protected-access", "too-few-public-methods", "broad-exception-caught", "duplicate-code", "missing-function-docstring", "missing-module-docstring", "missing-class-docstring", "bad-indentation", "line-too-long", "unspecified-encoding", "redefined-outer-name", "too-many-nested-blocks", "too-many-boolean-expressions", "logging-fstring-interpolation", "wrong-import-position", "invalid-name", "redefined-builtin", "too-many-locals", "too-many-statements", "consider-using-with"]
