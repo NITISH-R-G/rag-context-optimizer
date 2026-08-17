@@ -58,7 +58,7 @@ exclude = [
 exclude = ["vulture_whitelist.py"]
 
 [tool.pylint.main]
-ignore-paths = ['^tests/.*', '^\.github/scripts/.*']
+ignore-paths = ["^tests/.*", "^\\.github/scripts/.*"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*.py" = ["E402", "F401", "I001"]
