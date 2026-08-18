@@ -172,13 +172,13 @@ def run_inference_script(base_url: str) -> bool:
         env.pop("ALLOW_BASELINE_FALLBACK", None)
         env["API_BASE_URL"] = f"http://127.0.0.1:{proxy_port}/v1"
         env["API_KEY"] = "offline-validation-token"
-        env["HF_TOKEN"] = "legacy-should-not-win"
+        env["HF_TOKEN"] = "legacy-should-not-win"  # nosec B105
         process = subprocess.run(
             [sys.executable, "inference.py"],
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
-            timeout=120,
+            timeout=120, shell=False, check=False,
             env=env,
         )
         stdout = process.stdout or ""
@@ -197,7 +197,7 @@ def main() -> int:
     port = find_free_port()
     base_url = f"http://127.0.0.1:{port}"
     command = [sys.executable, "-m", "uvicorn", "app:app", "--host", "127.0.0.1", "--port", str(port)]
-    process = subprocess.Popen(command, cwd=PROJECT_ROOT)
+    process = subprocess.Popen(command, cwd=PROJECT_ROOT, shell=False)
 
     try:
         if not wait_for_server(base_url):
