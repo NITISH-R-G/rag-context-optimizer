@@ -1,4 +1,5 @@
 from __future__ import annotations
+import typing
 
 import sys
 from pathlib import Path
@@ -128,8 +129,8 @@ async def test_rank_and_select_chunks():
     await env.reset() # mock env state roughly
 
     class DummyTuning:
-        tuned_scores = {}
-        suggested_citations = []
+        tuned_scores: typing.ClassVar[dict] = {}
+        suggested_citations: typing.ClassVar[list] = []
 
     tuning = DummyTuning()
     _rank_and_select_chunks(env, tuning, "test prompt", "balanced")
