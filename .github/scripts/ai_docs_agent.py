@@ -1,12 +1,12 @@
-import os
 import json
 import logging
-from typing import Dict, Any
+import os
+from typing import Any
 
 # Configure simple logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
-def get_repo_context() -> Dict[str, Any]:
+def get_repo_context() -> dict[str, Any]:
     """Loads repository context from generated files."""
     context = {}
     try:
@@ -32,7 +32,7 @@ def get_repo_context() -> Dict[str, Any]:
 
     return context
 
-def build_prompt(context: Dict[str, Any]) -> str:
+def build_prompt(context: dict[str, Any]) -> str:
     """Builds a prompt for the AI to update documentation."""
     graph = context.get('graph', {})
 
@@ -58,7 +58,7 @@ def build_prompt(context: Dict[str, Any]) -> str:
     """
     return prompt
 
-def generate_documentation(api_key: str, context: Dict[str, Any]) -> Dict[str, str]:
+def generate_documentation(api_key: str, context: dict[str, Any]) -> dict[str, str]:
     """Uses OpenAI API to generate new documentation."""
     try:
         from openai import OpenAI

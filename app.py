@@ -2,9 +2,9 @@
 FastAPI server exposing the rag-context-optimizer OpenEnv HTTP API.
 """
 
+import os
 from contextlib import asynccontextmanager
 from dataclasses import asdict, is_dataclass
-import os
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -206,7 +206,7 @@ def _check_compression(
         heavy = sorted(
             selected_chunks,
             key=lambda chunk: (
-                -(chunk.tokens * (score_map[chunk.chunk_id].final_score if chunk.chunk_id in score_map and score_map[chunk.chunk_id] else 0.5)),
+                -(chunk.tokens * (score_map[chunk.chunk_id].final_score if score_map.get(chunk.chunk_id) else 0.5)),
                 chunk.chunk_id,
             ),
         )
@@ -272,7 +272,7 @@ def _check_inspect_candidates(
         available = sorted(
             available,
             key=lambda chunk: (
-                -(score_map[chunk.chunk_id].final_score if chunk.chunk_id in score_map and score_map[chunk.chunk_id] else 0.0),
+                -(score_map[chunk.chunk_id].final_score if score_map.get(chunk.chunk_id) else 0.0),
                 chunk.tokens,
                 chunk.chunk_id,
             ),
@@ -280,7 +280,7 @@ def _check_inspect_candidates(
     for chunk in sorted(
         available,
         key=lambda chunk: (
-            -(score_map[chunk.chunk_id].final_score if chunk.chunk_id in score_map and score_map[chunk.chunk_id] else 0.0) / max(chunk.tokens, 1),
+            -(score_map[chunk.chunk_id].final_score if score_map.get(chunk.chunk_id) else 0.0) / max(chunk.tokens, 1),
             chunk.tokens,
             chunk.chunk_id,
         ),
@@ -299,7 +299,7 @@ def _check_fallback_prioritize(
     for chunk in sorted(
         [chunk for chunk in available_chunks if chunk.chunk_id in reviewed and chunk.chunk_id not in selected],
         key=lambda chunk: (
-            -(score_map[chunk.chunk_id].final_score if chunk.chunk_id in score_map and score_map[chunk.chunk_id] else 0.0) / max(chunk.tokens, 1),
+            -(score_map[chunk.chunk_id].final_score if score_map.get(chunk.chunk_id) else 0.0) / max(chunk.tokens, 1),
             chunk.tokens,
             chunk.chunk_id,
         ),

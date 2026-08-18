@@ -40,7 +40,8 @@ import functools
 import math
 import re
 from collections import Counter, defaultdict
-from typing import AbstractSet, Iterable
+from collections.abc import Iterable
+from typing import AbstractSet
 
 from env.corpus import Chunk
 
