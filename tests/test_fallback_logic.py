@@ -1,22 +1,24 @@
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock
+
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app import (  # noqa: E402
-    _check_resolution_plan,
+from app import (
     _check_compression,
     _check_early_submit,
-    _check_prioritize_candidates,
-    _check_inspect_candidates,
     _check_fallback_prioritize,
+    _check_inspect_candidates,
+    _check_prioritize_candidates,
+    _check_resolution_plan,
     _get_final_fallback_action,
     _suggest_action_fallback,
 )
+
 
 class MockChunk:
     def __init__(self, chunk_id, tokens, keywords=None):
@@ -198,8 +200,9 @@ def test_check_fallback_prioritize_none():
 
 @pytest.mark.anyio
 async def test_suggest_action_llm_fallback():
+    from unittest.mock import AsyncMock, patch
+
     from app import _suggest_action
-    from unittest.mock import patch, AsyncMock
 
     env = MagicMock()
     env._build_observation.return_value = MagicMock(
