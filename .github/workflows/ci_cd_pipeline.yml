@@ -21,7 +21,6 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -e ".[test,qa]"
-        pip install ruff mypy bandit safety openenv-core
 
     - name: Lint with Ruff
       run: |

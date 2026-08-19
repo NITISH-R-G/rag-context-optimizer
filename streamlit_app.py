@@ -6,13 +6,13 @@ def get_api_url() -> str:
     try:
         if getattr(st, "session_state", {}).get("pytest_mode"):
             return "http://localhost:7860"
-    except Exception:
+    except Exception as _e:  # noqa: F841, BLE001
         pass
 
     try:
         if hasattr(st, "secrets"):
             return st.secrets.get("API_URL", "http://localhost:7860")
-    except Exception:
+    except Exception as _e:  # noqa: F841, BLE001
         pass
     return "http://localhost:7860"
 
