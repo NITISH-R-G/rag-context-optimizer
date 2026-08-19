@@ -53,3 +53,9 @@ disallow_untyped_defs = false
 exclude = [
     "^tests/"
 ]
+
+[tool.pylint.main]
+ignore-paths = ['^tests/.*', '^\\.github/scripts/.*']
+
+[tool.pylint.messages_control]
+disable = ["C0415", "W0212", "R0903", "R0801"]
