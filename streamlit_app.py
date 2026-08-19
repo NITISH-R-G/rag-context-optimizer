@@ -6,13 +6,13 @@ def get_api_url() -> str:
     try:
         if getattr(st, "session_state", {}).get("pytest_mode"):
             return "http://localhost:7860"
-    except Exception as _e:  # noqa: F841, BLE001
+    except Exception as _e:  # noqa: F841, BLE001  # pylint: disable=broad-exception-caught
         pass
 
     try:
         if hasattr(st, "secrets"):
             return st.secrets.get("API_URL", "http://localhost:7860")
-    except Exception as _e:  # noqa: F841, BLE001
+    except Exception as _e:  # noqa: F841, BLE001  # pylint: disable=broad-exception-caught
         pass
     return "http://localhost:7860"
 
@@ -23,7 +23,10 @@ def api_get(path: str):
         response = httpx.get(f"{get_api_url()}{path}", timeout=20.0)
         response.raise_for_status()
         return response.json()
-    except Exception as e:
+    except httpx.RequestError as e:
+        st.error(f"API Error: {e}")
+        return None
+    except Exception as e:  # noqa: BLE001  # pylint: disable=broad-exception-caught
         st.error(f"API Error: {e}")
         return None
 
