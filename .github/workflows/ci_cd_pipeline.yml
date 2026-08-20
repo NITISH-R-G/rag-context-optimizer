@@ -20,25 +20,25 @@ jobs:
 
     - name: Install dependencies
       run: |
-          pip install -e ".[test]"
-          pip install ruff mypy bandit safety openenv-core
+        pip install -e ".[test]"
+        pip install ruff mypy bandit safety openenv-core
 
     - name: Lint with Ruff
       run: |
-          ruff check .
+        ruff check .
 
     - name: Type checking with Mypy
       run: |
-          mypy . || true
+        mypy . || true
 
     - name: Security scan with Bandit
       run: |
-          bandit -r . -ll -ii -x tests/ || true
+        bandit -r . -ll -ii -x tests/ || true
 
     - name: Dependency audit
       run: |
-          safety check || true
+        safety check || true
 
     - name: Run tests
       run: |
-          pytest tests/ || true
+        pytest tests/ || true
