@@ -111,8 +111,7 @@ def _keyword_overlap(query: str, chunk: dict[str, Any]) -> float:
 
 def _fallback_report(observation: dict[str, Any]) -> str:
     prioritized = set(
-        observation.get("prioritized_artifacts")
-        or observation.get("selected_chunks", [])
+        observation.get("prioritized_artifacts", observation.get("selected_chunks", []))
     )
     snippets: list[str] = []
     for chunk in observation.get("available_artifacts") or observation.get(
@@ -138,12 +137,10 @@ def _fallback_plan(observation: dict[str, Any]) -> str:
 def _fallback_action(observation: dict[str, Any]) -> dict[str, Any]:
     reviewed = set(observation.get("reviewed_artifacts", []))
     prioritized = set(
-        observation.get("prioritized_artifacts")
-        or observation.get("selected_chunks", [])
+        observation.get("prioritized_artifacts", observation.get("selected_chunks", []))
     )
     available = list(
-        observation.get("available_artifacts")
-        or observation.get("available_chunks", [])
+        observation.get("available_artifacts", observation.get("available_chunks", []))
     )
     token_budget = observation["token_budget"]
     total_tokens_used = observation["total_tokens_used"]
@@ -207,8 +204,7 @@ def _build_user_prompt(observation: dict[str, Any]) -> str:
         "customer_tier": observation.get("customer_tier"),
         "incident_severity": observation.get("incident_severity"),
         "reviewed_artifacts": observation.get("reviewed_artifacts", []),
-        "prioritized_artifacts": observation.get("prioritized_artifacts")
-        or observation.get("selected_chunks", []),
+        "prioritized_artifacts": observation.get("prioritized_artifacts", observation.get("selected_chunks", [])),
         "plan_draft": observation.get("plan_draft"),
         "report_requirements": observation.get("report_requirements", []),
         "progress_signals": observation.get("progress_signals", {}),
@@ -224,10 +220,7 @@ def _build_user_prompt(observation: dict[str, Any]) -> str:
                 "tokens": chunk["tokens"],
                 "keywords": chunk["keywords"],
             }
-            for chunk in (
-                observation.get("available_artifacts")
-                or observation.get("available_chunks", [])
-            )
+            for chunk in observation.get("available_artifacts", observation.get("available_chunks", []))
         ],
     }
     return json.dumps(payload, ensure_ascii=True)

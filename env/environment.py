@@ -43,7 +43,7 @@ class RagContextOptimizerEnv:
         "using",
         "used",
         "use",
-        "into",
+
         "they",
         "them",
         "their",

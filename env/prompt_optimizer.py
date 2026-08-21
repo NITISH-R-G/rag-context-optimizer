@@ -407,11 +407,15 @@ def _rank_and_select_chunks(
         if score < 0.16:
             continue
         ranked_candidates.append((chunk, score, tuned))
+    def _get_citation_prior(item):
+        if mode == "grounded":
+            if item[2] is not None:
+                return -item[2].citation_prior
+        return 0.0
+
     ranked_candidates.sort(
         key=lambda item: (
-            -(item[2].citation_prior if item[2] is not None else 0.0)
-            if mode == "grounded"
-            else 0.0,
+            _get_citation_prior(item),
             -(item[1] / max(item[0].tokens, 1)),
             -item[1],
             item[0].chunk_id,
@@ -474,7 +478,7 @@ def _extract_distilled_points(
         if best and all(existing != best for _cid, existing in distilled_points):
             distilled_points.append((chunk_id, best))
         if len(distilled_points) >= (
-            3 if mode == "grounded" else (2 if input_tokens < 80 else 3)
+            3 if mode == "grounded" or input_tokens >= 80 else 2
         ):
             break
     return distilled_points
@@ -493,15 +497,16 @@ def _rewrite_prompt_fallback(
     short_prompt_rewrite = (
         _lightweight_short_prompt_rewrite(clean_prompt) if preserve_short_prompt else ""
     )
-    lines: list[str] = [
-        short_prompt_rewrite
-        if preserve_short_prompt and short_prompt_rewrite
-        else (
-            clean_prompt
-            if preserve_short_prompt
-            else (rewritten if rewritten else clean_prompt)
-        )
-    ]
+    if preserve_short_prompt and short_prompt_rewrite:
+        first_line = short_prompt_rewrite
+    elif preserve_short_prompt:
+        first_line = clean_prompt
+    elif rewritten:
+        first_line = rewritten
+    else:
+        first_line = clean_prompt
+
+    lines: list[str] = [first_line]
     if distilled_points and (mode == "grounded" or input_tokens >= 80):
         lines.append("")
         lines.append("Context:")
