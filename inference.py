@@ -111,7 +111,7 @@ def _keyword_overlap(query: str, chunk: dict[str, Any]) -> float:
 
 def _fallback_report(observation: dict[str, Any]) -> str:
     prioritized = set(
-        observation.get("prioritized_artifacts", observation.get("selected_chunks", []))
+        observation.get("prioritized_artifacts") or observation.get("selected_chunks", [])
     )
     snippets: list[str] = []
     for chunk in observation.get("available_artifacts") or observation.get(
@@ -137,10 +137,10 @@ def _fallback_plan(observation: dict[str, Any]) -> str:
 def _fallback_action(observation: dict[str, Any]) -> dict[str, Any]:
     reviewed = set(observation.get("reviewed_artifacts", []))
     prioritized = set(
-        observation.get("prioritized_artifacts", observation.get("selected_chunks", []))
+        observation.get("prioritized_artifacts") or observation.get("selected_chunks", [])
     )
     available = list(
-        observation.get("available_artifacts", observation.get("available_chunks", []))
+        observation.get("available_artifacts") or observation.get("available_chunks", [])
     )
     token_budget = observation["token_budget"]
     total_tokens_used = observation["total_tokens_used"]
