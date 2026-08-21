@@ -41,6 +41,8 @@ qa = [
   "bandit>=1.7.9",
   "safety>=3.2.0",
   "pytest-cov>=5.0.0",
+  "ruff>=0.1.0",
+  "mypy>=1.0.0",
 ]
 
 [tool.pytest.ini_options]
@@ -53,3 +55,10 @@ disallow_untyped_defs = false
 exclude = [
     "^tests/"
 ]
+
+[tool.ruff.lint]
+extend-ignore = ["PLC0414"]
+
+[tool.ruff.lint.per-file-ignores]
+"server/app.py" = ["E402", "PLC0414", "F401", "RUF100"]
+"tests/*.py" = ["E402", "RUF100"]
