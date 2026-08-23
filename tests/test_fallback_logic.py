@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app import (  # noqa: E402
+from app import (
     _check_resolution_plan,
     _check_compression,
     _check_early_submit,

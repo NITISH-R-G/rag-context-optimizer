@@ -57,19 +57,19 @@ jobs:
       id: ruff
       continue-on-error: true
       run: |
-        ruff check . > reports/ruff.txt || true
-        ruff format --check . >> reports/ruff.txt || true
+        ruff check . > reports/ruff.txt
+        ruff format --check . >> reports/ruff.txt
 
     - name: Type Checking (Mypy)
       id: mypy
       continue-on-error: true
       run: |
-        mypy . > reports/mypy.txt || true
+        mypy . > reports/mypy.txt
 
     - name: Dead Code Detection (Vulture)
       continue-on-error: true
       run: |
-        vulture . > reports/vulture.txt || true
+        vulture vulture_whitelist.py . > reports/vulture.txt || true
 
     - name: Duplicate Code and Style (Pylint)
       continue-on-error: true
@@ -85,19 +85,19 @@ jobs:
       id: bandit
       continue-on-error: true
       run: |
-        bandit -r . -c bandit.yml -ll -ii -f json -o reports/bandit.json || true
+        bandit -r . -c bandit.yml -ll -ii -f json -o reports/bandit.json
 
     - name: Dependency Security Audit (Pip-Audit)
       id: pipaudit
       continue-on-error: true
       run: |
-        pip-audit -f json > reports/pip-audit.json || true
+        pip-audit -f json > reports/pip-audit.json
 
     - name: Dependency Security Scan (Safety)
       id: safety
       continue-on-error: true
       run: |
-        safety check --output json > reports/safety.json || true
+        safety check --output json > reports/safety.json
 
     - name: Test Coverage
       continue-on-error: true

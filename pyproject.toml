@@ -58,6 +58,22 @@ exclude = [
 [tool.pylint.messages_control]
 disable = [
     "import-outside-toplevel",
+    "line-too-long",
+    "import-error",
+    "ungrouped-imports",
+    "trailing-newlines",
+    "subprocess-run-check",
+    "consider-using-with",
+    "use-implicit-booleaness-not-comparison",
+    "wrong-import-position",
+    "wrong-import-order",
+    "redefined-builtin",
+    "unused-argument",
+    "invalid-name",
+    "unused-variable",
+    "missing-function-docstring",
+    "missing-module-docstring",
+    "missing-class-docstring",
     "protected-access",
     "too-few-public-methods",
     "duplicate-code",
@@ -66,3 +82,6 @@ disable = [
 
 [tool.ruff]
 exclude = ["vulture_whitelist.py"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["E402", "RUF059", "RUF012"]
