@@ -5,7 +5,7 @@ Task definitions for the incident operations environment.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Literal, Optional
+from typing import Literal
 
 
 @dataclass(frozen=True, slots=True)
@@ -16,7 +16,7 @@ class Task:
     case_summary: str
     customer_tier: Literal["standard", "business", "enterprise"]
     incident_severity: Literal["sev3", "sev2", "sev1"]
-    domain_filter: Optional[str]
+    domain_filter: str | None
     token_budget: int
     required_artifact_ids: list[str]
     expected_citation_ids: list[str]

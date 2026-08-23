@@ -40,7 +40,8 @@ import functools
 import math
 import re
 from collections import Counter, defaultdict
-from typing import AbstractSet, Iterable
+from typing import AbstractSet
+from collections.abc import Iterable
 
 from env.corpus import Chunk
 
@@ -48,7 +49,8 @@ from env.corpus import Chunk
 class HybridRetriever:
     """Hybrid lexical retriever with deterministic BM25 and keyword overlap scoring."""
 
-    _STOPWORDS = {
+    import typing
+    _STOPWORDS: typing.ClassVar[set[str]] = {
         "a",
         "an",
         "and",

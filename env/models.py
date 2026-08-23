@@ -206,14 +206,14 @@ class RagAction(BaseModel):
 
     @field_validator("artifact_id", "chunk_id", "plan", "answer")
     @classmethod
-    def normalize_optional_strings(cls, value: Optional[str]) -> Optional[str]:
+    def normalize_optional_strings(cls, value: str | None) -> str | None:
         if value is None:
             return value
         value = value.strip()
         return value or None
 
     @model_validator(mode="after")
-    def validate_action_semantics(self) -> "RagAction":
+    def validate_action_semantics(self) -> RagAction:
         normalized_artifact_id = self.artifact_id or self.chunk_id
         if self.action_type in {"inspect_artifact", "prioritize_artifact", "select_chunk", "deselect_chunk"}:
             if normalized_artifact_id is None:
@@ -226,8 +226,7 @@ class RagAction(BaseModel):
         elif self.action_type == "set_resolution_plan":
             if self.plan is None:
                 raise ValueError("plan is required for set_resolution_plan.")
-        elif self.action_type in {"submit_report", "submit_answer"}:
-            if self.answer is None:
+        elif self.action_type in {"submit_report", "submit_answer"} and self.answer is None:
                 raise ValueError("answer is required for submit_report/submit_answer.")
         return self
 
@@ -240,7 +239,7 @@ class RagReward(BaseModel):
     penalty: float = Field(..., ge=0.0, le=1.0)
 
     @model_validator(mode="after")
-    def validate_total_bound(self) -> "RagReward":
+    def validate_total_bound(self) -> RagReward:
         if self.total > 1.0 or self.total < 0.0:
             raise ValueError("total must remain within [0.0, 1.0].")
         return self

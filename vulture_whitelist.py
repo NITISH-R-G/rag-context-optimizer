@@ -1,3 +1,4 @@
+# pylint: disable=all
 # ruff: noqa: F821
 home_page
 reset_endpoint

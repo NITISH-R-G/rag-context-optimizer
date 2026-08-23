@@ -85,3 +85,9 @@ exclude = ["vulture_whitelist.py"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*.py" = ["E402", "RUF059", "RUF012"]
+
+[tool.pylint.main]
+ignore-paths = [
+    "^tests/.*",
+    "vulture_whitelist.py"
+]
