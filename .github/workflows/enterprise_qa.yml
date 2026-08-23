@@ -91,13 +91,13 @@ jobs:
       id: pipaudit
       continue-on-error: true
       run: |
-        pip-audit --ignore-vuln PYSEC-2026-196 --ignore-vuln PYSEC-2026-2875 --ignore-vuln PYSEC-2026-2876 --ignore-vuln PYSEC-2026-3721 -f json > reports/pip-audit.json
+        pip-audit -r requirements.txt -f json > reports/pip-audit.json
 
     - name: Dependency Security Scan (Safety)
       id: safety
       continue-on-error: true
       run: |
-        safety check -i 69199 -i 60812 -i 69629 --output json > reports/safety.json
+        safety check -r requirements.txt --output json > reports/safety.json
 
     - name: Test Coverage
       continue-on-error: true

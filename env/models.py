@@ -213,7 +213,7 @@ class RagAction(BaseModel):
         return value or None
 
     @model_validator(mode="after")
-    def validate_action_semantics(self) -> RagAction:
+    def validate_action_semantics(self) -> "RagAction":
         normalized_artifact_id = self.artifact_id or self.chunk_id
         if self.action_type in {"inspect_artifact", "prioritize_artifact", "select_chunk", "deselect_chunk"}:
             if normalized_artifact_id is None:
@@ -239,7 +239,7 @@ class RagReward(BaseModel):
     penalty: float = Field(..., ge=0.0, le=1.0)
 
     @model_validator(mode="after")
-    def validate_total_bound(self) -> RagReward:
+    def validate_total_bound(self) -> "RagReward":
         if self.total > 1.0 or self.total < 0.0:
             raise ValueError("total must remain within [0.0, 1.0].")
         return self
