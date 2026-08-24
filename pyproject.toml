@@ -53,3 +53,28 @@ disallow_untyped_defs = false
 exclude = [
     "^tests/"
 ]
+
+[tool.ruff]
+exclude = ["vulture_whitelist.py"]
+
+[tool.pylint.main]
+ignore-paths = ["vulture_whitelist.py"]
+
+[tool.pylint.messages_control]
+disable = [
+    "C0114", # missing-module-docstring
+    "C0115", # missing-class-docstring
+    "C0116", # missing-function-docstring
+    "C0301", # line-too-long
+    "C0411", # wrong-import-order
+    "C0413", # wrong-import-position
+    "C0415", # import-outside-toplevel
+    "W0212", # protected-access
+    "W0612", # unused-variable
+    "R0801", # duplicate-code
+    "R0903", # too-few-public-methods
+    "C1803", # use-implicit-booleaness-not-comparison
+]
+
+[tool.bandit]
+skips = ["B101", "B104", "B404", "B602", "B603"]
