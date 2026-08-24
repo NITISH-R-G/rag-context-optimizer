@@ -41,6 +41,8 @@ qa = [
   "bandit>=1.7.9",
   "safety>=3.2.0",
   "pytest-cov>=5.0.0",
+  "ruff",
+  "mypy",
 ]
 
 [tool.pytest.ini_options]
@@ -78,3 +80,17 @@ disable = [
 
 [tool.bandit]
 skips = ["B101", "B104", "B404", "B602", "B603"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["E402", "RUF059", "RUF012", "F401", "F841"]
+"app.py" = ["F401"]
+"server/app.py" = ["F401"]
+"inference.py" = ["F401", "E402"]
+"env/environment.py" = ["E402", "F401"]
+"tests/test_inference_proxy.py" = ["BLE001", "F841", "E402"]
+"tests/test_prompt_optimizer.py" = ["RUF059", "RUF012"]
+"tests/test_fallback_logic.py" = ["E402", "C405"]
+".github/scripts/*.py" = ["E402", "F841"]
+"env/llm_runtime.py" = ["E402"]
+"env/graders.py" = ["E402"]
+"tests/test_streamlit_app.py" = ["E402"]
