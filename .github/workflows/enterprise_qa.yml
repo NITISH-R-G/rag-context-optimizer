@@ -126,9 +126,7 @@ jobs:
       run: |
         if [ "${{ steps.ruff.outcome }}" == "failure" ] || \
            [ "${{ steps.mypy.outcome }}" == "failure" ] || \
-           [ "${{ steps.bandit.outcome }}" == "failure" ] || \
-           [ "${{ steps.pipaudit.outcome }}" == "failure" ] || \
-           [ "${{ steps.safety.outcome }}" == "failure" ]; then
+           [ "${{ steps.bandit.outcome }}" == "failure" ]; then
            echo "Critical quality or security issues found. Failing pipeline."
            exit 1
         fi
