@@ -10,7 +10,7 @@ def test_fallback_plan():
 def test_fallback_action_prioritize():
     observation = {
         "query": "test query",
-        "token_budget": 100,
+        "token_budget": 100,  # nosec B105
         "total_tokens_used": 10,
         "reviewed_artifacts": ["chunk1"],
         "prioritized_artifacts": [],
@@ -26,7 +26,7 @@ def test_fallback_action_prioritize():
 def test_fallback_action_inspect():
     observation = {
         "query": "test query",
-        "token_budget": 100,
+        "token_budget": 100,  # nosec B105
         "total_tokens_used": 10,
         "reviewed_artifacts": [],
         "prioritized_artifacts": [],
@@ -41,7 +41,7 @@ def test_fallback_action_inspect():
 def test_fallback_action_inspect_limit():
     observation = {
         "query": "test query",
-        "token_budget": 100,
+        "token_budget": 100,  # nosec B105
         "total_tokens_used": 10,
         "reviewed_artifacts": ["chunk2", "chunk3"],
         "prioritized_artifacts": ["chunk2", "chunk3"], # Make both prioritized so prioritize branch is skipped
@@ -59,7 +59,7 @@ def test_fallback_action_inspect_limit():
 def test_fallback_action_set_plan():
     observation = {
         "query": "test query",
-        "token_budget": 100,
+        "token_budget": 100,  # nosec B105
         "total_tokens_used": 10,
         "reviewed_artifacts": ["chunk1"],
         "prioritized_artifacts": ["chunk1"],
@@ -75,7 +75,7 @@ def test_fallback_action_set_plan():
 def test_fallback_action_summarize():
     observation = {
         "query": "test query",
-        "token_budget": 100,
+        "token_budget": 100,  # nosec B105
         "total_tokens_used": 80, # > 70%
         "reviewed_artifacts": ["chunk1"],
         "prioritized_artifacts": ["chunk1"],
@@ -91,7 +91,7 @@ def test_fallback_action_summarize():
 def test_fallback_action_submit():
     observation = {
         "query": "test query",
-        "token_budget": 100,
+        "token_budget": 100,  # nosec B105
         "total_tokens_used": 10,
         "reviewed_artifacts": ["chunk1"],
         "prioritized_artifacts": ["chunk1"],
@@ -117,7 +117,7 @@ def test_build_user_prompt():
         "report_requirements": [],
         "progress_signals": {},
         "total_tokens_used": 0,
-        "token_budget": 100,
+        "token_budget": 100,  # nosec B105
         "step_number": 1,
         "task_name": "test_task",
         "available_artifacts": [
