@@ -7,9 +7,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-import pytest  # noqa: E402
-from fastapi import HTTPException # noqa: E402
-from app import app, _is_bad_action_event, EpisodeStore, _resolve_env  # noqa: E402
+import pytest
+from fastapi import HTTPException
+from app import app, _is_bad_action_event, EpisodeStore, _resolve_env
 
 
 client = TestClient(app)
