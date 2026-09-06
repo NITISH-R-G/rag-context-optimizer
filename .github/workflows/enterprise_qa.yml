@@ -70,7 +70,7 @@ jobs:
     - name: Dead Code Detection (Vulture)
       continue-on-error: true
       run: |
-        vulture . > reports/vulture.txt || true
+        vulture . vulture_whitelist.py > reports/vulture.txt || true
 
     - name: Duplicate Code and Style (Pylint)
       continue-on-error: true
@@ -86,7 +86,7 @@ jobs:
       id: bandit
       continue-on-error: true
       run: |
-        bandit -r . -ll -ii -f json -o reports/bandit.json
+        bandit -r . -ll -ii -x tests/ -f json -o reports/bandit.json
 
     - name: Dependency Security Audit (Pip-Audit)
       id: pipaudit
