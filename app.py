@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from fastapi import Body, FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
@@ -389,7 +389,7 @@ async def _suggest_action(env: RagContextOptimizerEnv) -> dict[str, Any]:
 
 
 @app.post("/reset")
-async def reset_endpoint(payload: ResetRequest | None = Body(default=None)):
+async def reset_endpoint(payload: ResetRequest | None = None):
     payload = payload or ResetRequest()
     if payload.task_name not in TASKS_BY_NAME:
         raise HTTPException(status_code=400, detail="Unknown task_name.")
