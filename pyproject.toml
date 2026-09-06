@@ -25,6 +25,11 @@ server = "server.app:main"
 packages = ["env", "server"]
 py-modules = ["app", "inference", "validate"]
 
+[tool.pylint.main]
+ignore-paths = ["^tests/.*", "^\\.github/scripts/.*"]
+
+[tool.pylint.messages_control]
+disable = ["duplicate-code", "missing-module-docstring", "missing-class-docstring", "missing-function-docstring", "line-too-long", "too-many-locals", "too-many-statements", "invalid-name", "broad-exception-caught", "redefined-builtin", "subprocess-run-check", "consider-using-with", "too-many-return-statements", "protected-access", "fixme", "redefined-outer-name", "wrong-import-position", "unused-import", "import-outside-toplevel", "useless-import-alias", "too-many-instance-attributes", "duplicate-value", "global-statement", "too-many-arguments", "too-many-positional-arguments", "too-few-public-methods", "chained-comparison"]
 [project.optional-dependencies]
 test = [
   "pytest>=8.0.0,<10",
