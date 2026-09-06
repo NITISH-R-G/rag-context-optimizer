@@ -10,16 +10,19 @@ permissions:
   contents: write
   pull-requests: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   auto-maintain:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0 # Full history for accurate analysis
 
     - name: Set up Python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v5
       with:
         python-version: "3.11"
         cache: "pip"
@@ -37,6 +40,7 @@ jobs:
 
     - name: AI Documentation Agent
       env:
+        FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: python .github/scripts/ai_docs_agent.py
 
