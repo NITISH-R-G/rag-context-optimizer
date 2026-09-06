@@ -13,7 +13,6 @@ from typing import Any
 
 from openai import OpenAI
 
-
 DEFAULT_API_BASE_URL = "https://router.huggingface.co/v1"
 DEFAULT_MODEL_NAME = "Qwen/Qwen2.5-72B-Instruct"
 
@@ -69,7 +68,11 @@ async def call_json(
         raise RuntimeError("llm_credentials_missing")
 
     client = OpenAI(base_url=api_base_url, api_key=client_api_key)
-    user_content = user_payload if isinstance(user_payload, str) else json.dumps(user_payload, ensure_ascii=True)
+    user_content = (
+        user_payload
+        if isinstance(user_payload, str)
+        else json.dumps(user_payload, ensure_ascii=True)
+    )
 
     def _call():
         return client.chat.completions.create(

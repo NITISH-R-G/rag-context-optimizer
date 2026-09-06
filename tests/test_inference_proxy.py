@@ -12,7 +12,6 @@ from pathlib import Path
 
 import httpx
 
-
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
@@ -104,7 +103,7 @@ def test_inference_uses_proxy_api_key():
                     == 200
                 ):
                     break
-            except Exception:
+            except Exception:  # noqa: BLE001
                 time.sleep(0.5)
 
         env = os.environ.copy()
@@ -112,9 +111,10 @@ def test_inference_uses_proxy_api_key():
         env["RAG_ENV_TASK"] = "refund_triage_easy"
         env["API_BASE_URL"] = f"http://127.0.0.1:{proxy_port}/v1"
         env["API_KEY"] = "proxy-check-token"
-        env["HF_TOKEN"] = "legacy-should-not-win"
-        result = subprocess.run(
+        env["HF_TOKEN"] = "legacy-should-not-win"  # nosec B105
+        result = subprocess.run(  # nosec B603
             [str(PYTHON), "inference.py"],
+            check=False,
             cwd=ROOT,
             env=env,
             capture_output=True,
@@ -135,5 +135,5 @@ def test_inference_uses_proxy_api_key():
         app_process.terminate()
         try:
             app_process.wait(timeout=5)
-        except Exception:
+        except Exception:  # noqa: BLE001
             app_process.kill()
