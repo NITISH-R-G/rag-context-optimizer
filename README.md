@@ -52,7 +52,7 @@ Additional helper endpoints:
 - `POST /optimize-step`
 - `POST /optimize-prompt`
 
-Metadata lives in [openenv.yaml](/C:/Users/nitis/Downloads/Meta%20OpenEnv/openenv.yaml).
+Metadata lives in [openenv.yaml](openenv.yaml).
 
 ## Observation Space
 
@@ -106,7 +106,7 @@ Legacy aliases are still accepted for compatibility:
 | `cross_function_brief_medium` | medium | `8` | `620` | Prepare a cross-functional outage brief spanning support, incident command, and release controls |
 | `executive_escalation_hard` | hard | `10` | `360` | Draft a terse executive escalation note for a suspected admin compromise |
 
-Task definitions live in [env/tasks.py](/C:/Users/nitis/Downloads/Meta%20OpenEnv/env/tasks.py).
+Task definitions live in [env/tasks.py](env/tasks.py).
 
 ## Reward Design
 
@@ -212,7 +212,7 @@ curl -X POST http://localhost:7860/step \
 
 ## Baseline Inference
 
-The baseline runner is [inference.py](/C:/Users/nitis/Downloads/Meta%20OpenEnv/inference.py).
+The baseline runner is [inference.py](inference.py).
 
 Submission-critical requirements satisfied:
 - file name is exactly `inference.py`
