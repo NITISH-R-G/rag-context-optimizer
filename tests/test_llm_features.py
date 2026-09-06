@@ -10,9 +10,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from fastapi.testclient import TestClient # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
 
-from app import app # noqa: E402
+from app import app  # noqa: E402
 
 
 def _free_port() -> int:
@@ -33,7 +33,9 @@ def fake_llm_server():
             payload = json.loads(body)
             system_prompt = payload["messages"][0]["content"]
             user_prompt = payload["messages"][1]["content"]
-            requests_seen.append({"system": system_prompt, "user": user_prompt, "path": self.path})
+            requests_seen.append(
+                {"system": system_prompt, "user": user_prompt, "path": self.path}
+            )
 
             if "ACTION_PLANNER" in system_prompt:
                 response_payload = {
@@ -70,11 +72,18 @@ def fake_llm_server():
                     "choices": [
                         {
                             "index": 0,
-                            "message": {"role": "assistant", "content": json.dumps(response_payload)},
+                            "message": {
+                                "role": "assistant",
+                                "content": json.dumps(response_payload),
+                            },
                             "finish_reason": "stop",
                         }
                     ],
-                    "usage": {"prompt_tokens": 64, "completion_tokens": 16, "total_tokens": 80},
+                    "usage": {
+                        "prompt_tokens": 64,
+                        "completion_tokens": 16,
+                        "total_tokens": 80,
+                    },
                 }
             ).encode("utf-8")
             self.send_response(200)
@@ -110,7 +119,9 @@ def test_optimize_step_uses_llm(monkeypatch):
         assert response.status_code == 200
         assert response.json()["action_type"] == "inspect_artifact"
         assert response.json()["artifact_id"] == "support_003"
-        assert any("/v1/chat/completions" == request["path"] for request in requests_seen)
+        assert any(
+            "/v1/chat/completions" == request["path"] for request in requests_seen
+        )
         assert any("ACTION_PLANNER" in request["system"] for request in requests_seen)
 
 
@@ -131,9 +142,13 @@ def test_optimize_prompt_uses_llm(monkeypatch):
 
         assert response.status_code == 200
         body = response.json()
-        assert body["optimized_prompt"] == "Verify outage impact and billing history before refund approval [support_003]."
+        assert (
+            body["optimized_prompt"]
+            == "Verify outage impact and billing history before refund approval [support_003]."
+        )
         assert body["stats"]["original_prompt_tokens"] == 48
         assert body["stats"]["optimized_prompt_tokens"] == 24
-        assert any("PROMPT_COMPRESSOR" in request["system"] for request in requests_seen)
+        assert any(
+            "PROMPT_COMPRESSOR" in request["system"] for request in requests_seen
+        )
         assert any("TOKEN_ESTIMATOR" in request["system"] for request in requests_seen)
-
