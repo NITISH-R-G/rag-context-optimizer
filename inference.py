@@ -298,7 +298,7 @@ async def _run_task_http(task_name: str) -> tuple[float, list[float], int, bool]
 
             print(f"[END] success={_format_bool(success)} steps={steps} score={score:.3f} rewards={_format_rewards(rewards)}")
             return score, rewards, steps, success
-    except Exception:
+    except Exception:  # pylint: disable=broad-exception-caught
         print(f"[END] success=false steps={steps} score={_clamp_score(score):.3f} rewards={_format_rewards(rewards)}")
         return score, rewards, steps, False
 
@@ -315,7 +315,7 @@ def main() -> int:
     for task_name in tasks:
         try:
             run_task(task_name)
-        except Exception:
+        except Exception:  # pylint: disable=broad-exception-caught
             print(f"[START] task={task_name} env={ENV_NAME} model={_model_name()}")
             print("[END] success=false steps=0 score=0.000 rewards=")
     return 0
