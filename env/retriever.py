@@ -39,8 +39,10 @@ from __future__ import annotations
 import functools
 import math
 import re
+import typing
 from collections import Counter, defaultdict
-from typing import AbstractSet, Iterable
+from collections.abc import Iterable
+from collections.abc import Set as AbstractSet
 
 from env.corpus import Chunk
 
@@ -48,7 +50,7 @@ from env.corpus import Chunk
 class HybridRetriever:
     """Hybrid lexical retriever with deterministic BM25 and keyword overlap scoring."""
 
-    _STOPWORDS = {
+    _STOPWORDS: typing.ClassVar[set] = {
         "a",
         "an",
         "and",
@@ -172,7 +174,7 @@ class HybridRetriever:
 
         return score
 
-    @functools.lru_cache(maxsize=1024)
+    @functools.lru_cache(maxsize=1024)  # noqa: B019  # noqa: B019
     def _max_raw_bm25_for_query(self, query_terms: tuple[str, ...]) -> float:
         if not self.corpus or not query_terms:
             return 0.0
