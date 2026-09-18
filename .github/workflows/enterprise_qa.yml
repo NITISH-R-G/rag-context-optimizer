@@ -14,13 +14,16 @@ permissions:
   contents: read
   pull-requests: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   quality-assurance:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+          fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -70,7 +73,7 @@ jobs:
     - name: Dead Code Detection (Vulture)
       continue-on-error: true
       run: |
-        vulture . > reports/vulture.txt || true
+        vulture . vulture_whitelist.txt > reports/vulture.txt || true
 
     - name: Duplicate Code and Style (Pylint)
       continue-on-error: true
