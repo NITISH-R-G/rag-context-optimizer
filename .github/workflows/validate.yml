@@ -8,6 +8,8 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -28,4 +30,4 @@ jobs:
         run: openenv validate
 
       - name: Run Pytest
-        run: pytest
+        run: python -m pytest tests/

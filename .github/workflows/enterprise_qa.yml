@@ -17,6 +17,8 @@ permissions:
 jobs:
   quality-assurance:
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
     - uses: actions/checkout@v4
       with:
@@ -103,7 +105,7 @@ jobs:
     - name: Test Coverage
       continue-on-error: true
       run: |
-        pytest tests/ --cov=. > reports/coverage.txt || true
+        python -m pytest --cov=. tests/ > reports/coverage.txt || true
 
     - name: Generate AI Quality Insights
       if: always()
