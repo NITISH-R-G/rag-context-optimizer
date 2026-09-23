@@ -1,4 +1,5 @@
 from __future__ import annotations
+import typing
 
 import sys
 from pathlib import Path
@@ -8,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from env.prompt_optimizer import ( # noqa: E402
+from env.prompt_optimizer import (
     _tokenize,
     _content_terms,
     _clean_output_text,
@@ -27,7 +28,7 @@ from env.prompt_optimizer import ( # noqa: E402
     _rewrite_prompt_fallback,
     optimize_prompt,
 )
-from env.environment import RagContextOptimizerEnv # noqa: E402
+from env.environment import RagContextOptimizerEnv
 
 
 def test_tokenize():
@@ -128,8 +129,8 @@ async def test_rank_and_select_chunks():
     await env.reset() # mock env state roughly
 
     class DummyTuning:
-        tuned_scores = {}
-        suggested_citations = []
+        tuned_scores: typing.ClassVar[dict] = {}
+        suggested_citations: typing.ClassVar[list] = []
 
     tuning = DummyTuning()
     _rank_and_select_chunks(env, tuning, "test prompt", "balanced")
