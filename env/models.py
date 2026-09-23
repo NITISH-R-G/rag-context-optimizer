@@ -206,7 +206,7 @@ class RagAction(BaseModel):
 
     @field_validator("artifact_id", "chunk_id", "plan", "answer")
     @classmethod
-    def normalize_optional_strings(cls, value: Optional[str]) -> Optional[str]:
+    def normalize_optional_strings(cls, value: str | None) -> str | None:
         if value is None:
             return value
         value = value.strip()
@@ -226,8 +226,7 @@ class RagAction(BaseModel):
         elif self.action_type == "set_resolution_plan":
             if self.plan is None:
                 raise ValueError("plan is required for set_resolution_plan.")
-        elif self.action_type in {"submit_report", "submit_answer"}:
-            if self.answer is None:
+        elif self.action_type in {"submit_report", "submit_answer"} and self.answer is None:
                 raise ValueError("answer is required for submit_report/submit_answer.")
         return self
 
