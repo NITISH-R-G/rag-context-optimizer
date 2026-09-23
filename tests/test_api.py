@@ -7,10 +7,10 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-import pytest  # noqa: E402
-from fastapi import HTTPException # noqa: E402
-from app import app, _is_bad_action_event, EpisodeStore, _resolve_env  # noqa: E402
+import pytest
+from fastapi import HTTPException
 
+from app import EpisodeStore, _is_bad_action_event, _resolve_env, app
 
 client = TestClient(app)
 
@@ -154,8 +154,9 @@ async def test_episode_store_close_all():
 
 @pytest.mark.anyio
 async def test_log_requests_middleware():
-    from app import log_requests
     import os
+
+    from app import log_requests
 
     class MockRequest:
         def __init__(self):
@@ -198,9 +199,11 @@ def test_home_page():
     assert response.headers["Cache-Control"] == "no-store, max-age=0"
 
 def test_serialize_observation():
-    from app import _serialize_observation
     from dataclasses import dataclass
+
     from pydantic import BaseModel
+
+    from app import _serialize_observation
 
     # Test dictionary fallback
     obs_dict = {"key": "value"}
