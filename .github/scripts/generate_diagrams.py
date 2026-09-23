@@ -1,6 +1,7 @@
 import json
 import os
 
+
 def generate_dependency_graph(graph):
     """Generates a Mermaid graph for internal modules and their imports."""
     mermaid = ["```mermaid", "graph TD"]
