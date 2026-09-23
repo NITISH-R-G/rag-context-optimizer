@@ -6,7 +6,7 @@ try:
     API_URL = st.secrets.get("API_URL", "http://localhost:7860") if hasattr(st, "secrets") else "http://localhost:7860"
 except FileNotFoundError:
     API_URL = "http://localhost:7860"
-except Exception:
+except Exception:  # pylint: disable=broad-exception-caught
     API_URL = "http://localhost:7860"
 
 
@@ -16,7 +16,7 @@ def api_get(path: str):
         response = httpx.get(f"{API_URL}{path}", timeout=20.0)
         response.raise_for_status()
         return response.json()
-    except Exception as e:
+    except Exception as e:  # pylint: disable=broad-exception-caught
         st.error(f"API Error: {e}")
         return None
 
