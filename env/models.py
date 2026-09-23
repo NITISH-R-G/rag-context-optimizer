@@ -69,7 +69,7 @@ class RagObservation(BaseModel):
                     "plan_draft": None,
                     "report_requirements": ["State whether the case should proceed to refund review."],
                     "total_tokens_used": 0,
-                    "token_budget": 850,
+                    "token_budget": 850,  # nosec B105
                     "step_number": 0,
                     "task_name": "refund_triage_easy",
                     "last_action_feedback": None,
