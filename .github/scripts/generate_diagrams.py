@@ -1,6 +1,7 @@
 import json
 import os
 
+
 def generate_dependency_graph(graph):
     """Generates a Mermaid graph for internal modules and their imports."""
     mermaid = ["```mermaid", "graph TD"]
@@ -40,7 +41,7 @@ def generate_api_flow(graph):
     mermaid = ["```mermaid", "sequenceDiagram", "    participant Client"]
 
     # Check if we have app.py as server
-    has_server = "app.py" in [os.path.basename(f) for f in graph.get("files", {}).keys()]
+    has_server = "app.py" in [os.path.basename(f) for f in graph.get("files", {})]
     if has_server:
         mermaid.append("    participant Server")
 
@@ -83,7 +84,7 @@ def main():
     try:
         with open("docs/knowledge_graph.json", "r") as f:
             graph = json.load(f)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print(f"Error loading graph: {e}")
         return
 
