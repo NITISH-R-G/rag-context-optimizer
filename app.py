@@ -2,14 +2,14 @@
 FastAPI server exposing the rag-context-optimizer OpenEnv HTTP API.
 """
 
+import os
 from contextlib import asynccontextmanager
 from dataclasses import asdict, is_dataclass
-import os
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from fastapi import Body, FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
@@ -206,7 +206,7 @@ def _check_compression(
         heavy = sorted(
             selected_chunks,
             key=lambda chunk: (
-                -(chunk.tokens * (score_map[chunk.chunk_id].final_score if chunk.chunk_id in score_map and score_map[chunk.chunk_id] else 0.5)),
+                -(chunk.tokens * (score_map[chunk.chunk_id].final_score if score_map.get(chunk.chunk_id) else 0.5)),
                 chunk.chunk_id,
             ),
         )
@@ -272,7 +272,7 @@ def _check_inspect_candidates(
         available = sorted(
             available,
             key=lambda chunk: (
-                -(score_map[chunk.chunk_id].final_score if chunk.chunk_id in score_map and score_map[chunk.chunk_id] else 0.0),
+                -(score_map[chunk.chunk_id].final_score if score_map.get(chunk.chunk_id) else 0.0),
                 chunk.tokens,
                 chunk.chunk_id,
             ),
@@ -280,7 +280,7 @@ def _check_inspect_candidates(
     for chunk in sorted(
         available,
         key=lambda chunk: (
-            -(score_map[chunk.chunk_id].final_score if chunk.chunk_id in score_map and score_map[chunk.chunk_id] else 0.0) / max(chunk.tokens, 1),
+            -(score_map[chunk.chunk_id].final_score if score_map.get(chunk.chunk_id) else 0.0) / max(chunk.tokens, 1),
             chunk.tokens,
             chunk.chunk_id,
         ),
@@ -299,7 +299,7 @@ def _check_fallback_prioritize(
     for chunk in sorted(
         [chunk for chunk in available_chunks if chunk.chunk_id in reviewed and chunk.chunk_id not in selected],
         key=lambda chunk: (
-            -(score_map[chunk.chunk_id].final_score if chunk.chunk_id in score_map and score_map[chunk.chunk_id] else 0.0) / max(chunk.tokens, 1),
+            -(score_map[chunk.chunk_id].final_score if score_map.get(chunk.chunk_id) else 0.0) / max(chunk.tokens, 1),
             chunk.tokens,
             chunk.chunk_id,
         ),
@@ -383,13 +383,13 @@ async def _suggest_action(env: RagContextOptimizerEnv) -> dict[str, Any]:
                 suggested_citations=tuning.suggested_citations,
                 top_demo_cases=tuning.top_demo_cases,
             )
-        except Exception:
-            pass
+        except Exception as _e:  # noqa: BLE001, S110
+            pass  # nosec
     return _suggest_action_fallback(env)
 
 
 @app.post("/reset")
-async def reset_endpoint(payload: ResetRequest | None = Body(default=None)):
+async def reset_endpoint(payload: ResetRequest | None = None):
     payload = payload or ResetRequest()
     if payload.task_name not in TASKS_BY_NAME:
         raise HTTPException(status_code=400, detail="Unknown task_name.")

@@ -1,5 +1,7 @@
 import json
-from inference import _fallback_plan, _fallback_action, _build_user_prompt
+
+from inference import _build_user_prompt, _fallback_action, _fallback_plan
+
 
 def test_fallback_plan():
     assert "Verify outage evidence" in _fallback_plan({"task_name": "refund_triage_easy"})

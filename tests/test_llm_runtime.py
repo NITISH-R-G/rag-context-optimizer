@@ -1,15 +1,16 @@
 from __future__ import annotations
 
 import json
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from env.llm_runtime import _extract_json_object  # noqa: E402
+from env.llm_runtime import _extract_json_object
 
 
 def test_extract_json_object_valid_json():

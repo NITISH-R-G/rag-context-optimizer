@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 import socket
-import subprocess
+import subprocess  # nosec
 import sys
 import threading
 import time
@@ -11,7 +11,6 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
 import httpx
-
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -77,7 +76,7 @@ def test_inference_uses_proxy_api_key():
     proxy_thread = threading.Thread(target=proxy_server.serve_forever, daemon=True)
     proxy_thread.start()
 
-    app_process = subprocess.Popen(
+    app_process = subprocess.Popen(  # nosec
         [
             str(PYTHON),
             "-m",
@@ -104,7 +103,7 @@ def test_inference_uses_proxy_api_key():
                     == 200
                 ):
                     break
-            except Exception:
+            except Exception as _e:  # noqa: BLE001
                 time.sleep(0.5)
 
         env = os.environ.copy()
@@ -113,8 +112,9 @@ def test_inference_uses_proxy_api_key():
         env["API_BASE_URL"] = f"http://127.0.0.1:{proxy_port}/v1"
         env["API_KEY"] = "proxy-check-token"
         env["HF_TOKEN"] = "legacy-should-not-win"
-        result = subprocess.run(
+        result = subprocess.run(  # nosec
             [str(PYTHON), "inference.py"],
+            check=False,
             cwd=ROOT,
             env=env,
             capture_output=True,
@@ -135,5 +135,5 @@ def test_inference_uses_proxy_api_key():
         app_process.terminate()
         try:
             app_process.wait(timeout=5)
-        except Exception:
+        except Exception as _e:  # noqa: BLE001
             app_process.kill()
