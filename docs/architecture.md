@@ -8,15 +8,15 @@
 graph LR
     subgraph External Dependencies
         E0["math"]
-        E1["httpx"]
-        E2["functools"]
-        E3["socket"]
-        E4["unittest"]
-        E5["uvicorn"]
+        E1["collections"]
+        E2["hashlib"]
+        E3["__future__"]
+        E4["asyncio"]
+        E5["threading"]
         E6["playwright"]
-        E7["asyncio"]
-        E8["torch"]
-        E9["hashlib"]
+        E7["http"]
+        E8["builtins"]
+        E9["httpx"]
     end
     subgraph Core System
         API["FastAPI App"]
@@ -102,8 +102,8 @@ graph TD
     F4 -->|imports| F5
     F5 -->|imports| F2
     F6 -->|imports| F2
-    F8 -->|imports| F2
     F8 -->|imports| F5
+    F8 -->|imports| F2
     F9 -->|imports| F5
     F10 -->|imports| F5
     F10 -->|imports| F2
