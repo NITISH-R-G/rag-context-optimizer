@@ -7,16 +7,16 @@
 ```mermaid
 graph LR
     subgraph External Dependencies
-        E0["pydantic"]
-        E1["collections"]
-        E2["__future__"]
-        E3["signal"]
-        E4["math"]
-        E5["argparse"]
-        E6["playwright"]
-        E7["httpx"]
-        E8["threading"]
-        E9["openai"]
+        E0["subprocess"]
+        E1["__future__"]
+        E2["threading"]
+        E3["uvicorn"]
+        E4["streamlit"]
+        E5["collections"]
+        E6["openai"]
+        E7["socket"]
+        E8["math"]
+        E9["playwright"]
     end
     subgraph Core System
         API["FastAPI App"]
@@ -97,20 +97,20 @@ graph TD
     F32["test_inference_proxy.py"]
     click F32 "tests/test_inference_proxy.py" "Go to source"
     F1 -->|imports| F6
-    F3 -->|imports| F2
     F3 -->|imports| F5
+    F3 -->|imports| F2
     F4 -->|imports| F5
     F5 -->|imports| F2
     F6 -->|imports| F2
-    F8 -->|imports| F2
     F8 -->|imports| F5
+    F8 -->|imports| F2
     F9 -->|imports| F5
-    F10 -->|imports| F2
     F10 -->|imports| F5
-    F13 -->|imports| F2
+    F10 -->|imports| F2
     F13 -->|imports| F5
-    F15 -->|imports| F2
+    F13 -->|imports| F2
     F15 -->|imports| F5
+    F15 -->|imports| F2
     F16 -->|imports| F2
     F18 -->|imports| F3
     F19 -->|imports| F5
