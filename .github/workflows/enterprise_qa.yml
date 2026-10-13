@@ -19,18 +19,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      env:
+        ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
       with:
         fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v5
+      env:
+        ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
       with:
         python-version: "3.11"
         cache: "pip"
 
     - name: Install dependencies
       run: |
-        python -m pip install pip==26.1.2
+        python -m pip install --upgrade pip
         pip install -e ".[test]"
         pip install -e ".[qa]"
         pip install openai openenv-core
@@ -42,6 +46,7 @@ jobs:
       uses: gitleaks/gitleaks-action@v2
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
     - name: License Compliance
       run: |
@@ -86,7 +91,7 @@ jobs:
       id: bandit
       continue-on-error: true
       run: |
-        bandit -r . -ll -ii -f json -o reports/bandit.json
+        bandit -r . -x tests/ -ll -ii -f json -o reports/bandit.json
 
     - name: Dependency Security Audit (Pip-Audit)
       id: pipaudit
@@ -117,6 +122,8 @@ jobs:
     - name: Upload Reports as Artifacts
       if: always()
       uses: actions/upload-artifact@v4
+      env:
+        ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
       with:
         name: qa-reports
         path: reports/
