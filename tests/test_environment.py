@@ -32,7 +32,7 @@ def _largest_unselected_chunk(observation):
 def _average_random_agent_score(task_name: str, runs: int = 5) -> float:
     scores: list[float] = []
     for seed in range(runs):
-        rng = random.Random(seed)
+        rng = random.Random(seed)  # nosec B311
         env = RagContextOptimizerEnv(task_name)
         result = _run(env.reset())
 

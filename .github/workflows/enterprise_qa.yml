@@ -14,6 +14,9 @@ permissions:
   contents: read
   pull-requests: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   quality-assurance:
     runs-on: ubuntu-latest
@@ -33,7 +36,7 @@ jobs:
         python -m pip install pip==26.1.2
         pip install -e ".[test]"
         pip install -e ".[qa]"
-        pip install openai openenv-core
+        pip install ruff mypy openai openenv-core
 
     - name: Create Reports Directory
       run: mkdir -p reports
