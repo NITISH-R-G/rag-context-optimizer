@@ -91,6 +91,7 @@ def test_inference_uses_proxy_api_key():
         cwd=ROOT,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
+        shell=False,
     )
 
     try:
@@ -120,6 +121,8 @@ def test_inference_uses_proxy_api_key():
             capture_output=True,
             text=True,
             timeout=60,
+            check=False,
+            shell=False,
         )
         assert result.returncode == 0
         assert requests_seen

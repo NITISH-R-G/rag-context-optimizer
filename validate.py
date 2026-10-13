@@ -175,6 +175,8 @@ def run_inference_script(base_url: str) -> bool:
         env["HF_TOKEN"] = "legacy-should-not-win"
         process = subprocess.run(
             [sys.executable, "inference.py"],
+            check=False,
+            shell=False,
             cwd=PROJECT_ROOT,
             capture_output=True,
             text=True,
@@ -197,7 +199,7 @@ def main() -> int:
     port = find_free_port()
     base_url = f"http://127.0.0.1:{port}"
     command = [sys.executable, "-m", "uvicorn", "app:app", "--host", "127.0.0.1", "--port", str(port)]
-    process = subprocess.Popen(command, cwd=PROJECT_ROOT)
+    process = subprocess.Popen(command, cwd=PROJECT_ROOT, shell=False)
 
     try:
         if not wait_for_server(base_url):

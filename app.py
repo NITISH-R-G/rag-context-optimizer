@@ -383,13 +383,13 @@ async def _suggest_action(env: RagContextOptimizerEnv) -> dict[str, Any]:
                 suggested_citations=tuning.suggested_citations,
                 top_demo_cases=tuning.top_demo_cases,
             )
-        except Exception:
-            pass
+        except Exception as _e:  # noqa: F841, BLE001
+            pass  # pylint: disable=broad-exception-caught
     return _suggest_action_fallback(env)
 
 
 @app.post("/reset")
-async def reset_endpoint(payload: ResetRequest | None = Body(default=None)):
+async def reset_endpoint(payload: ResetRequest | None = None):
     payload = payload or ResetRequest()
     if payload.task_name not in TASKS_BY_NAME:
         raise HTTPException(status_code=400, detail="Unknown task_name.")
