@@ -315,7 +315,7 @@ def main() -> int:
     for task_name in tasks:
         try:
             run_task(task_name)
-        except Exception:
+        except Exception as _e:  # pylint: disable=broad-exception-caught
             print(f"[START] task={task_name} env={ENV_NAME} model={_model_name()}")
             print("[END] success=false steps=0 score=0.000 rewards=")
     return 0
