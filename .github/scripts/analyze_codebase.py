@@ -50,7 +50,7 @@ def extract_classes_functions(tree):
         if isinstance(node, ast.ClassDef):
             entities['classes'].append(node.name)
         elif isinstance(node, ast.FunctionDef) and not node.name.startswith('_'):
-             entities['functions'].append(node.name)
+            entities['functions'].append(node.name)
     return entities
 
 def extract_env_vars(source):
@@ -72,11 +72,11 @@ def get_project_metadata():
 
             deps_match = re.search(r'dependencies\s*=\s*\[(.*?)\]', content, re.DOTALL)
             if deps_match:
-                 deps_str = deps_match.group(1)
-                 deps = re.findall(r'"([^"=><]+)[^"]*"', deps_str)
-                 metadata["dependencies"] = deps
+                deps_str = deps_match.group(1)
+                deps = re.findall(r'"([^"=><]+)[^"]*"', deps_str)
+                metadata["dependencies"] = deps
     except Exception as e:
-         print(f"Error reading pyproject.toml: {e}")
+        print(f"Error reading pyproject.toml: {e}")
     return metadata
 
 def analyze_codebase(root_dir="."):
@@ -95,8 +95,8 @@ def analyze_codebase(root_dir="."):
 
     for subdir, _, files in os.walk(root_dir):
         if '.git' in subdir or '.github' in subdir or 'venv' in subdir or 'env' in subdir and 'env' != subdir[2:]:
-             if 'env' not in subdir: # Allow scanning the actual env package if any
-                 continue
+            if 'env' not in subdir: # Allow scanning the actual env package if any
+                continue
 
         for file in files:
             if file.endswith('.py'):
@@ -140,7 +140,7 @@ def analyze_codebase(root_dir="."):
                         graph["internal_imports"].add(imp)
                     else:
                         if imp not in ['os', 'sys', 'json', 're', 'pathlib', 'typing', 'ast', 'dataclasses', 'contextlib']:
-                             graph["external_deps"].add(imp)
+                            graph["external_deps"].add(imp)
 
     # Convert sets to lists for JSON serialization
     graph["frameworks"] = list(graph["frameworks"])
