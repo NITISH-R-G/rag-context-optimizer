@@ -113,8 +113,8 @@ def test_inference_uses_proxy_api_key():
         env["API_BASE_URL"] = f"http://127.0.0.1:{proxy_port}/v1"
         env["API_KEY"] = "proxy-check-token"
         env["HF_TOKEN"] = "legacy-should-not-win"
-        result = subprocess.run(
-            [str(PYTHON), "inference.py"],
+        result = subprocess.run([str(PYTHON), "inference.py"],
+            check=False,
             cwd=ROOT,
             env=env,
             capture_output=True,
