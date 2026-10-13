@@ -1,4 +1,4 @@
-from env.corpus import list_corpus_families, _CORPUS_FAMILY_FILES
+from env.corpus import _CORPUS_FAMILY_FILES, list_corpus_families
 
 
 def test_list_corpus_families():
