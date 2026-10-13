@@ -1,7 +1,6 @@
 import httpx
 import streamlit as st
 
-
 try:
     API_URL = st.secrets.get("API_URL", "http://localhost:7860") if hasattr(st, "secrets") else "http://localhost:7860"
 except FileNotFoundError:

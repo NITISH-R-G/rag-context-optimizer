@@ -9,11 +9,11 @@ This module adapts the paper's core idea to this benchmark:
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import hashlib
 import math
 import re
-from typing import Iterable
+from collections.abc import Iterable
+from dataclasses import dataclass
 
 from env.corpus import Chunk
 from env.retriever import HybridRetriever

@@ -1,7 +1,8 @@
 import ast
-import os
 import json
+import os
 import re
+
 
 def parse_python_file(filepath):
     """Parses a Python file and extracts its AST, catching basic syntax errors."""

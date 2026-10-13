@@ -53,3 +53,9 @@ disallow_untyped_defs = false
 exclude = [
     "^tests/"
 ]
+
+[tool.ruff]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["E402"]
+"server/app.py" = ["E402"]

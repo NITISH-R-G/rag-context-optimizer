@@ -4,14 +4,14 @@ Main OpenEnv-style environment for incident operations and escalation handling.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, is_dataclass, replace
 import os
-from pathlib import Path
 import re
+from dataclasses import asdict, dataclass, is_dataclass, replace
+from pathlib import Path
 from typing import Any
 
-from env.corpus import Chunk, load_corpus, resolve_corpus_path
 from env.context_tuner import ContextTunedPlanner
+from env.corpus import Chunk, load_corpus, resolve_corpus_path
 from env.graders import TaskGrader
 from env.llm_runtime import estimate_tokens
 from env.models import ChunkSummary, RagAction, RagObservation
@@ -30,11 +30,11 @@ class StepResult:
 class RagContextOptimizerEnv:
     _PROJECT_STOPWORDS = {
         "the", "and", "for", "with", "that", "this", "from", "into", "your", "have", "will",
-        "using", "used", "use", "into", "they", "them", "their", "about", "while", "where",
+        "using", "used", "use", "they", "them", "their", "about", "while", "where",
         "when", "what", "which", "should", "would", "could", "there", "here", "then", "than",
         "each", "such", "only", "also", "been", "being", "does", "did", "done", "just", "more",
         "most", "very", "over", "under", "like", "same", "across", "because", "through", "make",
-        "made", "many", "much", "some", "into", "onto", "must", "need", "needs", "task", "tasks",
+        "made", "many", "much", "some", "onto", "must", "need", "needs", "task", "tasks",
         "chunk", "chunks", "query", "prompt", "environment", "agent", "agents", "model", "models",
     }
     _PROJECT_QUERY_HINTS = {

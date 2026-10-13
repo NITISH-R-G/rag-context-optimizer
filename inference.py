@@ -10,8 +10,8 @@ import sys
 from typing import Any
 
 import httpx
-import pydantic
 import openai
+import pydantic
 from openai import OpenAI
 
 from env.models import RagAction
