@@ -5,7 +5,7 @@ Task definitions for the incident operations environment.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Literal, Optional
+from typing import Literal
 
 
 @dataclass(frozen=True, slots=True)
@@ -16,7 +16,7 @@ class Task:
     case_summary: str
     customer_tier: Literal["standard", "business", "enterprise"]
     incident_severity: Literal["sev3", "sev2", "sev1"]
-    domain_filter: Optional[str]
+    domain_filter: str | None
     token_budget: int
     required_artifact_ids: list[str]
     expected_citation_ids: list[str]
@@ -25,7 +25,9 @@ class Task:
     report_requirements: list[str]
     max_steps: int
     difficulty: Literal["easy", "medium", "hard"]
-    objective_type: Literal["refund_triage", "outage_brief", "executive_escalation"] = "refund_triage"
+    objective_type: Literal["refund_triage", "outage_brief", "executive_escalation"] = (
+        "refund_triage"
+    )
     optional_artifact_ids: list[str] = field(default_factory=list)
 
 
@@ -70,8 +72,18 @@ TASK_MEDIUM = Task(
     token_budget=620,
     required_artifact_ids=["support_004", "incident_002", "reliability_003"],
     expected_citation_ids=["support_004", "incident_002", "reliability_003"],
-    required_plan_keywords=["incident timeline", "confirmed updates", "rollback guardrails"],
-    required_report_keywords=["support", "incident", "release", "customer impact", "confirmed updates"],
+    required_plan_keywords=[
+        "incident timeline",
+        "confirmed updates",
+        "rollback guardrails",
+    ],
+    required_report_keywords=[
+        "support",
+        "incident",
+        "release",
+        "customer impact",
+        "confirmed updates",
+    ],
     report_requirements=[
         "Summarize how support should handle affected customers during the outage.",
         "Describe the incident-command communication discipline.",
@@ -96,10 +108,20 @@ TASK_HARD = Task(
     incident_severity="sev1",
     domain_filter=None,
     token_budget=360,
-    required_artifact_ids=["incident_003", "incident_004", "support_006", "reliability_004"],
+    required_artifact_ids=[
+        "incident_003",
+        "incident_004",
+        "support_006",
+        "reliability_004",
+    ],
     expected_citation_ids=["incident_003", "support_006", "reliability_004"],
     required_plan_keywords=["revoke sessions", "protect customers", "change freeze"],
-    required_report_keywords=["customer harm", "credential rotation", "protective outreach", "release safeguards"],
+    required_report_keywords=[
+        "customer harm",
+        "credential rotation",
+        "protective outreach",
+        "release safeguards",
+    ],
     report_requirements=[
         "State the immediate customer-protection actions.",
         "Preserve the investigation trail before cleanup.",
