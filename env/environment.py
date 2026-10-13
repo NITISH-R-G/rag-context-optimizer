@@ -1,17 +1,19 @@
+
 """
 Main OpenEnv-style environment for incident operations and escalation handling.
 """
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, is_dataclass, replace
 import os
-from pathlib import Path
 import re
+import typing
+from dataclasses import asdict, dataclass, is_dataclass, replace
+from pathlib import Path
 from typing import Any
 
-from env.corpus import Chunk, load_corpus, resolve_corpus_path
 from env.context_tuner import ContextTunedPlanner
+from env.corpus import Chunk, load_corpus, resolve_corpus_path
 from env.graders import TaskGrader
 from env.llm_runtime import estimate_tokens
 from env.models import ChunkSummary, RagAction, RagObservation
@@ -28,16 +30,16 @@ class StepResult:
 
 
 class RagContextOptimizerEnv:
-    _PROJECT_STOPWORDS = {
+    _PROJECT_STOPWORDS: typing.ClassVar[set[str]] = {
         "the", "and", "for", "with", "that", "this", "from", "into", "your", "have", "will",
-        "using", "used", "use", "into", "they", "them", "their", "about", "while", "where",
+        "using", "used", "use", "they", "them", "their", "about", "while", "where",
         "when", "what", "which", "should", "would", "could", "there", "here", "then", "than",
         "each", "such", "only", "also", "been", "being", "does", "did", "done", "just", "more",
         "most", "very", "over", "under", "like", "same", "across", "because", "through", "make",
-        "made", "many", "much", "some", "into", "onto", "must", "need", "needs", "task", "tasks",
+        "made", "many", "much", "some", "onto", "must", "need", "needs", "task", "tasks",
         "chunk", "chunks", "query", "prompt", "environment", "agent", "agents", "model", "models",
     }
-    _PROJECT_QUERY_HINTS = {
+    _PROJECT_QUERY_HINTS: typing.ClassVar[set[str]] = {
         "openenv", "benchmark", "rag-context-optimizer", "readme", "docker", "fastapi", "api",
         "endpoint", "inference.py", "app.py", "tasks.py", "graders.py", "environment.py", "repo",
         "repository", "codebase", "ui", "frontend", "backend", "space", "validator",
@@ -383,7 +385,7 @@ class RagContextOptimizerEnv:
         if chunk is None:
             return 0
         ratio = self._compression_ratios.get(chunk_id, 1.0)
-        return max(1, int(round(chunk.tokens * ratio)))
+        return max(1, round(chunk.tokens * ratio))
 
     def _total_tokens_used(self) -> int:
         return self._total_tokens_used_cache
