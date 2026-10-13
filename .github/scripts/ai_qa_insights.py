@@ -1,17 +1,21 @@
+"""Module for GitHub Actions automation."""
+# pylint: disable=line-too-long,import-outside-toplevel,missing-function-docstring
 import os
 import logging
 import subprocess
 
-logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+
 
 def read_file(filepath):
     """Safely read a text file, returning an empty string if it doesn't exist."""
     try:
         with open(filepath, "r", encoding="utf-8") as f:
             return f.read()
-    except Exception as e:
-        logging.warning(f"Could not read {filepath}: {e}")
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logging.warning("Could not read %s: %s", filepath, e)
         return ""
+
 
 def load_reports():
     """Load the output reports from various QA tools."""
@@ -25,9 +29,10 @@ def load_reports():
         "pip_audit": read_file("reports/pip-audit.json"),
         "safety": read_file("reports/safety.json"),
         "coverage": read_file("reports/coverage.txt"),
-        "pip_licenses": read_file("reports/pip-licenses.json")
+        "pip_licenses": read_file("reports/pip-licenses.json"),
     }
     return reports
+
 
 def build_prompt(reports):
     """Build the prompt for the LLM to generate the insights report."""
@@ -38,34 +43,34 @@ def build_prompt(reports):
     Here are the limited extracts from the reports (truncated to avoid context limits):
 
     1. Ruff (Linting & Formatting):
-    {reports['ruff'][:2000]}
+    {reports["ruff"][:2000]}
 
     2. Mypy (Type Checking):
-    {reports['mypy'][:2000]}
+    {reports["mypy"][:2000]}
 
     3. Vulture (Dead Code):
-    {reports['vulture'][:2000]}
+    {reports["vulture"][:2000]}
 
     4. Pylint (Duplicate Code / Others):
-    {reports['pylint'][:2000]}
+    {reports["pylint"][:2000]}
 
     5. Radon (Complexity):
-    {reports['radon'][:2000]}
+    {reports["radon"][:2000]}
 
     6. Bandit (Security Scanning):
-    {reports['bandit'][:2000]}
+    {reports["bandit"][:2000]}
 
     7. Pip Audit (Dependency Security):
-    {reports['pip_audit'][:2000]}
+    {reports["pip_audit"][:2000]}
 
     8. Safety (Dependency Security):
-    {reports['safety'][:2000]}
+    {reports["safety"][:2000]}
 
     9. Pytest Coverage:
-    {reports['coverage'][:2000]}
+    {reports["coverage"][:2000]}
 
     10. License Compliance:
-    {reports['pip_licenses'][:2000]}
+    {reports["pip_licenses"][:2000]}
 
     Please generate a Markdown report with the following sections:
     - **Executive Summary**: A brief overview of the codebase quality.
@@ -79,6 +84,7 @@ def build_prompt(reports):
     Ensure the output is high-quality Markdown.
     """
     return prompt
+
 
 def generate_insights(api_key, reports):
     """Call OpenAI API to generate insights based on reports."""
@@ -95,14 +101,18 @@ def generate_insights(api_key, reports):
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a senior QA engineer and software architect. Provide a clear, actionable markdown report based on the provided QA data."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are a senior QA engineer and software architect. Provide a clear, actionable markdown report based on the provided QA data.",
+                },
+                {"role": "user", "content": prompt},
             ],
         )
         return response.choices[0].message.content
-    except Exception as e:
-        logging.error(f"Error calling OpenAI API: {e}")
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        logging.error("Error calling OpenAI API: %s", e)
         return f"Error generating insights: {e}"
+
 
 def post_pr_comment(markdown_report):
     """Post the generated markdown report as a PR comment using the GitHub CLI."""
@@ -110,32 +120,39 @@ def post_pr_comment(markdown_report):
     pr_number = os.getenv("PR_NUMBER")
 
     if pr_number:
-        logging.info(f"Posting comment to PR {pr_number}")
+        logging.info("Posting comment to PR %s", pr_number)
         try:
-            with open("temp_report.md", "w") as f:
+            with open("temp_report.md", "w", encoding="utf-8") as f:
                 f.write(markdown_report)
 
             # Use gh cli to comment
-            subprocess.run(["gh", "pr", "comment", pr_number, "-F", "temp_report.md"], check=True)
+            subprocess.run(
+                ["/usr/bin/gh", "pr", "comment", pr_number, "-F", "temp_report.md"],
+                check=True,
+                shell=False,
+            )  # nosec B603
             os.remove("temp_report.md")
-        except Exception as e:
-            logging.error(f"Error posting PR comment: {e}")
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logging.error("Error posting PR comment: %s", e)
     else:
         logging.info("Not a PR or PR_NUMBER not set, skipping PR comment.")
+
 
 def main():
     api_key = os.getenv("OPENAI_API_KEY")
     reports = load_reports()
 
     if not api_key:
-        logging.warning("No OPENAI_API_KEY found. Generating a basic AI insights template.")
+        logging.warning(
+            "No OPENAI_API_KEY found. Generating a basic AI insights template."
+        )
         markdown_report = "# AI Quality Insights\n\nNo OpenAI API key provided. Skipping detailed analysis."
     else:
         logging.info("Generating AI insights via OpenAI...")
         markdown_report = generate_insights(api_key, reports)
 
     os.makedirs("reports", exist_ok=True)
-    with open("reports/ai_insights.md", "w") as f:
+    with open("reports/ai_insights.md", "w", encoding="utf-8") as f:
         f.write(markdown_report)
     logging.info("Wrote AI insights to reports/ai_insights.md")
 
@@ -146,10 +163,12 @@ def main():
     github_step_summary = os.getenv("GITHUB_STEP_SUMMARY")
     if github_step_summary:
         try:
-            with open(github_step_summary, "a") as f:
+            with open(github_step_summary, "a", encoding="utf-8") as f:
                 f.write(markdown_report)
-        except Exception as e:
-            logging.warning(f"Could not write to GITHUB_STEP_SUMMARY: {e}")
+        except Exception as e:  # pylint: disable=broad-exception-caught
+            logging.warning("Could not write to GITHUB_STEP_SUMMARY: %s", e)
+
 
 if __name__ == "__main__":
     main()
+# pylint: disable=duplicate-code
