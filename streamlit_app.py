@@ -2,27 +2,37 @@ import httpx
 import streamlit as st
 
 
-try:
-    API_URL = st.secrets.get("API_URL", "http://localhost:7860") if hasattr(st, "secrets") else "http://localhost:7860"
-except FileNotFoundError:
-    API_URL = "http://localhost:7860"
-except Exception:
-    API_URL = "http://localhost:7860"
+def get_api_url() -> str:
+    try:
+        if getattr(st, "session_state", {}).get("pytest_mode"):
+            return "http://localhost:7860"
+    except Exception as _e:  # noqa: F841, BLE001  # pylint: disable=broad-exception-caught
+        pass
+
+    try:
+        if hasattr(st, "secrets"):
+            return st.secrets.get("API_URL", "http://localhost:7860")
+    except Exception as _e:  # noqa: F841, BLE001  # pylint: disable=broad-exception-caught
+        pass
+    return "http://localhost:7860"
 
 
 
 def api_get(path: str):
     try:
-        response = httpx.get(f"{API_URL}{path}", timeout=20.0)
+        response = httpx.get(f"{get_api_url()}{path}", timeout=20.0)
         response.raise_for_status()
         return response.json()
-    except Exception as e:
+    except httpx.RequestError as e:
+        st.error(f"API Error: {e}")
+        return None
+    except Exception as e:  # noqa: BLE001  # pylint: disable=broad-exception-caught
         st.error(f"API Error: {e}")
         return None
 
 
 def api_post(path: str, payload: dict | None = None):
-    response = httpx.post(f"{API_URL}{path}", json=payload or {}, timeout=20.0)
+    response = httpx.post(f"{get_api_url()}{path}", json=payload or {}, timeout=20.0)
     response.raise_for_status()
     return response.json()
 
