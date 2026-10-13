@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-import streamlit_app  # noqa: E402
+import streamlit_app
 
 @patch("streamlit_app.st.error")
 @patch("streamlit_app.httpx.get")

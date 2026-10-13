@@ -30,7 +30,6 @@ jobs:
 
     - name: Install dependencies
       run: |
-        python -m pip install pip==26.1.2
         pip install -e ".[test]"
         pip install -e ".[qa]"
         pip install openai openenv-core
@@ -70,7 +69,7 @@ jobs:
     - name: Dead Code Detection (Vulture)
       continue-on-error: true
       run: |
-        vulture . > reports/vulture.txt || true
+        vulture vulture_whitelist.py . > reports/vulture.txt || true
 
     - name: Duplicate Code and Style (Pylint)
       continue-on-error: true
@@ -86,19 +85,19 @@ jobs:
       id: bandit
       continue-on-error: true
       run: |
-        bandit -r . -ll -ii -f json -o reports/bandit.json
+        bandit -r . -c bandit.yml -ll -ii -f json -o reports/bandit.json
 
     - name: Dependency Security Audit (Pip-Audit)
       id: pipaudit
       continue-on-error: true
       run: |
-        pip-audit -f json > reports/pip-audit.json
+        pip-audit -r requirements.txt -f json > reports/pip-audit.json
 
     - name: Dependency Security Scan (Safety)
       id: safety
       continue-on-error: true
       run: |
-        safety check --output json > reports/safety.json
+        safety check -r requirements.txt --output json > reports/safety.json
 
     - name: Test Coverage
       continue-on-error: true
