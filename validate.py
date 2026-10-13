@@ -176,6 +176,7 @@ def run_inference_script(base_url: str) -> bool:
         process = subprocess.run(
             [sys.executable, "inference.py"],
             cwd=PROJECT_ROOT,
+            check=False,
             capture_output=True,
             text=True,
             timeout=120,
