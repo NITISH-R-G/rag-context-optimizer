@@ -1,8 +1,7 @@
-.uv-cache/
+env/
 __pycache__/
-*.py[cod]
-env_test/
-env_verify/
-*.egg-info/
-env_verify2/
+.pytest_cache/
+reports/
+coverage.xml
 .coverage
+rag_context_optimizer.egg-info/
