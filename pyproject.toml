@@ -33,6 +33,8 @@ test = [
   "streamlit>=1.0.0",
 ]
 qa = [
+  "ruff>=0.1.0",
+  "mypy>=1.0.0",
   "vulture>=2.11",
   "radon>=6.0.1",
   "pip-audit>=2.7.3",
