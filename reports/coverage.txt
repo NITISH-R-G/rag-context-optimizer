@@ -1,0 +1,72 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.13, pytest-9.1.1, pluggy-1.6.0
+rootdir: /app
+configfile: pyproject.toml
+plugins: cov-7.1.0, anyio-4.14.2, asyncio-1.4.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 88 items
+
+tests/test_api.py ..................                                     [ 20%]
+tests/test_context_tuner_coverage.py ..                                  [ 22%]
+tests/test_corpus.py .                                                   [ 23%]
+tests/test_environment.py ..........                                     [ 35%]
+tests/test_environment_extra.py .                                        [ 36%]
+tests/test_fallback_logic.py ..............                              [ 52%]
+tests/test_graders.py .                                                  [ 53%]
+tests/test_inference.py .                                                [ 54%]
+tests/test_inference_coverage.py ........                                [ 63%]
+tests/test_inference_proxy.py .                                          [ 64%]
+tests/test_llm_features.py ..                                            [ 67%]
+tests/test_llm_runtime.py ....                                           [ 71%]
+tests/test_prompt_optimizer.py ......................                    [ 96%]
+tests/test_server_app.py ..                                              [ 98%]
+tests/test_streamlit_app.py .                                            [100%]
+
+=============================== warnings summary ===============================
+../home/jules/.pyenv/versions/3.12.13/lib/python3.12/site-packages/fastapi/testclient.py:1
+  /home/jules/.pyenv/versions/3.12.13/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+================================ tests coverage ================================
+_______________ coverage: platform linux, python 3.12.13-final-0 _______________
+
+Name                                   Stmts   Miss  Cover
+----------------------------------------------------------
+app.py                                   242      8    97%
+env/__init__.py                            0      0   100%
+env/context_tuner.py                     190      9    95%
+env/corpus.py                             44      7    84%
+env/environment.py                       379     59    84%
+env/graders.py                            79      4    95%
+env/llm_runtime.py                        59      3    95%
+env/llm_services.py                       17      3    82%
+env/models.py                            126     17    87%
+env/prompt_optimizer.py                  291     43    85%
+env/retriever.py                         110     13    88%
+env/tasks.py                              27      0   100%
+frontend_test.py                          15     15     0%
+inference.py                             193    108    44%
+server/__init__.py                         0      0   100%
+server/app.py                             16      2    88%
+streamlit_app.py                         116     94    19%
+tests/test_api.py                        206      0   100%
+tests/test_context_tuner_coverage.py      83      2    98%
+tests/test_corpus.py                       5      0   100%
+tests/test_environment.py                124      1    99%
+tests/test_environment_extra.py           18      0   100%
+tests/test_fallback_logic.py             178      1    99%
+tests/test_graders.py                     14      1    93%
+tests/test_inference.py                   12      1    92%
+tests/test_inference_coverage.py          42      0   100%
+tests/test_inference_proxy.py             69      3    96%
+tests/test_llm_features.py                81      3    96%
+tests/test_llm_runtime.py                 25      1    96%
+tests/test_prompt_optimizer.py           125      1    99%
+tests/test_server_app.py                  17      1    94%
+tests/test_streamlit_app.py               14      1    93%
+validate.py                              176    176     0%
+vulture_whitelist.py                      48     48     0%
+----------------------------------------------------------
+TOTAL                                   3141    625    80%
+======================== 88 passed, 1 warning in 14.46s ========================
