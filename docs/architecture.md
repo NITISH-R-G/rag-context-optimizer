@@ -7,16 +7,16 @@
 ```mermaid
 graph LR
     subgraph External Dependencies
-        E0["uvicorn"]
-        E1["signal"]
-        E2["streamlit"]
-        E3["__future__"]
-        E4["time"]
-        E5["uuid"]
-        E6["hashlib"]
-        E7["threading"]
-        E8["math"]
-        E9["playwright"]
+        E0["fastapi"]
+        E1["argparse"]
+        E2["time"]
+        E3["pytest"]
+        E4["collections"]
+        E5["signal"]
+        E6["uvicorn"]
+        E7["asyncio"]
+        E8["pydantic"]
+        E9["torch"]
     end
     subgraph Core System
         API["FastAPI App"]
