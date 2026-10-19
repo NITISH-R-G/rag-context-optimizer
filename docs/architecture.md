@@ -8,15 +8,15 @@
 graph LR
     subgraph External Dependencies
         E0["fastapi"]
-        E1["pytest"]
-        E2["openai"]
-        E3["http"]
+        E1["threading"]
+        E2["asyncio"]
+        E3["openai"]
         E4["unittest"]
-        E5["threading"]
-        E6["builtins"]
-        E7["signal"]
-        E8["subprocess"]
-        E9["functools"]
+        E5["signal"]
+        E6["subprocess"]
+        E7["__future__"]
+        E8["streamlit"]
+        E9["math"]
     end
     subgraph Core System
         API["FastAPI App"]
@@ -97,20 +97,20 @@ graph TD
     F32["test_inference_proxy.py"]
     click F32 "tests/test_inference_proxy.py" "Go to source"
     F1 -->|imports| F6
-    F3 -->|imports| F5
     F3 -->|imports| F2
+    F3 -->|imports| F5
     F4 -->|imports| F5
     F5 -->|imports| F2
     F6 -->|imports| F2
-    F8 -->|imports| F2
     F8 -->|imports| F5
+    F8 -->|imports| F2
     F9 -->|imports| F5
-    F10 -->|imports| F5
     F10 -->|imports| F2
-    F13 -->|imports| F5
+    F10 -->|imports| F5
     F13 -->|imports| F2
-    F15 -->|imports| F5
+    F13 -->|imports| F5
     F15 -->|imports| F2
+    F15 -->|imports| F5
     F16 -->|imports| F2
     F18 -->|imports| F3
     F19 -->|imports| F5
