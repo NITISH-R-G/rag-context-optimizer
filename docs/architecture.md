@@ -8,14 +8,14 @@
 graph LR
     subgraph External Dependencies
         E0["signal"]
-        E1["math"]
-        E2["random"]
+        E1["openai"]
+        E2["builtins"]
         E3["socket"]
-        E4["time"]
-        E5["functools"]
-        E6["collections"]
-        E7["pydantic"]
-        E8["pytest"]
+        E4["functools"]
+        E5["http"]
+        E6["pydantic"]
+        E7["uvicorn"]
+        E8["fastapi"]
         E9["asyncio"]
     end
     subgraph Core System
@@ -97,20 +97,20 @@ graph TD
     F32["test_inference_proxy.py"]
     click F32 "tests/test_inference_proxy.py" "Go to source"
     F1 -->|imports| F6
-    F3 -->|imports| F2
     F3 -->|imports| F5
+    F3 -->|imports| F2
     F4 -->|imports| F5
     F5 -->|imports| F2
     F6 -->|imports| F2
-    F8 -->|imports| F5
     F8 -->|imports| F2
+    F8 -->|imports| F5
     F9 -->|imports| F5
-    F10 -->|imports| F2
     F10 -->|imports| F5
-    F13 -->|imports| F2
+    F10 -->|imports| F2
     F13 -->|imports| F5
-    F15 -->|imports| F2
+    F13 -->|imports| F2
     F15 -->|imports| F5
+    F15 -->|imports| F2
     F16 -->|imports| F2
     F18 -->|imports| F3
     F19 -->|imports| F5
