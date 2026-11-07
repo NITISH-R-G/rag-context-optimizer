@@ -7,16 +7,16 @@
 ```mermaid
 graph LR
     subgraph External Dependencies
-        E0["http"]
-        E1["signal"]
-        E2["torch"]
-        E3["asyncio"]
-        E4["httpx"]
-        E5["fastapi"]
-        E6["uvicorn"]
-        E7["time"]
-        E8["hashlib"]
-        E9["__future__"]
+        E0["collections"]
+        E1["uuid"]
+        E2["http"]
+        E3["subprocess"]
+        E4["fastapi"]
+        E5["torch"]
+        E6["math"]
+        E7["unittest"]
+        E8["uvicorn"]
+        E9["time"]
     end
     subgraph Core System
         API["FastAPI App"]
@@ -113,17 +113,17 @@ graph TD
     F17 -->|imports| F0
     F19 -->|imports| F0
     F20 -->|imports| F0
-    F23 -->|imports| F2
     F23 -->|imports| F8
-    F24 -->|imports| F2
+    F23 -->|imports| F2
     F24 -->|imports| F8
+    F24 -->|imports| F2
     F25 -->|imports| F8
     F25 -->|imports| F2
     F26 -->|imports| F2
-    F27 -->|imports| F8
     F27 -->|imports| F2
+    F27 -->|imports| F8
     F28 -->|imports| F8
-    F29 -->|imports| F2
     F29 -->|imports| F8
+    F29 -->|imports| F2
 ```
 
