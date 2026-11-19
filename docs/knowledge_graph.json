@@ -1,44 +1,18 @@
 {
   "files": {
-    "app.py": {
-      "imports": [
-        "pydantic",
-        "pathlib",
-        "typing",
-        "uvicorn",
-        "contextlib",
-        "uuid",
-        "dataclasses",
-        "os",
-        "fastapi",
-        "env"
-      ],
-      "endpoints": [],
-      "classes": [
-        "ResetRequest",
-        "OptimizePromptRequest",
-        "EpisodeStore"
-      ],
-      "functions": [
-        "get"
-      ],
-      "env_vars": [
-        "DEBUG_LOG_REQUESTS"
-      ]
-    },
     "validate.py": {
       "imports": [
-        "json",
         "socket",
-        "subprocess",
-        "signal",
-        "threading",
-        "sys",
+        "json",
         "pathlib",
         "httpx",
         "http",
+        "signal",
         "os",
-        "time"
+        "time",
+        "sys",
+        "subprocess",
+        "threading"
       ],
       "endpoints": [],
       "classes": [
@@ -62,15 +36,15 @@
     "inference.py": {
       "imports": [
         "json",
-        "pydantic",
         "httpx",
-        "sys",
         "typing",
-        "os",
         "re",
+        "pydantic",
+        "asyncio",
+        "os",
         "openai",
-        "env",
-        "asyncio"
+        "sys",
+        "env"
       ],
       "endpoints": [],
       "classes": [],
@@ -79,19 +53,19 @@
         "main"
       ],
       "env_vars": [
-        "API_KEY",
-        "API_BASE_URL",
-        "RAG_ENV_URL",
-        "RAG_ENV_TASK",
-        "MODEL_NAME",
         "HF_TOKEN",
-        "ALLOW_BASELINE_FALLBACK"
+        "ALLOW_BASELINE_FALLBACK",
+        "MODEL_NAME",
+        "API_BASE_URL",
+        "RAG_ENV_TASK",
+        "RAG_ENV_URL",
+        "API_KEY"
       ]
     },
     "streamlit_app.py": {
       "imports": [
-        "streamlit",
-        "httpx"
+        "httpx",
+        "streamlit"
       ],
       "endpoints": [],
       "classes": [],
@@ -109,130 +83,275 @@
       ],
       "env_vars": []
     },
+    "app.py": {
+      "imports": [
+        "pathlib",
+        "fastapi",
+        "typing",
+        "uvicorn",
+        "pydantic",
+        "dataclasses",
+        "contextlib",
+        "os",
+        "uuid",
+        "env"
+      ],
+      "endpoints": [],
+      "classes": [
+        "ResetRequest",
+        "OptimizePromptRequest",
+        "EpisodeStore"
+      ],
+      "functions": [
+        "get"
+      ],
+      "env_vars": [
+        "DEBUG_LOG_REQUESTS"
+      ]
+    },
     "frontend_test.py": {
       "imports": [
-        "playwright",
-        "asyncio"
+        "asyncio",
+        "playwright"
       ],
       "endpoints": [],
       "classes": [],
       "functions": [],
       "env_vars": []
     },
-    "tests/test_streamlit_app.py": {
+    "env/graders.py": {
       "imports": [
-        "unittest",
-        "pathlib",
-        "streamlit_app",
-        "sys"
-      ],
-      "endpoints": [],
-      "classes": [],
-      "functions": [
-        "test_api_get_error"
-      ],
-      "env_vars": []
-    },
-    "tests/test_inference.py": {
-      "imports": [
-        "inference",
-        "pathlib",
-        "sys"
-      ],
-      "endpoints": [],
-      "classes": [],
-      "functions": [
-        "test_clamp_score"
-      ],
-      "env_vars": []
-    },
-    "tests/test_prompt_optimizer.py": {
-      "imports": [
-        "pytest",
-        "pathlib",
-        "sys",
-        "env",
-        "__future__"
+        "__future__",
+        "dataclasses",
+        "re",
+        "env"
       ],
       "endpoints": [],
       "classes": [
-        "DummyChunk",
-        "DummyTuning"
+        "GraderResult",
+        "TaskGrader"
       ],
       "functions": [
-        "test_tokenize",
-        "test_content_terms",
-        "test_clean_output_text",
-        "test_compact_text",
-        "test_approx_tokens",
-        "test_truncate_to_word_boundary",
-        "test_trim_sentence",
-        "test_rewrite_prompt_text",
-        "test_lightweight_short_prompt_rewrite",
-        "test_sentence_rank",
-        "test_summarize_chunk_for_output",
-        "test_target_ratio",
-        "test_fit_citations_into_prompt",
-        "test_rewrite_prompt_fallback",
-        "test_fit_citations_into_prompt_aggressive",
-        "test_fit_citations_into_prompt_grounded",
-        "test_rewrite_prompt_fallback_long",
-        "test_rewrite_prompt_fallback_preserve_short"
+        "grade"
       ],
       "env_vars": []
     },
-    "tests/test_environment.py": {
+    "env/llm_services.py": {
       "imports": [
-        "pathlib",
-        "sys",
-        "random",
+        "__future__",
         "env",
-        "asyncio"
+        "typing"
       ],
       "endpoints": [],
       "classes": [],
-      "functions": [
-        "test_reset_returns_valid_observation",
-        "test_select_chunk_within_budget",
-        "test_select_chunk_over_budget_penalized",
-        "test_compress_chunk_reduces_tokens",
-        "test_submit_answer_ends_episode",
-        "test_grader_deterministic",
-        "test_all_tasks_reachable",
-        "test_hard_task_harder_than_easy",
-        "test_bad_action_returns_error",
-        "test_close_env",
-        "run_sequence"
-      ],
+      "functions": [],
       "env_vars": []
     },
-    "tests/test_inference_coverage.py": {
+    "env/corpus.py": {
       "imports": [
         "json",
-        "inference"
+        "pathlib",
+        "typing",
+        "__future__",
+        "pydantic",
+        "os"
+      ],
+      "endpoints": [],
+      "classes": [
+        "Chunk"
+      ],
+      "functions": [
+        "resolve_corpus_path",
+        "list_corpus_families",
+        "load_corpus",
+        "get_chunks_by_domain",
+        "get_chunk_by_id"
+      ],
+      "env_vars": [
+        "RAG_CORPUS_FAMILY",
+        "RAG_CORPUS_PATH"
+      ]
+    },
+    "env/tasks.py": {
+      "imports": [
+        "__future__",
+        "dataclasses",
+        "typing"
+      ],
+      "endpoints": [],
+      "classes": [
+        "Task"
+      ],
+      "functions": [],
+      "env_vars": []
+    },
+    "env/retriever.py": {
+      "imports": [
+        "collections",
+        "typing",
+        "__future__",
+        "re",
+        "math",
+        "functools",
+        "env"
+      ],
+      "endpoints": [],
+      "classes": [
+        "HybridRetriever"
+      ],
+      "functions": [
+        "bm25_score",
+        "keyword_overlap_score",
+        "hybrid_score",
+        "rank_chunks",
+        "get_ground_truth_relevant"
+      ],
+      "env_vars": []
+    },
+    "env/llm_runtime.py": {
+      "imports": [
+        "json",
+        "typing",
+        "__future__",
+        "re",
+        "asyncio",
+        "dataclasses",
+        "os",
+        "openai"
+      ],
+      "endpoints": [],
+      "classes": [
+        "JsonCallResult"
+      ],
+      "functions": [
+        "model_name",
+        "resolve_llm_credentials",
+        "llm_configured"
+      ],
+      "env_vars": [
+        "MODEL_NAME",
+        "API_BASE_URL",
+        "API_KEY",
+        "HF_TOKEN"
+      ]
+    },
+    "env/environment.py": {
+      "imports": [
+        "pathlib",
+        "typing",
+        "__future__",
+        "re",
+        "dataclasses",
+        "os",
+        "env"
+      ],
+      "endpoints": [],
+      "classes": [
+        "StepResult",
+        "RagContextOptimizerEnv"
+      ],
+      "functions": [],
+      "env_vars": [
+        "ENABLE_PROJECT_CORPUS",
+        "RAG_CORPUS_FAMILY",
+        "RAG_CORPUS_PATH"
+      ]
+    },
+    "env/__init__.py": {
+      "imports": [],
+      "endpoints": [],
+      "classes": [],
+      "functions": [],
+      "env_vars": []
+    },
+    "env/models.py": {
+      "imports": [
+        "__future__",
+        "pydantic",
+        "typing"
+      ],
+      "endpoints": [],
+      "classes": [
+        "ChunkSummary",
+        "RagObservation",
+        "RagAction",
+        "RagReward"
+      ],
+      "functions": [
+        "validate_non_empty_text",
+        "validate_keywords",
+        "validate_required_strings",
+        "validate_ids",
+        "validate_report_requirements",
+        "validate_feedback",
+        "validate_budget_and_aliases",
+        "normalize_optional_strings",
+        "validate_action_semantics",
+        "validate_total_bound"
+      ],
+      "env_vars": []
+    },
+    "env/prompt_optimizer.py": {
+      "imports": [
+        "typing",
+        "__future__",
+        "re",
+        "dataclasses",
+        "env"
+      ],
+      "endpoints": [],
+      "classes": [
+        "PromptOptimizationResult"
+      ],
+      "functions": [],
+      "env_vars": []
+    },
+    "env/context_tuner.py": {
+      "imports": [
+        "typing",
+        "__future__",
+        "re",
+        "hashlib",
+        "dataclasses",
+        "math",
+        "torch",
+        "env"
+      ],
+      "endpoints": [],
+      "classes": [
+        "DemoCase",
+        "TunedChunkScore",
+        "ContextTuningResult",
+        "ContextTunedPlanner"
+      ],
+      "functions": [
+        "tune"
+      ],
+      "env_vars": []
+    },
+    "tests/test_server_app.py": {
+      "imports": [
+        "server",
+        "sys",
+        "pathlib",
+        "unittest"
       ],
       "endpoints": [],
       "classes": [],
       "functions": [
-        "test_fallback_plan",
-        "test_fallback_action_prioritize",
-        "test_fallback_action_inspect",
-        "test_fallback_action_inspect_limit",
-        "test_fallback_action_set_plan",
-        "test_fallback_action_summarize",
-        "test_fallback_action_submit",
-        "test_build_user_prompt"
+        "test_server_main_default_args",
+        "test_server_main_with_args"
       ],
       "env_vars": []
     },
     "tests/test_llm_runtime.py": {
       "imports": [
-        "json",
         "pytest",
+        "json",
         "pathlib",
+        "__future__",
         "sys",
-        "env",
-        "__future__"
+        "env"
       ],
       "endpoints": [],
       "classes": [],
@@ -241,6 +360,31 @@
         "test_extract_json_object_with_markdown",
         "test_extract_json_object_invalid_json",
         "test_extract_json_object_malformed_json_fallback"
+      ],
+      "env_vars": []
+    },
+    "tests/test_inference_proxy.py": {
+      "imports": [
+        "socket",
+        "json",
+        "pathlib",
+        "httpx",
+        "http",
+        "__future__",
+        "os",
+        "time",
+        "sys",
+        "subprocess",
+        "threading"
+      ],
+      "endpoints": [],
+      "classes": [
+        "ProxyHandler"
+      ],
+      "functions": [
+        "test_inference_uses_proxy_api_key",
+        "do_POST",
+        "log_message"
       ],
       "env_vars": []
     },
@@ -282,46 +426,46 @@
       ],
       "env_vars": []
     },
-    "tests/test_environment_extra.py": {
+    "tests/test_prompt_optimizer.py": {
       "imports": [
         "pytest",
+        "pathlib",
+        "__future__",
+        "sys",
         "env"
       ],
       "endpoints": [],
-      "classes": [],
-      "functions": [],
-      "env_vars": []
-    },
-    "tests/test_inference_proxy.py": {
-      "imports": [
-        "json",
-        "socket",
-        "subprocess",
-        "threading",
-        "pathlib",
-        "sys",
-        "httpx",
-        "http",
-        "os",
-        "__future__",
-        "time"
-      ],
-      "endpoints": [],
       "classes": [
-        "ProxyHandler"
+        "DummyChunk",
+        "DummyTuning"
       ],
       "functions": [
-        "test_inference_uses_proxy_api_key",
-        "do_POST",
-        "log_message"
+        "test_tokenize",
+        "test_content_terms",
+        "test_clean_output_text",
+        "test_compact_text",
+        "test_approx_tokens",
+        "test_truncate_to_word_boundary",
+        "test_trim_sentence",
+        "test_rewrite_prompt_text",
+        "test_lightweight_short_prompt_rewrite",
+        "test_sentence_rank",
+        "test_summarize_chunk_for_output",
+        "test_target_ratio",
+        "test_fit_citations_into_prompt",
+        "test_rewrite_prompt_fallback",
+        "test_fit_citations_into_prompt_aggressive",
+        "test_fit_citations_into_prompt_grounded",
+        "test_rewrite_prompt_fallback_long",
+        "test_rewrite_prompt_fallback_preserve_short"
       ],
       "env_vars": []
     },
     "tests/test_graders.py": {
       "imports": [
-        "env",
+        "sys",
         "pathlib",
-        "sys"
+        "env"
       ],
       "endpoints": [],
       "classes": [],
@@ -341,17 +485,42 @@
       ],
       "env_vars": []
     },
+    "tests/test_environment.py": {
+      "imports": [
+        "pathlib",
+        "asyncio",
+        "sys",
+        "env",
+        "random"
+      ],
+      "endpoints": [],
+      "classes": [],
+      "functions": [
+        "test_reset_returns_valid_observation",
+        "test_select_chunk_within_budget",
+        "test_select_chunk_over_budget_penalized",
+        "test_compress_chunk_reduces_tokens",
+        "test_submit_answer_ends_episode",
+        "test_grader_deterministic",
+        "test_all_tasks_reachable",
+        "test_hard_task_harder_than_easy",
+        "test_bad_action_returns_error",
+        "test_close_env",
+        "run_sequence"
+      ],
+      "env_vars": []
+    },
     "tests/test_llm_features.py": {
       "imports": [
-        "app",
-        "json",
         "socket",
+        "json",
         "pathlib",
-        "threading",
-        "sys",
-        "contextlib",
         "http",
-        "fastapi"
+        "fastapi",
+        "app",
+        "contextlib",
+        "sys",
+        "threading"
       ],
       "endpoints": [],
       "classes": [
@@ -366,18 +535,81 @@
       ],
       "env_vars": []
     },
+    "tests/test_streamlit_app.py": {
+      "imports": [
+        "streamlit_app",
+        "sys",
+        "pathlib",
+        "unittest"
+      ],
+      "endpoints": [],
+      "classes": [],
+      "functions": [
+        "test_api_get_error"
+      ],
+      "env_vars": []
+    },
+    "tests/test_inference_coverage.py": {
+      "imports": [
+        "json",
+        "inference"
+      ],
+      "endpoints": [],
+      "classes": [],
+      "functions": [
+        "test_fallback_plan",
+        "test_fallback_action_prioritize",
+        "test_fallback_action_inspect",
+        "test_fallback_action_inspect_limit",
+        "test_fallback_action_set_plan",
+        "test_fallback_action_summarize",
+        "test_fallback_action_submit",
+        "test_build_user_prompt"
+      ],
+      "env_vars": []
+    },
+    "tests/test_fallback_logic.py": {
+      "imports": [
+        "pytest",
+        "pathlib",
+        "unittest",
+        "app",
+        "sys"
+      ],
+      "endpoints": [],
+      "classes": [
+        "MockChunk",
+        "MockScore"
+      ],
+      "functions": [
+        "test_check_resolution_plan",
+        "test_check_compression",
+        "test_check_early_submit",
+        "test_check_prioritize_candidates",
+        "test_check_inspect_candidates",
+        "test_check_fallback_prioritize",
+        "test_get_final_fallback_action",
+        "test_suggest_action_fallback",
+        "test_check_early_submit_none",
+        "test_check_prioritize_candidates_none",
+        "test_check_inspect_candidates_none",
+        "test_check_fallback_prioritize_none",
+        "test_suggest_action_fallback_full_branch"
+      ],
+      "env_vars": []
+    },
     "tests/test_api.py": {
       "imports": [
-        "app",
         "pytest",
-        "pydantic",
         "pathlib",
-        "sys",
-        "builtins",
-        "dataclasses",
         "unittest",
         "fastapi",
-        "os"
+        "builtins",
+        "pydantic",
+        "app",
+        "dataclasses",
+        "os",
+        "sys"
       ],
       "endpoints": [],
       "classes": [
@@ -410,58 +642,36 @@
       ],
       "env_vars": []
     },
-    "tests/test_server_app.py": {
+    "tests/test_environment_extra.py": {
       "imports": [
-        "unittest",
-        "pathlib",
-        "server",
-        "sys"
+        "pytest",
+        "env"
+      ],
+      "endpoints": [],
+      "classes": [],
+      "functions": [],
+      "env_vars": []
+    },
+    "tests/test_inference.py": {
+      "imports": [
+        "inference",
+        "sys",
+        "pathlib"
       ],
       "endpoints": [],
       "classes": [],
       "functions": [
-        "test_server_main_default_args",
-        "test_server_main_with_args"
-      ],
-      "env_vars": []
-    },
-    "tests/test_fallback_logic.py": {
-      "imports": [
-        "app",
-        "pytest",
-        "pathlib",
-        "sys",
-        "unittest"
-      ],
-      "endpoints": [],
-      "classes": [
-        "MockChunk",
-        "MockScore"
-      ],
-      "functions": [
-        "test_check_resolution_plan",
-        "test_check_compression",
-        "test_check_early_submit",
-        "test_check_prioritize_candidates",
-        "test_check_inspect_candidates",
-        "test_check_fallback_prioritize",
-        "test_get_final_fallback_action",
-        "test_suggest_action_fallback",
-        "test_check_early_submit_none",
-        "test_check_prioritize_candidates_none",
-        "test_check_inspect_candidates_none",
-        "test_check_fallback_prioritize_none",
-        "test_suggest_action_fallback_full_branch"
+        "test_clamp_score"
       ],
       "env_vars": []
     },
     "server/app.py": {
       "imports": [
-        "app",
         "pathlib",
-        "sys",
         "uvicorn",
-        "argparse"
+        "app",
+        "argparse",
+        "sys"
       ],
       "endpoints": [],
       "classes": [],
@@ -476,271 +686,61 @@
       "classes": [],
       "functions": [],
       "env_vars": []
-    },
-    "env/models.py": {
-      "imports": [
-        "pydantic",
-        "__future__",
-        "typing"
-      ],
-      "endpoints": [],
-      "classes": [
-        "ChunkSummary",
-        "RagObservation",
-        "RagAction",
-        "RagReward"
-      ],
-      "functions": [
-        "validate_non_empty_text",
-        "validate_keywords",
-        "validate_required_strings",
-        "validate_ids",
-        "validate_report_requirements",
-        "validate_feedback",
-        "validate_budget_and_aliases",
-        "normalize_optional_strings",
-        "validate_action_semantics",
-        "validate_total_bound"
-      ],
-      "env_vars": []
-    },
-    "env/retriever.py": {
-      "imports": [
-        "math",
-        "collections",
-        "functools",
-        "typing",
-        "re",
-        "env",
-        "__future__"
-      ],
-      "endpoints": [],
-      "classes": [
-        "HybridRetriever"
-      ],
-      "functions": [
-        "bm25_score",
-        "keyword_overlap_score",
-        "hybrid_score",
-        "rank_chunks",
-        "get_ground_truth_relevant"
-      ],
-      "env_vars": []
-    },
-    "env/environment.py": {
-      "imports": [
-        "pathlib",
-        "typing",
-        "dataclasses",
-        "os",
-        "re",
-        "env",
-        "__future__"
-      ],
-      "endpoints": [],
-      "classes": [
-        "StepResult",
-        "RagContextOptimizerEnv"
-      ],
-      "functions": [],
-      "env_vars": [
-        "RAG_CORPUS_PATH",
-        "RAG_CORPUS_FAMILY",
-        "ENABLE_PROJECT_CORPUS"
-      ]
-    },
-    "env/prompt_optimizer.py": {
-      "imports": [
-        "typing",
-        "dataclasses",
-        "re",
-        "env",
-        "__future__"
-      ],
-      "endpoints": [],
-      "classes": [
-        "PromptOptimizationResult"
-      ],
-      "functions": [],
-      "env_vars": []
-    },
-    "env/llm_runtime.py": {
-      "imports": [
-        "json",
-        "typing",
-        "dataclasses",
-        "os",
-        "re",
-        "openai",
-        "asyncio",
-        "__future__"
-      ],
-      "endpoints": [],
-      "classes": [
-        "JsonCallResult"
-      ],
-      "functions": [
-        "model_name",
-        "resolve_llm_credentials",
-        "llm_configured"
-      ],
-      "env_vars": [
-        "MODEL_NAME",
-        "API_KEY",
-        "API_BASE_URL",
-        "HF_TOKEN"
-      ]
-    },
-    "env/graders.py": {
-      "imports": [
-        "dataclasses",
-        "env",
-        "__future__",
-        "re"
-      ],
-      "endpoints": [],
-      "classes": [
-        "GraderResult",
-        "TaskGrader"
-      ],
-      "functions": [
-        "grade"
-      ],
-      "env_vars": []
-    },
-    "env/llm_services.py": {
-      "imports": [
-        "env",
-        "__future__",
-        "typing"
-      ],
-      "endpoints": [],
-      "classes": [],
-      "functions": [],
-      "env_vars": []
-    },
-    "env/context_tuner.py": {
-      "imports": [
-        "math",
-        "typing",
-        "torch",
-        "dataclasses",
-        "hashlib",
-        "re",
-        "env",
-        "__future__"
-      ],
-      "endpoints": [],
-      "classes": [
-        "DemoCase",
-        "TunedChunkScore",
-        "ContextTuningResult",
-        "ContextTunedPlanner"
-      ],
-      "functions": [
-        "tune"
-      ],
-      "env_vars": []
-    },
-    "env/tasks.py": {
-      "imports": [
-        "dataclasses",
-        "__future__",
-        "typing"
-      ],
-      "endpoints": [],
-      "classes": [
-        "Task"
-      ],
-      "functions": [],
-      "env_vars": []
-    },
-    "env/corpus.py": {
-      "imports": [
-        "json",
-        "pydantic",
-        "pathlib",
-        "typing",
-        "os",
-        "__future__"
-      ],
-      "endpoints": [],
-      "classes": [
-        "Chunk"
-      ],
-      "functions": [
-        "resolve_corpus_path",
-        "list_corpus_families",
-        "load_corpus",
-        "get_chunks_by_domain",
-        "get_chunk_by_id"
-      ],
-      "env_vars": [
-        "RAG_CORPUS_PATH",
-        "RAG_CORPUS_FAMILY"
-      ]
-    },
-    "env/__init__.py": {
-      "imports": [],
-      "endpoints": [],
-      "classes": [],
-      "functions": [],
-      "env_vars": []
     }
   },
   "frameworks": [
-    "Pydantic",
     "Streamlit",
+    "Pydantic",
     "FastAPI"
   ],
   "external_deps": [
-    "pydantic",
-    "socket",
-    "uvicorn",
-    "unittest",
-    "threading",
-    "functools",
-    "streamlit",
-    "torch",
-    "argparse",
-    "playwright",
-    "__future__",
-    "math",
-    "builtins",
-    "fastapi",
-    "openai",
-    "random",
-    "time",
     "pytest",
-    "subprocess",
+    "playwright",
     "signal",
-    "httpx",
-    "collections",
-    "http",
-    "uuid",
     "hashlib",
-    "asyncio"
+    "streamlit",
+    "argparse",
+    "functools",
+    "fastapi",
+    "builtins",
+    "asyncio",
+    "openai",
+    "uuid",
+    "torch",
+    "socket",
+    "collections",
+    "unittest",
+    "http",
+    "uvicorn",
+    "pydantic",
+    "math",
+    "threading",
+    "httpx",
+    "__future__",
+    "time",
+    "subprocess",
+    "random"
   ],
   "internal_imports": [
-    "app",
     "server",
+    "app",
     "streamlit_app",
     "inference",
     "env"
   ],
   "api_endpoints": [],
   "env_vars": [
-    "API_KEY",
-    "RAG_CORPUS_FAMILY",
-    "API_BASE_URL",
-    "RAG_ENV_URL",
     "ENABLE_PROJECT_CORPUS",
-    "DEBUG_LOG_REQUESTS",
-    "RAG_CORPUS_PATH",
-    "RAG_ENV_TASK",
-    "MODEL_NAME",
     "HF_TOKEN",
-    "ALLOW_BASELINE_FALLBACK"
+    "ALLOW_BASELINE_FALLBACK",
+    "MODEL_NAME",
+    "API_BASE_URL",
+    "DEBUG_LOG_REQUESTS",
+    "RAG_ENV_TASK",
+    "RAG_CORPUS_FAMILY",
+    "RAG_ENV_URL",
+    "RAG_CORPUS_PATH",
+    "API_KEY"
   ],
   "metadata": {
     "dependencies": [
