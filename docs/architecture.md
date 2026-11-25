@@ -7,16 +7,16 @@
 ```mermaid
 graph LR
     subgraph External Dependencies
-        E0["builtins"]
-        E1["functools"]
-        E2["__future__"]
-        E3["signal"]
+        E0["threading"]
+        E1["pydantic"]
+        E2["http"]
+        E3["random"]
         E4["uuid"]
-        E5["hashlib"]
-        E6["argparse"]
-        E7["collections"]
-        E8["threading"]
-        E9["torch"]
+        E5["torch"]
+        E6["socket"]
+        E7["hashlib"]
+        E8["playwright"]
+        E9["__future__"]
     end
     subgraph Core System
         API["FastAPI App"]
@@ -97,22 +97,22 @@ graph TD
     F32["test_llm_features.py"]
     click F32 "tests/test_llm_features.py" "Go to source"
     F0 -->|imports| F7
-    F3 -->|imports| F7
     F3 -->|imports| F1
+    F3 -->|imports| F7
     F4 -->|imports| F11
     F6 -->|imports| F0
-    F9 -->|imports| F7
     F9 -->|imports| F1
+    F9 -->|imports| F7
     F11 -->|imports| F1
     F12 -->|imports| F7
-    F13 -->|imports| F7
     F13 -->|imports| F1
-    F14 -->|imports| F7
+    F13 -->|imports| F7
     F14 -->|imports| F1
+    F14 -->|imports| F7
     F15 -->|imports| F1
     F15 -->|imports| F7
-    F17 -->|imports| F7
     F17 -->|imports| F1
+    F17 -->|imports| F7
     F18 -->|imports| F7
     F19 -->|imports| F7
     F20 -->|imports| F7
